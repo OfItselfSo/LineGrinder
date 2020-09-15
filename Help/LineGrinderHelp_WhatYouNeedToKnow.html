@@ -1,0 +1,88 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+  <title>The Line Grinder Help: What You Really Need To Know</title>
+  <meta name="created" content="Mon, 13 Sep 2010 10:02:32 GMT" />
+  <meta http-equiv="content-type" content="text/html;charset=utf-8" />
+  <meta name="description" content="The Line Grinder software converts Gerber plots to GCode suitable for isolation milling of PCB traces." />
+  <meta name="keywords" content="Gerber, GCode, Isolation Milling, Isolation Routing, Excellon GCode" />   
+  <link rel="stylesheet" type="text/css" href="OISHelp.css" />
+</head>
+<body>
+<center><h2>Line Grinder<BR>Gerber Plot to Isolation Milling GCode Software</h2></center>
+<center><h1>What You Really Need To Know</h1></center>
+<P> 
+<div class="navbar">&lt;&lt; <A href="LineGrinderHelp_Overview.html"> Back </A> || <a href="LineGrinderHelp_TableOfContents.html">Table of Contents</a> || <a href="http://www.OfItselfSo.com/LineGrinder/LineGrinder.php">Home Page</a> || <A href="LineGrinderHelp_TypesOfGCodeOutput.html"> Next </A> &gt;&gt;</div>
+<P>
+&nbsp;
+<P>
+<h3>All PCB Design Software Outputs Multiple Files for One Circuit Board</h3>
+<P>
+PCB Design software maintain the border, trace and pad information (and more) in multiple layers. These layers when written out as Gerber or Excellon plots, manifest themselves as separate files. Each file contains different information regarding the PCB and each will require different processing. For example, the file containing the bottom copper trace information needs to be converted to <a href="LineGrinderHelp_TypesOfGCodeOutput.html#IsolationGCode">Isolation GCode</a> but the file which details the PCB border needs to be converted to <a href="LineGrinderHelp_TypesOfGCodeOutput.html#EdgeMillingGCode">Edge Milling GCode</a> in order to cut out the PCB from the larger material. Usually these files have the same leading part of the filename and a slightly different terminating part. The filename is used by the Line Grinder software to figure out how to process that file.
+<P>
+<A name="ReferencePinPads"></A>
+<h3>You need add or configure pads called Reference Pins on your PCB Design</h3>
+<P>
+Reference Pins are pads of a pre-determined size that you place on the PCB board before you save it as a Gerber plot. Line Grinder finds these pads (and it can tell they are for the Reference Pins because you define them to be that specific size) and uses them to align the top and bottom layers. This makes the pads for the board components line up when you drill through from top to bottom. If you board already has mounting holes in it you can just define those as Reference Pin pads. If you do not wish to have holes in your PCB, you can define Reference Pin pads which are not on the board. There are a few simple rules regarding acceptable Reference Pin pads: the pads must be of a specific (user defined) size and no other pads on the PCB should be of that size; the Reference Pin pads should be arranged in a rectangular formation which is parallel to the X and Y axis; all Reference Pin Pads must all be equal distances from the PCB border.
+<P>
+<h3>File Managers Contain the Conversion Information</h3>
+<P>
+The Line Grinder software reads Gerber and Excellon files and converts them to GCode. This conversion process  necessarily requires a lot of configurable parameters. These parameters are stored internally in an object called a <a href="LineGrinderHelp_SettingsTabAndFileManagers.html#FileManagers">File Manager</a>. File Managers are created and configured on the <a href="LineGrinderHelp_SettingsTabAndFileManagers.html">Settings tab</a> of the Main form. 
+<P>
+<A name="FilenamePattern"></A>
+<h3>A File Manager is Found by Matching File Name Patterns </h3>
+<P>
+The method of operation is to attempt to find a matching File Manager as soon as a Gerber or Excellon file is opened. The search for the File Manager is conducted solely on filename similarity. In other words, if you have a File Manager tagged with a file name pattern of <TT>Bottom Copper.gbr</TT> and open a file called <TT>MyPCB_Test5 - Bottom Copper.gbr</TT> then that File Manager will be used to process the file contents. 
+<P>
+<h3>It is Up To You to Create the File Managers</h3>
+<P>
+If a File Manager cannot be found, then you will get an message box telling you that you need to create one. In short, no File Manager, then no GCode. It is easy to create a new File Manager. Just press the <I>Add</I> button on the <a href="LineGrinderHelp_SettingsTabAndFileManagers.html">Settings tab</a>.
+<P>
+<h3>A File Manager Determines the Type of GCode Created</h3>
+<P>
+File Managers, besides providing the configuration information for the conversion to GCode, also <a href="LineGrinderHelp_SettingsTabAndFileManagers.html#TypesOfFileManager">dictate what sort of conversion happens to the file</a>. In other words, if the File Manager <TT>Bottom Copper.gbr</TT> mentioned above was configured to produce <a href="LineGrinderHelp_TypesOfGCodeOutput.html#IsolationGCode">Isolation GCode</a> then you get Isolation GCode output. If it is configured to produce <a href="LineGrinderHelp_TypesOfGCodeOutput.html#EdgeMillingGCode">
+</a> then that is what you get. The options displayed with each File Manager are specific to the type of output it will produce. You specify the type of output (called the <I>OperationMode</I>) when you create the File Manager.
+<P>
+<h3>New Tabs Appear in the Line Grinder Display When There is Content to Fill Them</h3>
+<P>
+For both Gerber and Excellon files, a new tab with the file content appears once the file is opened. In order to simplify the user interface, the unused tabs are hidden until you do something that will fill them with content. For example, if you open an Excellon file you can see the Excellon file contents, if ou convert a Gerber plot to Isolation GCode you will get a new tab displaying the GCode content.
+<P>
+<h3>The Plot View Tab can be Used to Display the Gerber Plot</h3>
+<P>
+Once you have opened the Gerber file, you can view it using the graphical display on the <a href="LineGrinderHelp_MainFormAndPlotView.html">Plot View tab</a>. The name of the active File Manager for that Gerber file will be listed on the bottom right hand corner of the Plot View tab. Excellon files cannot be viewed graphically mostly because the plotting engine for it hasn't been written yet. 
+<P>
+<h3>Converting To GCode is Simple: Just Press the Button</h3>
+<P>
+Assuming you have set up the File Manager correctly the conversion process is simple. Just press the <I>Convert to GCode</I> button and the process is started. The length of time the conversion process takes depends on the size of the PCB board and the speed of the PC. Larger boards take longer, even if they are relatively empty of traces - that's just the way the <a href="http://www.OfItselfSO.com/T001_GraphicalSigymergy.pdf">algorithm</a> works.
+<P>
+<h3>The Plot View Tab can be Used to Display the GCode Plot</h3>
+<P>
+After conversion, the GCode output will appear in one or more newly created tabs. At this time you can also view the GCode plot using the options on the <a href="LineGrinderHelp_MainFormAndPlotView.html">Plot View</a> tab. This view can be magnified and scrolled to show you what the PCB should look like when the GCode is run. 
+<P>
+<h3>Carefully Inspect the GCode Plot. Inappropriate Settings can Generate Invalid GCode</h3>
+<P>
+You will need to look very carefully at the GCode plot in order to ensure you are happy with what has been generated. It is possible, if the File Manager settings are inappropriate or incorrect to generate GCode in which the <a href="LineGrinderHelp_WhatCanGoWrong.html#IsoCutWidthTooLarge">PCB traces are not electrically isolated</a>. For example, if you configure the <a href="LineGrinderHelp_IsolationCutFileManagers.html#IsoCutWidth">width of the isolation milling bit</a> (<i>IsoCutWidth</i>) to be 0.01 inches in the File Manager and the Gerber file actually contains two objects 0.005 inches apart then the milling bit cannot &quot;get between them&quot; to remove the copper and they will be left electrically connected. Be aware that this version of Line Grinder cannot detect such occurences and no error message will be reported. It is up to you to thoroughly check the GCode plot output and the actual routed board in order to ensure the traces are electrically correct. 
+<P>
+<h3>Saving the GCode is Simple: Just Press the Button</h3>
+<P>
+Once the file has been converted to GCode, the appropriate <I>Save</I> and <I>Save As</I> buttons on the right hand side of the Main Form will become active. Just press these to save the GCode file. The default name for the GCode file will be determined by the settings in the active File Manager.
+<P>
+In summary the process is: Configure the File Managers, Open the File, Create the GCode and Save the GCode. Of course, there is <a href="LineGrinderHelp_IsolationMillingTipsAndAdvice.html">a bit more to it than that</a>, and there are <a href="LineGrinderHelp_IsolationMillingStepByStep.html">practical matters to consider</a> - but the concept is simple.
+<P>
+<h3>You May Wish to Generate Drill GCode</h3>
+<P>
+Most PCB software will output a drill file in the Excellon format. This file will, when run on an appropriate machine, drill the holes for the pads and vias on the circuit board. The Line Grinder software can read an Excellon file and generate appropriate <a href="LineGrinderHelp_TypesOfGCodeOutput.html#DrillingGCode">Drilling GCode</a> for this purpose. Since these drilling operations will necessarily drive the drill through the bottom of the PCB, the PCB being milled is usually fixed to a &quot;throw away&quot; piece of wood rather than directly to the bed of the mill.
+<P>
+<P>
+<h3>It is Possible to Generate Bed Flattening GCode</h3>
+<P>
+The drilling operations (for the Reference Pins and Excellon Files) necessarily drive a cutting tool through the bottom of the PCB. For this reason, the PCB being milled is usually fixed to a &quot;throw away&quot; piece of wood rather than directly to the bed of the mill. Since this wood is unlikely to be perfectly flat with respect to the toolhead it is advisable to mill it flat before fixing the blank PCB to it. The Line Grinder software can generate appropriate <a href="LineGrinderHelp_TypesOfGCodeOutput.html#BedFlatteningGCode">Bed Flattening GCode</a> for this purpose.
+<P>
+</DL>
+<P>
+&nbsp;
+<P>
+<div class="navbar">&lt;&lt; <A href="LineGrinderHelp_Overview.html"> Back </A> || <a href="LineGrinderHelp_TableOfContents.html">Table of Contents</a> || <a href="http://www.OfItselfSo.com/LineGrinder/LineGrinder.php">Home Page</a> || <A href="LineGrinderHelp_TypesOfGCodeOutput.html"> Next </A> &gt;&gt;</div>
+</body>
+</html>
+

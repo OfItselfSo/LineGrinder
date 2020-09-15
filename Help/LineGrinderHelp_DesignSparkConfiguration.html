@@ -1,0 +1,131 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+  <title>The Line Grinder Help: Configuring DesignSpark</title>
+  <meta name="created" content="Mon, 13 Sep 2010 10:02:32 GMT" />
+  <meta http-equiv="content-type" content="text/html;charset=utf-8" />
+  <meta name="description" content="The Line Grinder software converts Gerber plots to GCode suitable for isolation milling of PCB traces." />
+  <meta name="keywords" content="Gerber, GCode, Isolation Milling, Isolation Routing, Excellon GCode" />   
+  <link rel="stylesheet" type="text/css" href="OISHelp.css" />
+</head>
+<body>
+<center><h2>Line Grinder<BR>Gerber Plot to Isolation Milling GCode Software</h2></center>
+<center><h1>Configuring DesignSpark</h1></center>
+<P> 
+<div class="navbar">&lt;&lt; <A href="LineGrinderHelp_TableOfContents.html"> Back </A> || <a href="LineGrinderHelp_TableOfContents.html">Table of Contents</a> || <a href="http://www.OfItselfSo.com/LineGrinder/LineGrinder.php">Home Page</a> || <A href="LineGrinderHelp_TableOfContents.html"> Next </A> &gt;&gt;</div>
+<P>
+&nbsp;
+<P>
+<h2>How to use DesignSpark to Create Gerber Plots for the LineGrinder Software</h2>
+<P>
+The Line Grinder software converts the Gerber plots of PCB circuits into GCode which can then be used to create isolation milled circuit boards. The freeware <a href="http://www.designspark.com/pcb">DesignSpark</a> software is one product which can be used to create the PCB designs suitable for isolation milling. There are a number of things you need to know in order to configure DesignSpark so that it will save Gerber plot files in a format which the Line Grinder can read. 
+<P>
+The following is a step-by-step tutorial using the <TT>DigitalCircuit_Inch.pcb</TT> DesignSpark PCB design sample which is installed with the Line Grinder software in the <TT>Examples - DesignSpark</TT> sub folder. Click on any of the images to make them larger.
+<P>
+<h3>1) Start DesignSpark and open the DigitalCircuit_Inch.pcb Design</h3>
+<P>
+The image below shows the <TT>DigitalCircuit_Inch.pcb</TT> PCB design sample open in the DesignSpark software.
+<P>
+<a href="DesignSparkOpen.jpg"><img src="th_DesignSparkOpen.jpg" width="300" height="215" alt="The DesignSpark Software" title="The DesignSpark Software" /></a>
+<P>
+<h3>2) Set the Origin to the Bottom Left Hand Corner</h3>
+<P>
+If you move your mouse over the objects in the pads and traces in the PCB design you will see that the  origin, the point (0,0) is well off the page - about three inches to the left and five inches below. The Line Grinder software can cope with this - but it makes things much better if the origin is located on the lower left hand corner of the border. This is easy to change:
+<P>
+<DL>
+<DL>
+<LI>Enlarge the image until you see the bottom left hand corner fill the display.
+<LI>Right click with the mouse on the corner of the PCB and open the context menu.
+<LI>Choose the <I>Origins</I> item. It is second from bottom
+<LI>On the sub menu that pops up choose the <I>Set System Origin at Item</I> option.
+</DL>
+</DL>
+<P>
+Once the origin is set, you will see a cross hair icon on the bottom corner as shown in the image below.
+<P>
+<a href="DesignSparkSetOrigin.jpg"><img src="th_DesignSparkSetOrigin.jpg" width="300" height="215" alt="Setting the Origin" title="Setting the Origin" /></a>
+<P>
+<h3>3) Place the First Reference Pin Pad</h3>
+<P>
+One of the hardest problems to solve when creating isolation milled circuits is how to align the top and bottom copper layers. Line Grinder resolves this issue by requiring pads of a specific size called <a href="LineGrinderHelp_WhatYouNeedToKnow.html#ReferencePinPads">Reference Pin pads</a> to be added to the PCB. You determine the size you use and tell the Line Grinder software (in the Isolation Cut <a href="LineGrinderHelp_IsolationCutFileManagers.html">File Managers</a>) what that size is. Often the Reference Pin Pads are co-incident with the mounting holes of the PCB. If you do not want these pads on your board (as in the example below) - no problem. Just put them outside the border. 
+<P>
+The following steps will now place the first Reference Pin pad. Since we do not want to have any mounting holes drilled on this board we will place the Reference Pin pads outside the PCB border.
+<P>
+<DL>
+<DL>
+<LI>Click on the Pad Icon <img src="DesignSparkPadIcon.jpg" alt="The DesignSpark Pad Icon" alt="The DesignSpark Pad Icon" /></a>
+<LI>Click on a point below and to the left of the origin to drop a new pad there.
+<LI>Press the ESC key to stop it wanting to drop additional pads.
+<LI>Now we have to change the size of the pad. Right click with the mouse on the pad to bring up the context menu and select the <I>Properties</I> option.
+<LI>Change the <I>Width</I> option on the properties panel to 0.100. This number is arbitrary and can be another value if you wish. It serves to enable the Line Grinder software to distinctly identify the Reference Pin Pads. No other pads on the board should be this size.
+</DL>
+</DL>
+<P>
+The image below shows the bottom left Reference Pin pad once it has been sized and positioned. Note that it is centered over a grid dot. This will make it easy to place the other Reference Pin Pads an identical distance from the border.
+<P>
+<a href="DesignSparkSetFirstRefPinPad.jpg"><img src="th_DesignSparkSetFirstRefPinPad.jpg" width="300" height="215" alt="Set the First Reference Pin Pad" title="Set the First Reference Pin Pad" /></a>
+<P>
+<h3>4) Place the Other Reference Pin Pads</h3>
+<P>
+The main thing about the Reference Pin pads is that they must be of a known unique size, they must be in a rectangular formation and they must be the same distance from the board edges. They can be inside or outside the board - but it is critical that they are equidistant from the edges. You must have at least two Reference Pin Pads. If the <a href="LineGrinderHelp_IsolationCutFileManagers.html#IsoFlipMode">IsoFlipMode</a> in your <a href="LineGrinderHelp_SettingsTabAndFileManagers.html#FileManagers">Isolation Cut File Manager</a> is <i>Flip_X</i> then the Reference Pin pads must be on the same line parallel to the X axis.  Similarly if the IsoFlipMode in your Isolation Cut File Manager is <i>Flip_Y</i> then the Reference Pin pads must be on the same line parallel to the Y axis. In general it is easier to just put four Reference Pin Pads on the PCB - each equidistant from a border corner.
+<P>
+Note the easy way to create the rest of the Reference Pin pads is just to copy the first pad placed in the step above and then paste it into the design where needed. Once dropped in place, you can easily drag the pad about to get the position right.
+<P>
+The image below shows the PCB with four Reference Pin pads placed. Click on the image to enlarge it and note that the pads are equidistant from the border edges and are in a strict rectangular formation.
+<P>
+<a href="DesignSparkSetAllRefPinPads.jpg"><img src="th_DesignSparkSetAllRefPinPads.jpg" width="300" height="215" alt="Set All Reference Pin Pads" title="Set All Reference Pin Pads" /></a>
+<P>
+<h3>5) Open the Gerber Output Form</h3>
+<P>
+Now that the origin is set and the Reference Pin pads have been placed on the PCB, it is time to save the design as Gerber and Excellon files. These files are what the Line Grinder software will read in order to produce the Isolation Milling GCode (and other useful GCode as well). Click on the <I>Output</I> menu item at the top of the screen and then choose the <i>Manufacturing Plots</i> ... sub item. This opens the Gerber Output Form as seen in the image below.
+<P>
+<a href="DesignSparkGerberOutputForm.jpg"><img src="th_DesignSparkGerberOutputForm.jpg" width="300" height="215" alt="Gerber Output Form" title="Gerber Output Form" /></a>
+<P>
+<h3>6) Configure the Gerber Output Options</h3>
+<P>
+On the Gerber Output Form a number of options have been enabled that we do not need, and also, a plot to output the board outline will need to be added - it is not present by default. The steps below indicate the procedure
+<P>
+<DL>
+<DL>
+<LI>Uncheck the <i>Top Silkscreen</i> option. We do not need this plot.
+<LI>Uncheck the <i>Top Copper (Paste)</i> option. We do not need this plot.
+<LI>Uncheck the <i>Bottom Silkscreen</i> option. We do not need this plot.
+<LI>Uncheck the <i>Bottom Copper (Paste)</i> option. We do not need this plot.
+<LI>Uncheck the <i>Drill Ident Drawing - Through Hole</i> option. We do not need this plot.
+<LI>We need to add a new plot to output the board outline information. Generally this is not present by default. Click on the <i>Add Plot</i> button at the top of the form and choose the <i>Gerber Plot</i> option. This will be added with a default name of <i>Plot 1</i>.
+<LI>Select the new <i>Plot 1</i> plot option in the panel on the left and change its name in the <i>Plot Name</i> area of the panel on the right. The name can be what you wish, but a name of <I>Board Outline</I> is a good choice.
+<LI>While the new <i>Plot 1</i> plot option in the panel on the left is still selected, go to the <I>Layers</I> tab of the panel on the right and ensure the <I>(Board Outline)</I> layer is set to &quot;Y&quot; Just double click on it to change it. This assoiates the PCB board outline layer with the new plot you have created.
+</DL>
+</DL>
+<P>
+The images below show the Gerber Output Options in a suitable configuration. 
+<P>
+<a href="DesignSparkGerberOutputConfigured1.jpg"><img src="th_DesignSparkGerberOutputConfigured1.jpg" width="300" height="215" alt="Gerber Output Form Configured" title="Gerber Output Form Configured" /></a>
+<a href="DesignSparkGerberOutputConfigured2.jpg"><img src="th_DesignSparkGerberOutputConfigured2.jpg" width="300" height="215" alt="Gerber Output Form Configured" title="Gerber Output Form Configured" /></a>
+<P>
+<h3>7) Output the Gerber and Excellon Plots</h3>
+<P>
+Pressing on the <I>Run</I> button on Gerber Output Form will output the Gerber files for the top and bottom copper layers and the board outline. The plot entitled <I>Drill Data - Through Hole</I> will be output as an Excellon drill file. 
+The image below shows the output files. Note the format of the names - the trailing part of the names such as Bottom Copper.gbr or DigitalCircuit_Inch - Drill Data - Through Hole.drl can be used as <a href="LineGrinderHelp_WhatYouNeedToKnow.html#FilenamePattern">FilenamePatterns</a> in the Line Grinder software to associate a File Manager with the file. The <a href="LineGrinderHelp_SettingsTabAndFileManagers.html#FileManagers">File Manager</a> will determine the operations (what type of GCode it is converted to) and the settings used in the GCode.
+<P>
+<img src="DesignSparkGerberOutputFiles.jpg" width="291" height="163" alt="Gerber Output Files" title="Gerber Output Files" /></a>
+<P>
+<h3>8) Process the Gerber and Excellon Files in the Line Grinder Software</h3>
+<P>
+At this point, the files are ready to be read by the Line Grinder software. Once the Line Grinder software is started you will need to create some <a href="LineGrinderHelp_SettingsTabAndFileManagers.html#FileManagers">File Managers</a> - and configure them to settings suitable for your purposes. There is a button on the <I>Settings Tab</I> entitled <I>Add Managers for DesignSpark</I> that can be used to create a useful set of File Managers to get started with. You will need to adjust the settings as appropriate. 
+<P>
+Note that the default setting for the Reference Pin pads is 0.125 inch and the above discussion sets the pins to a value of 0.100 inch. Using the default settings, the Line Grinder software will not be able to find the Reference Pins, and will return an error message when the file is opened. Change the  <i><a href="LineGrinderHelp_IsolationCutFileManagers.html#ReferencePinPadDiameter">ReferencePinPadDiameter</a></i> setting in the IsolationCut File Managers for the Top and Bottom Copper layers to a value of 0.100 to fix this problem. 
+<P>
+The image below shows the <TT>DigitalCircuit_Inch - Bottom Copper.gbr</TT> file after conversion to Isolation GCode in the Line Grinder software.
+<P>
+<a href="DesignSparkLineGrinderIsoDisplay.jpg"><img src="th_DesignSparkLineGrinderIsoDisplay.jpg" width="300" height="215" alt="Line Grinder Displaying Isolation GCode" title="Line Grinder Displaying Isolation GCode" /></a>
+<P>
+&nbsp;
+<P>
+<div class="navbar">&lt;&lt; <A href="LineGrinderHelp_TableOfContents.html"> Back </A> || <a href="LineGrinderHelp_TableOfContents.html">Table of Contents</a> || <a href="http://www.OfItselfSo.com/LineGrinder/LineGrinder.php">Home Page</a> || <A href="LineGrinderHelp_TableOfContents.html"> Next </A> &gt;&gt;</div>
+<P>
+
+
+</body>
+</html>
+

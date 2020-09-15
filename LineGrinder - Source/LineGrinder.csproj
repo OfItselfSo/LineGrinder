@@ -1,0 +1,228 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProductVersion>9.0.30729</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{EF5594FC-F1A8-4ADF-BC10-CFE55E3CD534}</ProjectGuid>
+    <OutputType>WinExe</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>LineGrinder</RootNamespace>
+    <AssemblyName>LineGrinder</AssemblyName>
+    <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <ApplicationIcon>gear.ico</ApplicationIcon>
+    <FileUpgradeFlags>
+    </FileUpgradeFlags>
+    <UpgradeBackupLocation>
+    </UpgradeBackupLocation>
+    <OldToolsVersion>3.5</OldToolsVersion>
+    <TargetFrameworkProfile />
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <Prefer32Bit>false</Prefer32Bit>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <Prefer32Bit>false</Prefer32Bit>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.Core">
+      <RequiredTargetFramework>3.5</RequiredTargetFramework>
+    </Reference>
+    <Reference Include="System.Design" />
+    <Reference Include="System.Runtime.Serialization">
+      <RequiredTargetFramework>3.0</RequiredTargetFramework>
+    </Reference>
+    <Reference Include="System.Xml.Linq">
+      <RequiredTargetFramework>3.5</RequiredTargetFramework>
+    </Reference>
+    <Reference Include="System.Data.DataSetExtensions">
+      <RequiredTargetFramework>3.5</RequiredTargetFramework>
+    </Reference>
+    <Reference Include="System.Data" />
+    <Reference Include="System.Deployment" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.Windows.Forms" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="ApplicationImplicitSettings.cs" />
+    <Compile Include="ApplicationColorManager.cs" />
+    <Compile Include="ApplicationExplicitSettings.cs" />
+    <Compile Include="ApplicationUnitsEnum.cs" />
+    <Compile Include="GCodeBuilderObject_EngravingLine.cs" />
+    <Compile Include="GerberLine_G37Code.cs" />
+    <Compile Include="GerberLine_G36Code.cs" />
+    <Compile Include="GerberLine_SFCode.cs" />
+    <Compile Include="GerberLine_INCode.cs" />
+    <Compile Include="GerberLine_LNCode.cs" />
+    <Compile Include="GerberLine_G54Code.cs" />
+    <Compile Include="GerberCoordinateModeEnum.cs" />
+    <Compile Include="GerberLine_LPCode.cs" />
+    <Compile Include="GerberLine_IPCode.cs" />
+    <Compile Include="GerberLine_OFCode.cs" />
+    <Compile Include="frmDisclaimer.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="frmDisclaimer.Designer.cs">
+      <DependentUpon>frmDisclaimer.cs</DependentUpon>
+    </Compile>
+    <Compile Include="frmAbout.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="frmAbout.Designer.cs">
+      <DependentUpon>frmAbout.cs</DependentUpon>
+    </Compile>
+    <Compile Include="ExcellonLine_RCode.cs" />
+    <Compile Include="ExcellonLine_GCode.cs" />
+    <Compile Include="GCodeLine_ToolChange.cs" />
+    <Compile Include="ExcellonLine_XYCode.cs" />
+    <Compile Include="ExcellonLine_ToolTable.cs" />
+    <Compile Include="ExcellonLine_Misc.cs" />
+    <Compile Include="ExcellonLine_MCode.cs" />
+    <Compile Include="ExcellonLine_ToolChange.cs" />
+    <Compile Include="ExcellonFile.cs" />
+    <Compile Include="ExcellonFileStateMachine.cs" />
+    <Compile Include="ExcellonLine.cs" />
+    <Compile Include="FileManager.cs" />
+    <Compile Include="frmFileManagerChooser.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="frmFileManagerChooser.Designer.cs">
+      <DependentUpon>frmFileManagerChooser.cs</DependentUpon>
+    </Compile>
+    <Compile Include="GerberLine_GCode.cs" />
+    <Compile Include="GCodeLine_ZMove.cs" />
+    <Compile Include="GCodeLine_Dwell.cs" />
+    <Compile Include="GCodeLine_RapidMove.cs" />
+    <Compile Include="GCodeLine_CommandWord.cs" />
+    <Compile Include="GCodeLine_Arc.cs" />
+    <Compile Include="GCodeLine_Comment.cs" />
+    <Compile Include="GerberPad.cs" />
+    <Compile Include="IsoPlotSegment_Arc.cs" />
+    <Compile Include="IsoPlotSegment_Line.cs" />
+    <Compile Include="IsoPlotSegment.cs" />
+    <Compile Include="GCodeFileStateMachine.cs" />
+    <Compile Include="GCodeFile.cs" />
+    <Compile Include="GCodeLine_Line.cs" />
+    <Compile Include="GCodeLine.cs" />
+    <Compile Include="GCodeBuilderObject_Circle.cs" />
+    <Compile Include="GCodeBuilderObjectOverlayCollection.cs" />
+    <Compile Include="GCodeBuilderObjectOverlay.cs" />
+    <Compile Include="GCodeBuilderPixelFlagEnum.cs" />
+    <Compile Include="GCodeBuilderObject_Line.cs" />
+    <Compile Include="GCodeBuilderObject.cs" />
+    <Compile Include="GCodeBuilder.cs" />
+    <Compile Include="MiscGraphicsUtils.cs" />
+    <Compile Include="GerberLine_MCode.cs" />
+    <Compile Include="GerberFileStateMachine.cs" />
+    <Compile Include="GerberLine_Unknown.cs" />
+    <Compile Include="GerberLine_MOCode.cs" />
+    <Compile Include="GerberLine_ADCode.cs" />
+    <Compile Include="GerberLine_FSCode.cs" />
+    <Compile Include="GerberLine_DCode.cs" />
+    <Compile Include="GerberLine.cs" />
+    <Compile Include="GerberApertureCollection.cs" />
+    <Compile Include="GerberParseUtils.cs" />
+    <Compile Include="frmMain1.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="frmMain1.Designer.cs">
+      <DependentUpon>frmMain1.cs</DependentUpon>
+    </Compile>
+    <Compile Include="GerberFile.cs" />
+    <Compile Include="Program.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <EmbeddedResource Include="ctlFileManagerDisplay.resx">
+      <DependentUpon>ctlFileManagerDisplay.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="ctlPlotViewer.resx">
+      <DependentUpon>ctlPlotViewer.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="frmFileManagerChooser.resx">
+      <DependentUpon>frmFileManagerChooser.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="frmMain1.resx">
+      <DependentUpon>frmMain1.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Properties\Resources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <Compile Include="Properties\Resources.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Resources.resx</DependentUpon>
+      <DesignTime>True</DesignTime>
+    </Compile>
+    <None Include="app.config" />
+    <None Include="Properties\Settings.settings">
+      <Generator>SettingsSingleFileGenerator</Generator>
+      <LastGenOutput>Settings.Designer.cs</LastGenOutput>
+    </None>
+    <Compile Include="Properties\Settings.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Settings.settings</DependentUpon>
+      <DesignTimeSharedInput>True</DesignTimeSharedInput>
+    </Compile>
+    <Compile Include="ctlPlotViewer.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="ctlPlotViewer.Designer.cs">
+      <DependentUpon>ctlPlotViewer.cs</DependentUpon>
+    </Compile>
+    <Compile Include="ctlFileManagerDisplay.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="ctlFileManagerDisplay.Designer.cs">
+      <DependentUpon>ctlFileManagerDisplay.cs</DependentUpon>
+    </Compile>
+    <Compile Include="ToolHeadParameters.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="frmAbout.resx">
+      <DependentUpon>frmAbout.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="gear.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="frmDisclaimer.resx">
+      <DependentUpon>frmDisclaimer.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="gear.gif" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="gear_s.gif" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\OISCommon\OISCommon.csproj">
+      <Project>{63F435C6-492C-4155-AB3B-589FEB36804F}</Project>
+      <Name>OISCommon</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>

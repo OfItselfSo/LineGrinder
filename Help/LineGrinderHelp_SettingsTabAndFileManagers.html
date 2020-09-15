@@ -1,0 +1,77 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+  <title>The Line Grinder Help: Settings and File Managers</title>
+  <meta name="created" content="Mon, 13 Sep 2010 10:02:32 GMT" />
+  <meta http-equiv="content-type" content="text/html;charset=utf-8" />
+  <meta name="description" content="The Line Grinder software converts Gerber plots to GCode suitable for isolation milling of PCB traces." />
+  <meta name="keywords" content="Gerber, GCode, Isolation Milling, Isolation Routing, Excellon GCode" />   
+  <link rel="stylesheet" type="text/css" href="OISHelp.css" />
+</head>
+<body>
+<center><h2>Line Grinder<BR>Gerber Plot to Isolation Milling GCode Software</h2></center>
+<center><h1>Settings and File Managers</h1></center>
+<P> 
+<div class="navbar">&lt;&lt; <A href="LineGrinderHelp_MainFormAndPlotView.html"> Back </A> || <a href="LineGrinderHelp_TableOfContents.html">Table of Contents</a> || <a href="http://www.OfItselfSo.com/LineGrinder/LineGrinder.php">Home Page</a> || <A href="LineGrinderHelp_IsolationCutFileManagers.html"> Next </A> &gt;&gt;</div>
+<P>
+&nbsp;
+<P>
+<div class="largeimage"><img src="LineGrinder_SettingsTab.jpg"></div>
+<p>
+<div class="imagetitle">The Line Grinder Settings Tab</div>
+<p>
+<h3>The Settings Tab</h3>
+<P>
+The Settings tab of the Line Grinder software design provides a place to configure the settings and properties which will be used to convert the Gerber and Excellon files into GCode. Fundamentally there are two sectons - the section on the right which contains global settings used for every file which is opened and the section on the left (entitled File Managers) which is used to associate specific settings with specific file types. There is also a section located on the bottom right hand side of the Settings tab which contain buttons to create a set of default File Managers suitable for various common types of PCB design software.
+<P>
+<p>
+<h3>The Global Settings</h3>
+<P>
+<DL>
+<DT>Application Units
+<DD>The CNC Mill which will run the GCode and perform the physical milling operations is usually manufactured to operate in either inches or millimeters. This setting tells the Line Grinder software the type of GCode to create. Note that the Line Grinder software cannot convert an inch based Gerber file to millimeters - if the <I>Application Units</I> setting does not match the settings inside the Gerber file header an error message will be displayed when the file is opened. 
+<P>
+<DT>Iso Plot Points Per Application Unit
+<DD>The Gerber to GCode algorithm works by creating a kind of virtual plot of the Gerber file, mapping that plot onto an array of pseudo pixels and then figuring out which objects overlap and where the edges of those objects are and where the intersections of the overlap points are. This parameter controls the number of virtual pixels (Iso Plot Points) used per application unit). In general, the higher the number of virtual pixels per inch (or millimeter) the finer the detail that can be detected (and hence incorporated into the isolation routing). The drawback to having a large setting for <I>Iso Plot Points Per Application Unit</I> is that larger values will cause the Gerber to GCode conversion process to take a much longer time.
+<P>
+</DL>
+<P>
+<A name="FileManagers"></A>
+<h3>File Managers</h3>
+<P>
+The File Manager panel is split into two parts. On the left is a list of partial file names - these file name patterns are tested against the newly opened file. If  the file name pattern in the File Manager is contained with in the name of the newly opened file then the operations and configuration settings contained within that File Manager are applied to that file. The File Manager assigned to a file when it is opened entirely determines the how the file is processed.
+<P>
+<A name="TypesOfFileManager"></A>
+There are four basic types  of File Manager. Each type is designed to produce a different type (or types) of GCode. The File Manager type is set in the <i>OperationMode</i> parameter when it created. Note that the <i>OperationMode</i> cannot be changed. The types of File Manager and their function are listed below. Click on the File Manager type to view a help page on that File Managers configuration items.
+<P>
+<DL>
+<DT><a href="LineGrinderHelp_IsolationCutFileManagers.html">Isolation Cut</a>
+<DD>These File Managers assume the file contains a Gerber plot of the traces and pads on the PCB and will convert that Gerber plot into GCode which electrically isolates the copper of the plot from the remainder of the circuit board. This type of File Manager can also produce Reference Pin GCode which enables the top and bottom layers to be aligned. 
+<P>
+<DT><a href="LineGrinderHelp_EdgeMillFileManagers.html">Board Edge Mill</a>
+<DD>This type of File Manager expects the file to contain a Gerber plot of the outline of the PCB board. It will generate GCode which will cut around the outside of the board - thus separating it from a larger blank PCB. This type of File Manager can also produce Bed Flattening GCode which can be used to mill flat a throw-away piece of wood bolted to the mill bed. This ensures that the bed on which the PCB is mounted is exactly square and true to the toolhead.
+<P>
+<DT>Text and Label
+<DD>Many PCB's contain a silkscreen layer which documents or annotates various parts of the board. This type of File Manager produces GCode that engraves text onto the PCB without creating isolation cuts for it. Essentially the toolhead (with whatever bit is mounted there by the operator) is run down the center of the Gerber plot items.
+<P>
+<DT><a href="LineGrinderHelp_ExcellonFileManagers.html">Excellon</a>
+<DD>Almost all PCB design programs will produce Excellon drill files. These files are designed to drill all of the holes in the PCB. A File Manager of this type will convert the Excellon drill file into GCode suitable for drilling the holes the PCB requires.
+</DL>
+<P>
+<h3>Creating a New File Manager</h3>
+<P>
+PCB Design programs typically output each layer of the PCB with a distinct name. If you wish to convert this file to GCode you need to create a File Manager of the appropriate type (<i>OperationMode</i>)and edit the <i>FilenamePattern</i> configuration item to match all (or part) of the files name. Usually just the last part is used in order to configure a File Manager suitable for processing any file of that type. 
+<P>
+To create a new File Manager press the <i>Add</i> button located at the bottom of the File Manager panel. A form will pop up asking for the type of File Manager to create. Once the new File Manager is created, the FilenamePattern can be edited to ensure that it gets matched to the newly opened files of that name. The other configuration parameters should also be adjusted at that time.
+<P>
+An unlimited number of File Managers can be created, however, only a few are usually necessary if the <i>FilenamePattern</i> is set to match all files of that particular type.
+<P>
+&nbsp;
+<P>
+<div class="navbar">&lt;&lt; <A href="LineGrinderHelp_MainFormAndPlotView.html"> Back </A> || <a href="LineGrinderHelp_TableOfContents.html">Table of Contents</a> || <a href="http://www.OfItselfSo.com/LineGrinder/LineGrinder.php">Home Page</a> || <A href="LineGrinderHelp_IsolationCutFileManagers.html"> Next </A> &gt;&gt;</div>
+<P>
+
+
+</body>
+</html>
+

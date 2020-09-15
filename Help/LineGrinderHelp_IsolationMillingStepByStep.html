@@ -1,0 +1,114 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+  <title>The Line Grinder Help: Isolation Milling Step-By-Step</title>
+  <meta name="created" content="Mon, 13 Sep 2010 10:02:32 GMT" />
+  <meta http-equiv="content-type" content="text/html;charset=utf-8" />
+  <meta name="description" content="The Line Grinder software converts Gerber plots to GCode suitable for isolation milling of PCB traces." />
+  <meta name="keywords" content="Gerber, GCode, Isolation Milling, Isolation Routing, Excellon GCode" />   
+  <link rel="stylesheet" type="text/css" href="OISHelp.css" />
+</head>
+<body>
+<center><h2>Line Grinder<BR>Gerber Plot to Isolation Milling GCode Software</h2></center>
+<center><h1>A Step-By-Step Guide to Isolation Milling A PCB</h1></center>
+<P> 
+<div class="navbar">&lt;&lt; <A href="LineGrinderHelp_TypesOfGCodeOutput.html"> Back </A> || <a href="LineGrinderHelp_TableOfContents.html">Table of Contents</a> || <a href="http://www.OfItselfSo.com/LineGrinder/LineGrinder.php">Home Page</a> || <A href="LineGrinderHelp_WhatCanGoWrong.html"> Next </A> &gt;&gt;</div>
+<P>
+&nbsp;
+<P>
+How does one actually go about creating an isolation milled circuit board? There does not seem to be a lot of documenatation on the Internet of the actual steps involved. The discussion below uses the various GCode types produced by the Line Grinder software (along with a CNC mill) to create a nicely aligned double sided isolation milled PCB. Note that this is just one methodology that seems to do a pretty good job. It is not necessarily the only way it can be done. It is entirely possible that there are other, perhaps better, ways. 
+<P>
+The example below shows the milling operations performed on the GCode generated from the <TT>TestPattern???.gbr</TT> suite of Gerber files. This is a simple double sided PCB about an inch square. These files can be found in the <TT>Examples - DesignSpark</TT> subfolder below the Line Grinder installation directory. 
+<P>
+<h3>0) Safety</h3>
+<P>
+Wear eye and ear protection. You are dealing with machinery which has tremendous power and can move objects at tremendous speeds. There are many, many, things which can cause a bit to break, or a board to come loose, and these will shoot about the room as a painful projectile. Note also that the Line Grinder is offered free of charge, as-is, and there is no <a href="MIT_License.html">warranty or guarantee</a> as to the accuracy of its output. You, and only you, are the sole judge of whether the code is fit to run.
+<P>
+<h3>1) Generate the GCode</h3>
+<P>
+Use the Line Grinder software to interpret the Gerber and Excellon output of your PCB design software and produce GCode files from it. This process is discussed in the <a href="LineGrinderHelp_TableOfContents.html">Line Grinder help files</a> and is not discussed here. You will need the following files: <a href="LineGrinderHelp_TypesOfGCodeOutput.html#BedFlatteningGCode">Bed Flattening GCode</a>, <a href="LineGrinderHelp_TypesOfGCodeOutput.html#ReferencePinGCode">Reference Pin GCode</a>, <a href="LineGrinderHelp_TypesOfGCodeOutput.html#IsolationGCode">Isolation GCode</a> from the bottom copper layer, Isolation GCode from the Top Copper Layer, <a href="LineGrinderHelp_TypesOfGCodeOutput.html#EdgeMillingGCode">Edge Milling GCode</a>, and <a href="LineGrinderHelp_TypesOfGCodeOutput.html#DrillingGCode">Drilling GCode</a>.
+<P>
+Some of these may not be necessary in all cases. For example, if the board is single sided you will not need the Top Copper Isolation GCode. If the blank PCB is already the size you wish it to be, then you will not need the Edge Milling GCode. The steps below assume a double sided PCB will be isolation routed, drilled and cut from a larger blank PCB. The image below shows the Line Grinder software displaying the Isolation GCode which will be executed in step 6. Note the PCB is shown at about 3x magnification in the image below.
+<P>
+<a href="StepByStepBottomIsoGCode.jpg"><img src="th_StepByStepBottomIsoGCode.jpg" width="300" height="225" alt="The Bottom Isolation GCode" title="The Bottom Isolation GCode" /></a>
+<P>
+<h3>2) Mount a Throw-Away Piece of Wood to the Bed of the Mill</h3>
+<P>
+Several steps (Reference Pins, Drilling and Edge Milling) will plunge the bit through the surface of the PCB. You will almost certainly not want the bit to be cutting holes in the bed of your mill. Thus a sacrificial piece of wood is used and the blank PCB is mounted onto that. A scrap piece of MDF or similar thick, dense particle board does the job nicely. This board should be bigger than your PCB. Make sure to affix it securely to the bed so it cannot move. Also, be aware of the thickness of the board and make sure the settings in the <a href="LineGrinderHelp_SettingsTabAndFileManagers.html#FileManagers">File Managers that generate the GCode</a> are such that the generated GCode does not plunge the bit completely through the wood. The image below shows the board being mounted on the mill bed.
+<P>
+<a href="MountBoardOnMillBed.jpg"><img src="th_MountBoardOnMillBed.jpg" width="300" height="175" alt="Mount the Board on the Mill Bed" title="Mount the Board on the Mill Bed" /></a>
+<P>
+<h3>3) Mill the Throw-Away Piece of Wood Flat</h3>
+<P>
+The sacrificial wood base, bolted to the mill bed in the step above, will almost certainly not be flat with respect to the toolhead of the mill. Flatness really matters for isolation routing since you will be engraving very thin and shallow lines (35 microns - 0.0015 inch) in the copper of the PCB. In order to ensure the isolation lines are at a consistent depth (and width since the bit is conical), the bed should be milled flat.
+<P>
+Run the <a href="LineGrinderHelp_TypesOfGCodeOutput.html#BedFlatteningGCode">Bed Flattening GCode</a> to mill flat the sacrificial wooden bed. The depth of cut does not need to be large - just enough to ensure that the entire surface gets covered. A standard 1 inch (or so) wood router bit works well for this purpose. Be sure to adjust the size parameters in the <a href="LineGrinderHelp_EdgeMillFileManagers.html#BedFlatteningSize">Edge Milling File Managers</a> so that you mill flat an area of suitable size. The image below shows the board after it has been milled flat.
+<P>
+<a href="MillBoardFlat.jpg"><img src="th_MillBoardFlat.jpg" width="300" height="189" alt="Mill an Area of the Board Flat" title="Mill an Area of the Board Flat" /></a>
+<P>
+<h3>4) Mount the Blank PCB</h3>
+<P>
+Mount the blank PCB on the wooden bed. Use a safe secure method of your choice. One method, which seems to work, is to use a combination of hold down clamps on the sides of the PCB and a layer of double sided sticky tape underneath to stop any bowing up in the middle. If you use tape, make sure to get the kind that will stick firmly yet peel back off the bottom of the PCB easily and in one piece. Not all double sided tape, especially some carpet tapes (which degenerate into a gooey, impossible to remove, snot like subtance) are suitable for this purpose.
+<P>
+If the board is double sided and oddly shaped, always mount the side of the PCB intended for the bottom layer face up first. This does not matter for symmetrical boards. The image below shows the PCB mounted on the board after it has been milled flat.
+<P>
+<a href="PCBMountedOnBoard.jpg"><img src="th_PCBMountedOnBoard.jpg" width="300" height="229" alt="PCB Mounted on Board" title="PCB Mounted on Board" /></a>
+<P>
+<h3>5) Move Toolhead over the PCB to the Origin</h3>
+<P>
+Move the toolhead of your mill over the PCB (now mounted on the wood bed) to the place where you wish the lower left hand corner of the PCB to be. If your board is already at the size you wish it to be, just put it over the physical bottom left corner - otherwise just place it over the spot where you wish the bottom corner of the board to eventually be when you cut it out of the blank. All GCode generated by the Line Grinder software will return the toolhead to this position upon completion of the run.
+<P>
+<h3>6) Drill the Reference Pin Holes</h3>
+<P>
+Mount a drilling bit of suitable size in the toolhead and run the <a href="LineGrinderHelp_TypesOfGCodeOutput.html#ReferencePinGCode">Reference Pin GCode</a>. This will drill holes through the PCB which can be used to line the board up when it is flipped over. The diameter of these holes should be the same size as your physical reference pins - see step 8 for details. The depth should be deep enough to hold the physical pins firmly but not so deep as to penetrate through the wooden base board. The image below shows the PCB with the Reference Pin holes drilled out. In this example, a 0.125 inch end mill is being used to drill the holes - this lets us use the shafts of old, broken, 0.125 inch engraving bits as physical reference pins. 
+<P>
+<a href="PCBWithReferencePinHoles.jpg"><img src="th_PCBWithReferencePinHoles.jpg" width="300" height="229" alt="PCB With Reference Pin Holes" title="PCB With Reference Pin Holes" /></a>
+<P>
+<h3>7) Mill the Bottom Isolation Layer</h3>
+<P>
+Mount an <a href="LineGrinderHelp_IsolationMillingTipsAndAdvice.html#TypesOfBits">engraving bit</a> of suitable size in the toolhead and run the Bottom Copper <a href="LineGrinderHelp_TypesOfGCodeOutput.html#IsolationGCode">Isolation GCode</a>. This will cut the lines which isolate the traces and pads in the copper of the PCB. You may wish to review the methodology described in the <a href="LineGrinderHelp_IsolationMillingTipsAndAdvice.html#ConsistentBitHeight">Isolation Milling Tips and Advice</a> to see if it assists you in setting the height of the tip of the bit to a consistent level. A consistent start height very important in order to achieve reliable and usable output. Be sure the File Manager which generated this GCode has the <a href="LineGrinderHelp_IsolationCutFileManagers.html#IsoFlipMode">IsoFlipMode</a> parameter appropriately set. The first image below shows the height of the engraving bit being set with a reference cylinder andthe second image shows PCB with the bottom copper layer newly isolation milled.
+<P>
+<a href="SettingBitHeight.jpg"><img src="th_SettingBitHeight.jpg" width="300" height="204" alt="PCB With Setting the Bit Height" title="Setting the Bit Height" /></a>
+<a href="PCBWithBottomIsoMilled.jpg"><img src="th_PCBWithBottomIsoMilled.jpg" width="300" height="259" alt="PCB With Bottom Copper Isolation Milled" title="PCB With Bottom Copper Isolation Milled" /></a>
+<P>
+<A name="PhysicalReferencePins"></A>
+<h3>8) Remove the PCB and Set the Reference Pins</h3>
+<P>
+Now that the bottom isolation traces have been cut, the board will need to be removed and turned over to cut the isolation routing traces in the other side. Once the board is physically off the wooden bed, take two metal pins and place them in the holes earlier drilled by the Reference Pin GCode in step 6. Old milling bits of a small diameter are useful for this as they are both short and have accurately ground diameters. Typically the Reference Pin holes might be drilled out by a 0.125 inch bit and old 0.125 inch mill bits are inserted shaft first into the reference pin holes. When the board is replaced in step 9 the pins in the bed and holes in the PCB will ensure the top and bottom pads are exactly aligned. The image below shows the wooden bed with the Reference Pins set in the Reference Pin holes.
+<P>
+<a href="PCBWithReferencePins.jpg"><img src="th_PCBWithReferencePins.jpg" width="300" height="189" alt="PCB With Reference Pins" title="PCB With Reference Pins" /></a>
+<P>
+<h3>9) Mount the PCB Top-Side-Up</h3>
+<P>
+Use your previous mounting method to mount the PCB so that the top copper side is facing up. To ensure the alignment is correct, just slide the PCB down the physical reference pins inserted in the previous step. Once the PCB is firmly fixed in place, remove the reference pins. You do not want to resume milling operations with those pins in place. Also be sure to pay close attention to the orientation of the board when you place it back on the bed. Remember that the bottom copper layer was flipped and you will need to turn it over in the appropriate direction before placing the PCB back on the wooden bed. The image below shows the PCB with the top copper layer placed upwards and being moved down the reference pins.
+<P>
+<a href="PCBWithTopOnRefPins.jpg"><img src="th_PCBWithTopOnRefPins.jpg" width="300" height="215" alt="PCB On Reference Pins" title="PCB On Reference Pins" /></a>
+<P>
+<h3>10) Mill the Top Isolation Layer</h3>
+<P>
+Run the Top Copper <a href="LineGrinderHelp_TypesOfGCodeOutput.html#IsolationGCode">Isolation GCode</a> to engrave the lines which isolate the traces and pads in the PCB. As with the isolation cuts on the bottom copper layer, be sure to set your engraving bit to a consistent height above the PCB. The methodolgy described in the <a href="LineGrinderHelp_IsolationMillingTipsAndAdvice.html#ConsistentBitHeight">Isolation Milling Tips and Advice</a> help file may be helpful in this regard. A consistent height setting is very important in order to achieve reliable and usable output. Be sure the File Manager which generated this GCode has no <a href="LineGrinderHelp_IsolationCutFileManagers.html#IsoFlipMode">IsoFlipMode</a> parameter set. The image below shows the PCB with the top copper layer newly isolation milled..
+<P>
+<a href="PCBWithTopIsoMilled.jpg"><img src="th_PCBWithTopIsoMilled.jpg" width="300" height="221" alt="PCB With Top Copper Isolation Milled" title="PCB With Top Copper Isolation Milled" /></a>
+<P>
+<h3>11) Drill the Pad and Via Holes</h3>
+<P>
+Change the bit in the toolhead and run the <a href="LineGrinderHelp_TypesOfGCodeOutput.html#DrillingGCode">Drilling GCode</a> created from the Excellon file. This code has no ability to be flipped so it is always necessary to run it when the Top Copper isolation layer is upwards. This is the reason why the Bottom Copper Isolation GCode is usually run first - if it is not, you will need to remove and flip the PCB once again prior to this step. The image below shows the PCB with the top copper with newly drilled pad and via holes.
+<P>
+<a href="PCBWithTopDrilled.jpg"><img src="th_PCBWithTopDrilled.jpg" width="300" height="198" alt="PCB With Pad Drill Holes" title="PCB With Pad Drill Holes" /></a>
+<P>
+<h3>12) Edge Mill the PCB</h3>
+<P>
+Change the bit in the toolhead to a chip breaking bit of the appropriate size (this size is set in the <a href="LineGrinderHelp_EdgeMillFileManagers.html">Edge Mill File Manager</a>) and run the <a href="LineGrinderHelp_TypesOfGCodeOutput.html#EdgeMillingGCode">Edge Milling GCode</a>. This GCode will run the bit around the defined outline of the PCB and remove it from the board. Be very sure that the PCB is securely held - especially the internal PCB which is being edge milled out of the larger blank. Usually tabs are applied to the outline during the generation of the Edge Milling GCode. These tabs keep the interior portion of the PCB fixed to the larger blank board and are manually sawn away once the board is removed.
+<P>
+If you are not absolutely sure that either the interior or exterior portion of the PCB will stay fixed during the edge milling process then you must add extra hold downs before beginning. If the PCB lifts off of the surface of the wooden bed during milling, it could pose a significant danger as the bit will fling it away at tremendous speed. The image below shows the PCB after the edge milling operation. Note the tabs which still fix it to the larger blank PCB.
+<P>
+<a href="PCBWithEdgeMilled.jpg"><img src="th_PCBWithEdgeMilled.jpg" width="300" height="199" alt="PCB Edge Milled" title="PCB Edge Milled" /></a>
+&nbsp;
+<P>
+<div class="navbar">&lt;&lt; <A href="LineGrinderHelp_TypesOfGCodeOutput.html"> Back </A> || <a href="LineGrinderHelp_TableOfContents.html">Table of Contents</a> || <a href="http://www.OfItselfSo.com/LineGrinder/LineGrinder.php">Home Page</a> || <A href="LineGrinderHelp_WhatCanGoWrong.html"> Next </A> &gt;&gt;</div>
+<P>
+
+
+</body>
+</html>
+

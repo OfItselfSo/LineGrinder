@@ -1,0 +1,46 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+  <title>The Line Grinder Help: Overview</title>
+  <meta name="created" content="Mon, 13 Sep 2010 10:02:32 GMT" />
+  <meta http-equiv="content-type" content="text/html;charset=utf-8" />
+  <meta name="description" content="The Line Grinder software converts Gerber plots to GCode suitable for isolation milling of PCB traces." />
+  <meta name="keywords" content="Gerber, GCode, Isolation Milling, Isolation Routing, Excellon GCode" />   
+  <link rel="stylesheet" type="text/css" href="OISHelp.css" />
+</head>
+<body>
+<center><h2>Line Grinder<BR>Gerber Plot to Isolation Milling GCode Software</h2></center>
+<center><h1>Overview</h1></center>
+<P> 
+<div class="navbar">&lt;&lt; <A href="LineGrinderHelp_TableOfContents.html"> Back </A> || <a href="LineGrinderHelp_TableOfContents.html">Table of Contents</a> || <a href="http://www.OfItselfSo.com/LineGrinder/LineGrinder.php">Home Page</a> || <A href="LineGrinderHelp_WhatYouNeedToKnow.html"> Next </A> &gt;&gt;</div>
+<P>
+&nbsp;
+<P>
+<A name="Overview"></A>
+<h3>About Line Grinder</h3>
+<P>
+The Line Grinder software generates isolation routing GCode from the Gerber format plot files output by most PCB design programs. However, Line Grinder is intended to be more than just a code generator. The GCode it produces, if run in the appropriate sequence, is intended to provide a method for reliably producing nicely aligned, double sided isolation routed PCBs including the cutting of border outlines and the drilling of pad holes and vias. It is intended to be both a GCode code generator and a methodology which will produce consistent results when cutting circuit boards.
+<P>
+<h3>License, Cost and Disclaimer</h3>
+<P>
+The Line Grinder software is free and open source and is released under the <a target=new href="MIT_License.html">MIT License</a>. Be sure to read the license text before your use the software. Your use the Line Grinder software, and the output GCode it generates, is entirely at your own risk.
+<P>
+<h3>What Line Grinder Does Not Do</h3>
+<P>
+Please be aware that the Line Grinder software is purely a code generator. In other words, if you feed it some Gerber or Excellon files you will get some GCode out. Where, how and on what you run those GCode files is entirely up to you. Specifically, the Line Grinder software is not a machine controller (like EMC2, Mach3, TurboCNC or many others) and it cannot make your PC physically interact with a CNC mill. Once the GCode files are generated, your next step would be to open them in the machine controller software and run them there.
+<P>
+<h3>Installation and System Requirements</h3>
+<P>
+The Line Grinder software is provided in the form of a zipped archive. To install, simply <a href="http://www.OfItselfSo.com/LineGrinder/LineGrinder.php#Download">download</a> and unzip into a directory on your PC (<TT>C:\Program Files\Line Grinder</TT> is a typical choice). The Line Grinder software does not write to the registry and does not require any files to be located in any other directories. Configuration information is saved to an XML file named <TT>LineGrinder.xml</TT> located in the same directory as the LineGrinder.exe file. This file will be created automatically the first time the configuration of the Line Grinder software is saved.
+<P>
+As for system requirements, Windows XP (or higher) is needed and the <a target=new href="http://www.microsoft.com/downloads/en/details.aspx?FamilyID=ab99342f-5d1a-413d-8319-81da479ab0d7&displaylang=en">Microsoft .NET 3.5 Framework runtime libraries</a> must be installed on the installation PC. Most PC's have these libraries installed automatically. A reasonable amount of RAM, say 1GB or more should do the job nicely and the disk space requirements are nominal (less than 10Mb). The Line Grinder, when calculating isolation paths, is somewhat CPU intensive so a faster processor is better. Realistically anything 1 Ghz or better should be enough but you might have to wait a bit if your PCB boards have a large surface area.
+<P>
+&nbsp;
+<P>
+<div class="navbar">&lt;&lt; <A href="LineGrinderHelp_TableOfContents.html"> Back </A> || <a href="LineGrinderHelp_TableOfContents.html">Table of Contents</a> || <a href="http://www.OfItselfSo.com/LineGrinder/LineGrinder.php">Home Page</a> || <A href="LineGrinderHelp_WhatYouNeedToKnow.html"> Next </A> &gt;&gt;</div>
+<P>
+
+
+</body>
+</html>
+

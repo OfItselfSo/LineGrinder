@@ -1,0 +1,131 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+  <title>The Line Grinder Help: Isolation Cut File Managers</title>
+  <meta name="created" content="Mon, 13 Sep 2010 10:02:32 GMT" />
+  <meta http-equiv="content-type" content="text/html;charset=utf-8" />
+  <meta name="description" content="The Line Grinder software converts Gerber plots to GCode suitable for isolation milling of PCB traces." />
+  <meta name="keywords" content="Gerber, GCode, Isolation Milling, Isolation Routing, Excellon GCode" />   
+  <link rel="stylesheet" type="text/css" href="OISHelp.css" />
+</head>
+<body>
+<center><h2>Line Grinder<BR>Gerber Plot to Isolation Milling GCode Software</h2></center>
+<center><h1>Isolation Cut File Managers</h1></center>
+<P> 
+<div class="navbar">&lt;&lt; <A href="LineGrinderHelp_SettingsTabAndFileManagers.html"> Back </A> || <a href="LineGrinderHelp_TableOfContents.html">Table of Contents</a> || <a href="http://www.OfItselfSo.com/LineGrinder/LineGrinder.php">Home Page</a> || <A href="LineGrinderHelp_EdgeMillFileManagers.html"> Next </A> &gt;&gt;</div>
+<P>
+&nbsp;
+<P>
+<A name="Overview"></A>
+<P>
+<div class="largeimage"><img src="IsolationFileManager.jpg"></div>
+<p>
+<div class="imagetitle">The Line Grinder Isolation Cut File Manager</div>
+<p>
+<h3>What Do Isolation Cut File Managers Do</h3>
+<P>
+Isolation Cut File Managers produce the GCode which cuts the copper of the PCB around the traces and pads thus electrically isolating them from the other components on the board. <a href="LineGrinderHelp_TypesOfGCodeOutput.html#IsolationGCode">Isolation GCode</a> is created from the Gerber file contents by associating a File Manager with an <i>OperationMode</i> of type <i>Isolation_Cut</i> with the file. The association is performed by setting the <i>FileNamePattern</i> field of the File Manager to all or part of the Gerber files name.
+<P>
+<i>Isolation_Cut</i> file managers can also produce <a href="LineGrinderHelp_TypesOfGCodeOutput.html#ReferencePinGCode">Reference Pin GCode</a> - if required. 
+<P> 
+The configuration items for <i>Isolation_Cut</i> File Managers are:
+<P>
+<h3>General Category</h3>
+<DL>
+<DT>OperationMode
+<DD>This value determines the type of GCode the File Manager will create from the GCode file it processes. This value is set when the File Manager is created and cannot be changed.
+<P>
+<DT>FilenamePattern
+<DD>A part of a Gerber file name. When the Gerber file is opened, the list of File Managers will be searched and the first File Manager found which has a FilenamePattern value contained within the name of the Gerber file will be used to process that file. The standard wild cards of * and % should not be used. 
+<P>
+<DT>Description
+<DD>A user-defined configuration item that can be used as brief documentation to describe the purpose of the File Manager.
+</DL>
+<P>
+<h3>File Manager Category</h3>
+<DL>
+<DT>AutoGenerateGCode
+<DD>If enabled, the GCode file can be automatically generated when the file is opened. If this value is <B>False</B> then the GCode must be generated after the file is opened by pressing the <I>Convert to GCode</I> button found on the <a href="LineGrinderHelp_MainFormAndPlotView.html">main form</a>.
+<P>
+<DT>ShowGCodeLineNumbers
+<DD>If enabled, old style line numbers will be placed in the GCode file. This option is offered for completeness since line numbers in the GCode file almost never necessary or wanted.
+<P>
+<DT>WarnAboutOverwriting
+<DD>Normally the Line Grinder will issue an warning message if the GCode file you are about to save already exists. This warning can be disabled by setting this option to <B>False</B>.
+</DL>
+<P>
+<h3>Isolation Cuts Category</h3>
+<DL>
+<DT>IsoCutGCodeEnabled
+<DD>If this value is set to <B>True</B> then the GCode which isolates the traces by creating isolation cuts around them will be generated when the <I>Generate GCode</I> button on the <a href="LineGrinderHelp_IsolationMillingTipsAndAdvice.html">main form</a> is pressed.
+<P>
+<DT>IsolationGCodeFileOutputExtension
+<DD>When the generated Isolation Cut GCode file is saved, the existing filename extension will be removed and this value substituted in its place.  
+<P>
+<A name="IsoFlipMode"></A>
+<DT>IsoFlipMode
+<DD>Gerber plots are always generated as viewed &quot;from the top&quot;. This means that if the isolation cuts are to be engraved on the underside of a double sided PCB then the board must be flipped along either the X or Y axis. If the <i>IsoFlipMode</i> is <i>Flip_X</i> then any Y coordinates remain constant and the X coordinates are adjusted so as to mirror image the board. The reverse is true if the <i>IsoFlipMode</i> is <i>Flip_Y</i>. The issue of registration so that the pads of the top and bottom isolation cuts are properly aligned is handled by the use of <a href="LineGrinderHelp_WhatYouNeedToKnow.html#ReferencePinPads">Reference Pins</a>. 
+<P>
+<A name="IsoZCutLevel"></A>
+<DT>IsoZCutLevel
+<DD>This is the depth, in application units, to which the toolhead will be driven in the PCB material in order to engrave the isolation cut paths. This value should be negative (zero is traditionally the surface of the PCB) and should be a very small value - since it is only necessary to cut a small distance into the PCB in order to electrically isolate the two parts. Note that the engraving bit is usually conical. This has profound implications in terms of the width of the line being cut. Deeper cuts mean a wider line when a conical bit is used. See the <i>IsoZCutLevel</i> discussion on the <a href="LineGrinderHelp_WhatCanGoWrong.html#RealCutWidth">What Can Go Wrong help page</a> for more information on this topic.  
+<P>
+<DT>IsoZMoveLevel
+<DD>This is the height above the PCB at which the toolhead moves about as it hops about from cut to cut. It should be positive because it is above the surface of the PCB but not so high as to consume large amounts of time getting into position.
+<P>
+<DT>IsoZClearLevel
+<DD>This is the height above the PCB at which the toolhead moves quickly in order to get into position. It should be positive because it is above the surface of the PCB and high enough to clear all hold downs and other clamping material.
+<P>
+<DT>IsoZFeedRate
+<DD>This is the speed (in Application Units per minute) at which the toolhead will drive the milling bit into the PCB.  
+<P>
+<DT>IsoXYFeedRate
+<DD>This is the speed (in Application Units per minute) at which the toolhead moves along when cutting the isolation cuts on the PCB. If this is too fast a poor cut will be made. If it is too slow then the isolation milling operations will take longer than necessary.  
+<P>
+<A name="IsoCutWidth"></a>
+<DT>IsoCutWidth
+<DD>This is a very important parameter which determines the visible width on the <a href="LineGrinderHelp_IsolationMillingTipsAndAdvice.html#PlotViewTab">Plot View</a> of all isolation cuts. The reason why this is such a <B>very</B> important parameter is because it determines the width of the isolation tracks on the PCB. <B>The Line Grinders <a href="http://www.OfItselfSO.com/T001_GraphicalSigymergy.pdf">Gerber to GCode conversion algorithm</a> pays very close attention to the <I>IsoCutWidth</I> value and cannot and will not attempt to run an isolation cut line between two objects separated by less than that distance.</B> You should review the discussion on the <a href="LineGrinderHelp_WhatCanGoWrong.html#IsoCutWidthTooLarge">What Can Go Wrong help page</a> concerning this parameter and the effects of setting it too large or too small.
+<P>
+<DT>IsoPadTouchDownsWanted
+<DD>Pad touch downs are small indents set into the center of the pads by the milling bit as it cuts the Isolation GCode. These are very useful as &quot;drill hole centers&quot;. The milling bit is usually much more rigid than the small drilling bits used to drill out the holes on the PCB. If these holes are present, the drilling bit has a much easier time of setting itself in the exact center of the pad and, if manually drilling, you are much less likely to break a small drill bit. If this value is set to <b>True</b> then the isolation cut GCode will also contain code to touch the milling bit to the center of each pad.
+<P>
+<DT>IsoPadTouchDownZLevel
+<DD>This is the depth, in Application Units, to which the toolhead will send the milling bit when performing pad touchdown operations. This value should be negative (zero is traditionally the surface of the PCB) and should be a very small value - since it is only necessary to cut a small distance into the PCB in order to make an indent in the surface.    
+</DL>
+<P>
+<h3>Reference Pins Category</h3>
+<DL>
+<DT>ReferencePinGCodeEnabled
+<DD>If set to <B>True</B> then the GCode which drills the Reference Pin holes will be generated when the <I>Convert to GCode</I> button on the <a href="LineGrinderHelp_IsolationMillingTipsAndAdvice.html">main form</a> is pressed. This option is normally only enabled for File Managers which process the &quot;Top Copper&quot; layers, since only one Reference Pin GCode file is needed per PCB.
+<P>
+<DT>ReferencePinGCodeFileOutputExtension
+<DD>When the generated Reference Pin GCode file is saved, the existing filename extension will be removed and this value substituted in its place.  
+<P>
+<DT>ReferencePinsDrillingZDepth
+<DD>This is the depth, in Application Units, to which the toolhead will be driven through the PCB material in order to create the holes for the Reference Pins.  This value should be negative (zero is traditionally the surface of the PCB) and should be a value deep enough to physically hold the reference pins (old milling bits are usually used for this purpose) firmly when the PCB is turned over to begin isolation cuts on the other side. Obviously you are not going to want to be drilling into the bed of your mill, so the PCB is usually mounted on a &quot;throw-away&quot; piece of wood.
+<P>
+<DT>ReferencePinsZClearLevel
+<DD>This is the height above the PCB at which the toolhead moves quickly in order to get into position. It should be positive because it is above the surface of the PCB and high enough to clear all hold downs and other clamping material.
+<P>
+<DT>ReferencePinsZFeedRate
+<DD>This is the speed (in Application Units per minute) at which the toolhead will drive the drilling bit into the PCB.  
+<P>
+<DT>ReferencePinXYFeedRate
+<DD>This is the speed (in Application Units per minute) at which the toolhead moves about when moving from position to position. If it is too slow then the Reference Pin drilling operations will take longer than necessary.  
+<P>
+<DT>ReferencePinsMaxNumber
+<DD>This is just a check value (normally set to 6) which counts the number of defined Reference Pin pads on the PCB. Because the Reference Pin pads are detected by looking for pads of a user defined size it is useful to have a test to see if there are more than expected.
+<P>
+<A name="ReferencePinPadDiameter"></A>
+<DT>ReferencePinPadDiameter
+<DD>This is the diameter of the Reference Pin Pads which you have created on the PCB. This diameter is used to find the Reference Pin pads. Only Reference Pin pads should be this diameter. There are several other criteria required in order to successfully create Reference Pins. You should review the <a href="LineGrinderHelp_WhatYouNeedToKnow.html#ReferencePinPads">Reference Pins section of the What you Need To Know help page</a> for more information.
+<P>
+</DL>
+<P>
+&nbsp;
+<P>
+<div class="navbar">&lt;&lt; <A href="LineGrinderHelp_SettingsTabAndFileManagers.html"> Back </A> || <a href="LineGrinderHelp_TableOfContents.html">Table of Contents</a> || <a href="http://www.OfItselfSo.com/LineGrinder/LineGrinder.php">Home Page</a> || <A href="LineGrinderHelp_EdgeMillFileManagers.html"> Next </A> &gt;&gt;</div>
+<P>
+</body>
+</html>
+

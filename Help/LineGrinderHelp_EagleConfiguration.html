@@ -1,0 +1,135 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+  <title>The Line Grinder Help: Configuring Eagle</title>
+  <meta name="created" content="Mon, 13 Sep 2010 10:02:32 GMT" />
+  <meta http-equiv="content-type" content="text/html;charset=utf-8" />
+  <meta name="description" content="The Line Grinder software converts Gerber plots to GCode suitable for isolation milling of PCB traces." />
+  <meta name="keywords" content="Gerber, GCode, Isolation Milling, Isolation Routing, Excellon GCode" />   
+  <link rel="stylesheet" type="text/css" href="OISHelp.css" />
+</head>
+<body>
+<center><h2>Line Grinder<BR>Gerber Plot to Isolation Milling GCode Software</h2></center>
+<center><h1>Configuring Eagle</h1></center>
+<P> 
+<div class="navbar">&lt;&lt; <A href="LineGrinderHelp_TableOfContents.html"> Back </A> || <a href="LineGrinderHelp_TableOfContents.html">Table of Contents</a> || <a href="http://www.OfItselfSo.com/LineGrinder/LineGrinder.php">Home Page</a> || <A href="LineGrinderHelp_TableOfContents.html"> Next </A> &gt;&gt;</div>
+<P>
+&nbsp;
+<P>
+<h2>How to use Eagle to Create Gerber Plots for the LineGrinder Software</h2>
+<P>
+The Line Grinder software converts the Gerber plots of PCB circuits into GCode which can then be used to create isolation milled circuit boards. The <a href="http://www.cadsoftusa.com/">Eagle</a> software (freeware for smaller PCB boards) is one product which can be used to create the PCB designs suitable for isolation milling. There are a number of things you need to know in order to configure Eagle so that it will save Gerber plot files in a format which the Line Grinder can read. 
+<P>
+The following is a step-by-step tutorial using the <TT>demo2_inch.brd</TT> Eagle PCB design sample which is installed with the Line Grinder software in the <TT>Examples - Eagle</TT> sub folder. Click on any of the images to make them larger.
+<P>
+<h3>1) Start Eagle and open the demo2_inch.brd Design</h3>
+<P>
+The image below shows the <TT>demo2_inch.brd</TT> PCB design sample open in the Eagle software.
+<P>
+<a href="EagleOpen.jpg"><img src="th_EagleOpen.jpg" width="300" height="215" alt="The Eagle Software" title="The Eagle Software" /></a>
+<P>
+<h3>2) Place the First Reference Pin Pad</h3>
+<P>
+One of the hardest problems to solve when creating isolation milled circuits is how to align the top and bottom copper layers. Line Grinder resolves this issue by requiring pads of a specific size called <a href="LineGrinderHelp_WhatYouNeedToKnow.html#ReferencePinPads">Reference Pin pads</a> to be added to the PCB. You determine the size you use and tell the Line Grinder software (in the Isolation Cut <a href="LineGrinderHelp_IsolationCutFileManagers.html">File Managers</a>) what that size is. Often the Reference Pin Pads are co-incident with the mounting holes of the PCB. If you do not want these pads on your board (as in the example below) - no problem. Just put them outside the border. 
+<P>
+The following steps will now place the first Reference Pin pad. Since we do not want to have any mounting holes drilled on this board we will place the Reference Pin pads outside the PCB border.
+<P>
+<DL>
+<DL>
+<LI>Click on the Pad Icon <img src="EaglePadIcon.jpg" alt="The Eagle Pad Icon" alt="The Eagle Pad Icon" /></a>
+<LI>Click on a point below and to the left of the bottom-left corner to drop a new pad there.
+<LI>Press the Stop Icon to stop Eagle wanting to drop additional pads.
+<LI>Now we have to change the size of the pad. Right click with the mouse on the pad to bring up the context menu and select the <I>Properties</I> option.
+<LI>Change the <I>Diameter</I> option on the properties panel to 0.100. This number is arbitrary and can be another value if you wish. It serves to enable the Line Grinder software to distinctly identify the Reference Pin Pads. No other pads on the board should be this size.
+</DL>
+</DL>
+<P>
+The image below shows the bottom left Reference Pin pad once it has been sized and positioned. Note that it is centered over a grid dot. This will make it easy to place the other Reference Pin Pads an identical distance from the border.
+<P>
+<a href="EagleSetFirstRefPinPad.jpg"><img src="th_EagleSetFirstRefPinPad.jpg" width="300" height="215" alt="Set the First Reference Pin Pad" title="Set the First Reference Pin Pad" /></a>
+<P>
+<h3>3) Place the Other Reference Pin Pads</h3>
+<P>
+The main thing about the Reference Pin pads is that they must be of a known unique size, they must be in a rectangular formation and they must be the same distance from the board edges. They can be inside or outside the board - but it is critical that they are equidistant from the edges. You must have at least two Reference Pin Pads. If the <a href="LineGrinderHelp_IsolationCutFileManagers.html#IsoFlipMode">IsoFlipMode</a> in your <a href="LineGrinderHelp_SettingsTabAndFileManagers.html#FileManagers">Isolation Cut File Manager</a> is <i>Flip_X</i> then the Reference Pin pads must be on the same line parallel to the X axis.  Similarly if the IsoFlipMode in your Isolation Cut File Manager is <i>Flip_Y</i> then the Reference Pin pads must be on the same line parallel to the Y axis. In general it is easier to just put four Reference Pin Pads on the PCB - each equidistant from a border corner.
+<P>
+Note the easy way to create the rest of the Reference Pin pads is just to copy the first pad placed in the step above and then paste it into the design where needed. Once dropped in place, you can easily drag the pad about to get the position right.
+<P>
+The image below shows the PCB with four Reference Pin pads placed. Click on the image to enlarge it and note that the pads are equidistant from the border edges and are in a strict rectangular formation.
+<P>
+<a href="EagleSetAllRefPinPads.jpg"><img src="th_EagleSetAllRefPinPads.jpg" width="300" height="215" alt="Set All Reference Pin Pads" title="Set All Reference Pin Pads" /></a>
+<P>
+<A name="AdjustingEagleDefFile"></A>
+<h3>4) Adjust the eagle.def File</h3>
+<P>
+Now that the Reference Pin pads have been placed on the PCB, it is time to save the design as Gerber and Excellon files. These files are what the Line Grinder software will read in order to produce the Isolation Milling GCode (and other useful GCode as well). Before we do that we have to adjust a few settings in the section of the eagle.def file which controls the codes emitted to the Gerber plot files. If we do not do this Eagle will include lines of code in the Gerber output which the Line Grinder software will not be able to process. The steps below describe the proceedure.
+<P>
+<DL>
+<DL>
+<LI>Open the eagle.def file in any text editor. The eagle.def file can be found in the <I>bin</I> directory just below your Eagle software installation.
+<LI>Save a copy of the eagle.def file so you can recover from any changes if you need to do so.
+<LI>Find the section in the eagle.def file entitled <I>[GERBER_RS274X]</I>. This will be the the name of the Gerber Output Device we will choose in later steps.
+<LI>We need to remove the line starting <i>AMOC8</i> and the line below it. We do this by placing semi-colons in the appropriate places. The image below shows the adjusted lines. Note particularly, that a semi-colon is required to terminate the line above the <i>AMOC8</i> string.
+<LI>The line starting with the text <i>;Octagon</i> needs to be uncommented (remove the semi-colon) and the line below it starting with the text <i>Octagon</i> needs to be commented out by adding a semi-colon in front of it. 
+</DL>
+</DL>
+<P>
+The image below shows the eagle.def file after the adjustments have been made. Note carefully the placement of the semi-colons - the appropriate areas have been highlighted in red.
+<P>
+<a href="EagleDefFileAdjustment.jpg"><img src="th_EagleDefFileAdjustment.jpg" width="300" height="215" alt="eagle.def File Adjustment" title="eagle.def File Adjustment" /></a>
+<P>
+<h3>5) Open the Gerber Output Form And Set the Output Device</h3>
+<P>
+Now that eagle.def file has been adjusted, it is time to save the design as Gerber and Excellon files. These files are what the Line Grinder software will read in order to produce the Isolation Milling GCode (and other useful GCode as well). Click on the <I>File</I> menu item at the top of the screen and then choose the <i>CAM Processor</i> ... sub item. Set the <i>Device</i> option to <i>GERBER_RS274X</i>. This will invoke the output using the settings adjusted in the <TT>eagle.def</TT> file in the step above. The Gerber Output Form is seen in the image below.
+<P>
+<a href="EagleGerberOutputForm.jpg"><img src="th_EagleGerberOutputForm.jpg" width="300" height="248" alt="Gerber Output Form" title="Gerber Output Form" /></a>
+<P>
+<A name="SavingEaglePlotOutputs"></A>
+<h3>6) Save the Plot Outputs</h3>
+<P>
+Eagle does not seem to have a method of automating the output of the Gerber files or saving the configurations. This means that each plot must be saved individually and the appropriate file name specified for it when the output is saved. The discusson below illustrates this process for the traces and pads associated with the Bottom Copper layer.
+<P>
+<DL>
+<DL>
+<LI>Set the File field to a name of your choice. It is best to apply a consistent file extension here so that the appropriate <a href="LineGrinderHelp_SettingsTabAndFileManagers.html#FileManagers">File Manager</a> in the Line Grinder software gets associated with it. For a bottom copper layer, a name of <TT>demo2 Bottom.gbr</TT> would be appropriate. An <a href="LineGrinderHelp_IsolationCutFileManagers.html">Isolation Cut File Manager</a> can be set up with a <a href="LineGrinderHelp_WhatYouNeedToKnow.html#FilenamePattern">FilenamePattern</a> which will cause it to trigger on the trailing <TT>Bottom.gbr</TT> part of the filename and generate the appropriate isolation cut GCode when that file is opened.
+<LI>The layers associated with this plot output will need to be individually chosen. For a bottom copper layer only layers <I>Bottom</I>, <i>Pads</i> and <i>Vias</i> (layers 16, 17 and 18) will need to be selected in the panel on the right hand side. This is shown in the image below. Be sure to scroll down and unselect any layers at the bottom of the list.
+<LI>Press the Process Job button to create the Gerber Output.
+</DL>
+</DL>
+<P>
+The image below show the Eagle CAM Proceesor output form just before the bottom copper Gerber code is saved.. 
+<P>
+<a href="EagleGerberOutputConfigured1.jpg"><img src="th_EagleGerberOutputConfigured1.jpg" width="300" height="248" alt="Gerber Output Form Configured" title="Gerber Output Form Configured" /></a>
+<P>
+<h3>7) Output the Remaining Gerber and Excellon Plots</h3>
+<P>
+As mentioned above, the other plots (top copper, board outline) will need to be output. This can be done using the methodology described in step 6. Appropriate values for these layers are:
+<DL>
+<DL>
+<DT>Top Copper Layer
+<DD>For a top copper layer only layers <I>Top</I>, <i>Pads</i> and <i>Vias</i> (layers 1, 17 and 18) will need to be selected in the panel on the right hand side. A suitable file name would be <TT>demo2 Top.gbr</TT>.
+<DT>PCB Border Layer
+<DD>For a PCB border  only the <i>Milling</i> Layer (layer 46) will need to be selected in the panel on the right hand side. A suitable file name would be <TT>demo2 Outline.gbr</TT>.
+<DT>Drilling Layer
+<DD>For drill file output set the <i>Device</i> to <i>EXCELLON</i> rather than <i>GERBER_RS274X</i>. For Excellon output only layers <I>Drills</I> and <i>Holes</i> (layers 45 and 46) will need to be selected in the panel on the right hand side. A suitable file name would be <TT>demo2 Drill.gbr</TT>.
+</DL>
+</DL>
+<P>
+<h3>8) Process the Gerber and Excellon Files in the Line Grinder Software</h3>
+<P>
+At this point, the files are ready to be read by the Line Grinder software. Once the Line Grinder software is started you will need to create some <a href="LineGrinderHelp_SettingsTabAndFileManagers.html#FileManagers">File Managers</a> - and configure them to settings suitable for your purposes. There is a button on the <I>Settings Tab</I> entitled <I>Add Managers for Eagle</I> that can be used to create a useful set of File Managers to get started with. You will need to adjust the settings as appropriate. 
+<P>
+Note that the default setting for the Reference Pin pads is 0.125 inch and the above discussion sets the pins to a value of 0.100 inch. Using the default settings, the Line Grinder software will not be able to find the Reference Pins, and will return an error message when the file is opened. Change the  <i><a href="LineGrinderHelp_IsolationCutFileManagers.html#ReferencePinPadDiameter">ReferencePinPadDiameter</a></i> setting in the IsolationCut File Managers for the Top and Bottom Copper layers to a value of 0.100 to fix this problem. 
+<P>
+The image below shows the <TT>demo2 Top.gbr</TT> file after conversion to Isolation GCode in the Line Grinder software.
+<P>
+<a href="EagleLineGrinderIsoDisplay.jpg"><img src="th_EagleLineGrinderIsoDisplay.jpg" width="300" height="193" alt="Line Grinder Displaying Isolation GCode" title="Line Grinder Displaying Isolation GCode" /></a>
+<P>
+&nbsp;
+<P>
+<div class="navbar">&lt;&lt; <A href="LineGrinderHelp_TableOfContents.html"> Back </A> || <a href="LineGrinderHelp_TableOfContents.html">Table of Contents</a> || <a href="http://www.OfItselfSo.com/LineGrinder/LineGrinder.php">Home Page</a> || <A href="LineGrinderHelp_TableOfContents.html"> Next </A> &gt;&gt;</div>
+<P>
+
+
+</body>
+</html>
+

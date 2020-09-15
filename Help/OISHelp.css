@@ -1,0 +1,64 @@
+/* Simple Helpfile Style Sheet */
+h1 {
+font-family:Georgia, "Times New Roman", Times, serif;
+font-size:2.8em;
+color:#8E1F0D;
+}
+
+h2 {
+font-family:Georgia, "Times New Roman", Times, serif;
+font-size:1.9em;
+color:#8E1F0D;
+background-image:url(img/leafs_brown.jpg);
+background-repeat:no-repeat;
+background-position:.1em .1em;
+}
+
+h3 {
+font-family:Georgia, "Times New Roman", Times, serif;
+font-size:1em;
+color:#8E1F0D;
+}
+
+body {
+font-family:Georgia, "Times New Roman", Times, serif;
+font-size:.8em; 
+color:#444444;
+margin: 40px;
+background:#ffffff;
+text-align:left;
+}
+dl {
+margin: 0 10px 0 10px;
+}
+dt {
+font-weight: bold;
+margin: 0 0 0 0;
+}
+dd {
+margin: 0 0 0 10px;
+}
+
+img
+{
+ border-right:10px solid #DFD8D2;
+ border-color: #ffffff;
+} 
+
+.navbar {
+font-family:font-family: Courier, "Courier New", monospace;
+color:#000000;
+background:#EDE9E6;
+text-align:center;
+}
+
+.imagetitle {
+color:#000000;
+text-align:center;
+}
+
+.largeimage {
+text-align:center;
+}
+
+

@@ -1,0 +1,91 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+  <title>The Line Grinder Help: Excellon File Managers</title>
+  <meta name="created" content="Mon, 13 Sep 2010 10:02:32 GMT" />
+  <meta http-equiv="content-type" content="text/html;charset=utf-8" />
+  <meta name="description" content="The Line Grinder software converts Excellon plots to GCode suitable for drilling of PCB boards." />
+  <meta name="keywords" content="Excellon, GCode, Excellonlation Milling, Excellonlation Routing, Excellon GCode" />   
+  <link rel="stylesheet" type="text/css" href="OISHelp.css" />
+</head>
+<body>
+<center><h2>Line Grinder<BR>Excellon File to Drill GCode Software</h2></center>
+<center><h1>Excellon File Managers</h1></center>
+<P> 
+<div class="navbar">&lt;&lt; <A href="LineGrinderHelp_EdgeMillFileManagers.html"> Back </A> || <a href="LineGrinderHelp_TableOfContents.html">Table of Contents</a> || <a href="http://www.OfItselfSo.com/LineGrinder/LineGrinder.php">Home Page</a> || <A href="LineGrinderHelp_SettingsTabAndFileManagers.html"> Next </A> &gt;&gt;</div>
+<P>
+&nbsp;
+<P>
+<A name="Overview"></A>
+<P>
+<div class="largeimage"><img src="ExcellonFileManager.jpg"></div>
+<p>
+<div class="imagetitle">The Line Grinder Excellon File Manager</div>
+<p>
+<h3>What Do Excellon File Managers Do</h3>
+<P>
+Excellon File Managers produce the GCode which drill the pad holes and vias in the PCB. This automates the task of  manually drilling the holes with a drill press and hence reduces the breakage of drill bits (they are very thin). <a href="LineGrinderHelp_TypesOfGCodeOutput.html#Excellon DrillingGCode">Excellon GCode</a> is created from the Excellon drill file contents by associating a File Manager with an <i>OperationMode</i> of type <i>Excellon</i> with the file. The association is performed by setting the <i>FileNamePattern</i> field of the File Manager to all or part of the Excellon files name. 
+<P>
+Since there can be many different hole sizes on a PCB, the generated Drilling GCode contains commands to stop the bit and prompt the operator for a tool change whenever a different size of drill bit is required.
+<P>
+The configuration items for <i>Excellon</i> File Managers are:
+<P>
+<h3>General Category</h3>
+<DL>
+<DT>OperationMode
+<DD>This value determines the type of GCode the File Manager will create from the GCode file it processes. This value is set when the File Manager is created and cannot be changed.
+<P>
+<DT>FilenamePattern
+<DD>A part of a Excellon file name. When the Excellon file is opened, the list of File Managers will be searched and the first File Manager found which has a FilenamePattern value contained within the name of the Excellon file will be used to process that file. The standard wild cards of * and % should not be used. 
+<P>
+<DT>Description
+<DD>A user-defined configuration item that can be used as brief documentation to describe the purpose of the File Manager.
+</DL>
+<P>
+<h3>File Manager Category</h3>
+<DL>
+<DT>AutoGenerateGCode
+<DD>If enabled, the GCode file can be automatically generated when the file is opened. If this value is <B>False</B> then the GCode must be generated after the file is opened by pressing the <I>Convert to GCode</I> button found on the <a href="LineGrinderHelp_IsolationMillingTipsAndAdvice.html">main form</a>.
+<P>
+<DT>ShowGCodeLineNumbers
+<DD>If enabled, old style line numbers will be placed in the GCode file. This option is offered for completeness since line numbers in the GCode file almost never necessary or wanted.
+<P>
+<DT>WarnAboutOverwriting
+<DD>Normally the Line Grinder will issue an warning message if the GCode file you are about to save already exists. This warning can be disabled by setting this option to <B>False</B>.
+</DL>
+<P>
+<h3>Excellon Drilling Category</h3>
+<DL>
+<DT>DrillingGCodeEnabled
+<DD>If this value is set to <B>True</B> then the GCode which drills the pad and via holes will be generated when the <I>Generate GCode</I> button on the <a href="LineGrinderHelp_IsolationMillingTipsAndAdvice.html">main form</a> is pressed.
+<P>
+<DT>DrillingCoordinateZerosMode
+<DD>Excellon files do not, according to most standards, place decimal points in the coordinates they encode. The proper interpretation and scaling of the coordinates is expected to be done by the software that processes the file. This value indicates how to process the coordinate data. If the mode is <b>FixedDecimalPoint</b> then the software assumes that there are <i>DrillingNumberOfDecimalPlaces</i> of decimal places in each coordinate. The mode of <b>OmitLeadingZeros</b> assumes that any leading zeros have been removed, and these will be added back on before the <i>DrillingNumberOfDecimalPlaces</i> of value is used to scale the number. Note that some Excellon files store values in a <i>OmitTrailingZeros</i> mode. This type of encoding is not supported.
+<P>
+<DT>DrillingNumberOfDecimalPlaces
+<DD>This value should indicate the number of decimal places each coordinate should use. Most Excellon files do not use decimal points in the coordinates and expect the processing software to scale the numbers.
+<P>
+<DT>DrillingGCodeFileOutputExtension
+<DD>When the generated Excellon GCode file is saved, the existing filename extension will be removed and this value substituted in its place.  
+<P>
+<DT>DrillingZDepth
+<DD>This is the depth, in Application Units, to which the toolhead will be driven through the PCB material in order to drill the PCB holes. This value should be negative (zero is traditionally the surface of the PCB) and should be deep enough to place the end of the bit through the bottom of the PCB. Obviously you are not going to want to be drilling into the bed of your mill, so the PCB is usually mounted on a &quot;throw-away&quot; piece of wood.
+<P>
+<DT>DrillingZClearLevel
+<DD>This is the height above the PCB at which the toolhead moves quickly in order to get into position. It should be positive because it is above the surface of the PCB and high enough to clear all hold downs and other clamping material.
+<P>
+<DT>DrillingZFeedRate
+<DD>This is the speed (in Application Units per minute) at which the toolhead will drive the drill bit into the PCB.  
+<P>
+<DT>DrillingXYFeedRate
+<DD>This is the speed (in Application Units per minute) at which the toolhead moves from place to place between the drill holes. If it is too slow then the drilling operations will take longer than necessary.  
+<P>
+</DL>
+<P>
+&nbsp;
+<P>
+<div class="navbar">&lt;&lt; <A href="LineGrinderHelp_EdgeMillFileManagers.html"> Back </A> || <a href="LineGrinderHelp_TableOfContents.html">Table of Contents</a> || <a href="http://www.OfItselfSo.com/LineGrinder/LineGrinder.php">Home Page</a> || <A href="LineGrinderHelp_SettingsTabAndFileManagers.html"> Next </A> &gt;&gt;</div>
+<P>
+</body>
+</html>
+

@@ -1,0 +1,137 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+  <title>The Line Grinder Help: Edge Mill File Managers</title>
+  <meta name="created" content="Mon, 13 Sep 2010 10:02:32 GMT" />
+  <meta http-equiv="content-type" content="text/html;charset=utf-8" />
+  <meta name="description" content="The Line Grinder software converts Gerber plots to GCode suitable for isolation milling of PCB traces." />
+  <meta name="keywords" content="Gerber, GCode, EdgeMilllation Milling, EdgeMilllation Routing, Excellon GCode" />   
+  <link rel="stylesheet" type="text/css" href="OISHelp.css" />
+</head>
+<body>
+<center><h2>Line Grinder<BR>Gerber Plot to Edge Milling GCode Software</h2></center>
+<center><h1>Edge Mill File Managers</h1></center>
+<P> 
+<div class="navbar">&lt;&lt; <A href="LineGrinderHelp_IsolationCutFileManagers.html"> Back </A> || <a href="LineGrinderHelp_TableOfContents.html">Table of Contents</a> || <a href="http://www.OfItselfSo.com/LineGrinder/LineGrinder.php">Home Page</a> || <A href="LineGrinderHelp_ExcellonFileManagers.html"> Next </A> &gt;&gt;</div>
+<P>
+&nbsp;
+<P>
+<A name="Overview"></A>
+<P>
+<div class="largeimage"><img src="EdgeMillFileManager.jpg"></div>
+<p>
+<div class="imagetitle">The Line Grinder Edge Mill File Manager</div>
+<p>
+<h3>What Do Edge Mill File Managers Do</h3>
+<P>
+Edge Mill File Managers produce the GCode which cuts around the border of a PCB - thus removing it from a larger blank PCB. <a href="LineGrinderHelp_TypesOfGCodeOutput.html#EdgeMillingGCode">Edge Milling GCode</a> is created from the Gerber file contents by associating a File Manager with an <i>OperationMode</i> of type <i>BoardEdgeMill</i> with the file. The association is performed by setting the <i>FileNamePattern</i> field of the File Manager to all or part of the Gerber files name. The Edge Mill File Manager expects the outermost Gerber Plot items in the Gerber file to be the outline of the PCB board. Edge Mill File Managers should only process Gerber files which contain a PCB board outline.
+<P>
+<i>BoardEdgeMill</i> file managers can also produce <a href="LineGrinderHelp_TypesOfGCodeOutput.html#BedFlatteningGCode">Bed Flattening GCode</a> - if required. 
+<P> 
+The configuration items for <i>BoardEdgeMill</i> File Managers are:
+<P>
+<h3>General Category</h3>
+<DL>
+<DT>OperationMode
+<DD>This value determines the type of GCode the File Manager will create from the GCode file it processes. This value is set when the File Manager is created and cannot be changed.
+<P>
+<DT>FilenamePattern
+<DD>A part of a Gerber file name. When the Gerber file is opened, the list of File Managers will be searched and the first File Manager found which has a FilenamePattern value contained within the name of the Gerber file will be used to process that file. The standard wild cards of * and % should not be used. 
+<P>
+<DT>Description
+<DD>A user-defined configuration item that can be used as brief documentation to describe the purpose of the File Manager.
+</DL>
+<P>
+<h3>File Manager Category</h3>
+<DL>
+<DT>AutoGenerateGCode
+<DD>If enabled, the GCode file can be automatically generated when the file is opened. If this value is <B>False</B> then the GCode must be generated after the file is opened by pressing the <I>Convert to GCode</I> button found on the <a href="LineGrinderHelp_MainFormAndPlotView.html">main form</a>.
+<P>
+<DT>ShowGCodeLineNumbers
+<DD>If enabled, old style line numbers will be placed in the GCode file. This option is offered for completeness since line numbers in the GCode file almost never necessary or wanted.
+<P>
+<DT>WarnAboutOverwriting
+<DD>Normally the Line Grinder will issue an warning message if the GCode file you are about to save already exists. This warning can be disabled by setting this option to <B>False</B>.
+</DL>
+<P>
+<h3>Edge Milling Category</h3>
+<DL>
+<DT>EdgeMillGCodeEnabled
+<DD>If this value is set to <B>True</B> then the GCode which cuts the PCB out of a larger blank board will be generated when the <I>Generate GCode</I> button on the <a href="LineGrinderHelp_MainFormAndPlotView.html">main form</a> is pressed.
+<P>
+<DT>EdgeMillCutWidth
+<DD>This is the width of the milling bit (usually a specialized chip breaking bit) which is used to cut out the PCB from the larger blank board on which it has been created. The path of the center of the milling bit will run 1/2 of this distance away from the outer edge of the PCB border so that the edge of the mill cuts exactly around the defined border. 
+<P>
+<DT>EdgeMilllGCodeFileOutputExtension
+<DD>When the generated Edge Mill GCode file is saved, the existing filename extension will be removed and this value substituted in its place.  
+<P>
+<DT>EdgeMillZCutLevel
+<DD>This is the depth, in Application Units, to which the toolhead will be driven through the PCB material in order to cut out the PCB around the border. This value should be negative (zero is traditionally the surface of the PCB) and should be deep enough to place the end of the bit through the bottom of the PCB. Obviously you are not going to want to be drilling into the bed of your mill, so the PCB is usually mounted on a &quot;throw-away&quot; piece of wood.
+<P>
+<DT>EdgeMillZMoveLevel
+<DD>This is the height above the PCB at which the toolhead moves about as it hops about from cut to cut. It should be positive because it is above the surface of the PCB but not so high as to consume large amounts of time getting into position.
+<P>
+<DT>EdgeMillZClearLevel
+<DD>This is the height above the PCB at which the toolhead moves quickly in order to get into position. It should be positive because it is above the surface of the PCB and high enough to clear all hold downs and other clamping material.
+<P>
+<DT>EdgeMillZFeedRate
+<DD>This is the speed (in Application Units per minute) at which the toolhead will drive the milling bit into the PCB.  
+<P>
+<DT>EdgeMillXYFeedRate
+<DD>This is the speed (in Application Units per minute) at which the toolhead moves along when cutting the PCB. If this is too fast a poor cut will be made. If it is too slow then the edge milling operations will take longer than necessary.
+<P>
+<DT>EdgeMillNumTabs
+<DD>This is the number of tabs placed around the edge of the PCB border when it is milled. Tabs are sections of the border which are skipped during the edge milling operation. This leaves the interior PCB (which is being cut out of the larger board) physically attached to the larger blank PCB. Tabs are used to ensure the interior PCB board is firmly fixed during the edge milling process. If other methods of fixing the interior PCB are not used then a sufficient number of tabs to ensure the interior PCB board cannot move should be used. If any part of the PCB is allowed to be loose during the edge milling process it will become a dangerous projectile as the toolhead will flings it away at tremendous speed. 
+<P>
+Note that tabs are only placed on the straight portions of the PCB border and are allocated in order according to the size of the line segments making up the border. 
+<P>
+<DT>EdgeMillTabWidth
+<DD>This is the width of the tabs (in application units) placed around the edge of the PCB border when it is milled. 
+<P>
+</DL>
+<P>
+<h3>Bed Flattening Category</h3>
+<DL>
+<DT>BedFlatteningGCodeEnabled
+<DD>If set to <B>True</B> then the GCode which mills the bed flattening area will be generated when the <I>Convert to GCode</I> button on the <a href="LineGrinderHelp_IsolationMillingTipsAndAdvice.html">main form</a> is pressed. 
+<P>
+<DT>BedFlatteningGCodeFileOutputExtension
+<DD>When the generated Bed Flattening GCode file is saved, the existing filename extension will be removed and this value substituted in its place.  
+<P>
+<DT>BedFlatteningMillWidth
+<DD>This is the width of the milling bit (usually a standard wood router bit) which is used to mill flat the &quot;throw-away&quot; piece of wood on which the PCB will be mounted. The path of the center of the milling bit will be derived from this value. To make a nice smooth cut there is an overlap of 1/2 of this distance on all milling passes. 
+<P>
+<A name="BedFlatteningSize"></A>
+<DT>BedFlatteningSizeMode
+<DD>There are two ways of determining the size of the area on the bed to be milled flat. If this value is set to <b>Add_Margin_To_Border</b> then the value of the <i>BedFlatteningMargin</i> parameter is added to each border (left, right, top and bottom). This mode should be used if the blank PCB which will be mounted is only a little bit larger than the actual border in the Gerber plot. If the <i>BedFlatteningSizeMode</i> parameter is set to <b>Absolute_Size</b> then the two parameters <i>BedFlatteningSizeX</i> and <i>BedFlatteningSizeY</i> are used to determine the size of the milled area and the <i>BedFlatteningMargin</i> parameter is ignored.
+<P>
+<DT>BedFlatteningMargin
+<DD>This is the value (in Application Units) which is added to each edge of the border in order to determine the size of the rectangle which is milled for bed flattening purposes. This value is only used if the <i>BedFlatteningSizeMode</i> parameter is set to <b>Add_Margin_To_Border</b>.
+<P>
+<DT>BedFlatteningSizeX
+<DD>This is the absolute size (in Application Units) of the width of the rectangle which is milled for bed flattening purposes. This value is only used if the <i>BedFlatteningSizeMode</i> parameter is set to <b>Absolute_Size</b>.
+<P>
+<DT>BedFlatteningSizeY
+<DD>This is the absolute size (in Application Units) of the height of the rectangle which is milled for bed flattening purposes. This value is only used if the <i>BedFlatteningSizeMode</i> parameter is set to <b>Absolute_Size</b>.
+<P>
+<DT>BedFlatteningZCutLevel
+<DD>This is the depth, in Application Units, to which the toolhead will be driven into the &quot;throw-away&quot; piece of wood in order to mill it flat.  This value should be negative (zero is traditionally the surface of the wood) and should be a value deep enough to ensure that the entire surface is milled but not so deep that it generates a lot of sawdust.
+<P>
+<DT>BedFlatteningZClearLevel
+<DD>This is the height above the PCB at which the toolhead moves quickly in order to get into position. It should be positive because it is above the surface of the PCB and high enough to clear all hold downs and other clamping material.
+<P>
+<DT>BedFlatteningZFeedRate
+<DD>This is the speed (in Application Units per minute) at which the toolhead will drive the router bit into the PCB.  
+<P>
+<DT>BedFlatteningXYFeedRate
+<DD>This is the speed (in Application Units per minute) at which the toolhead moves about when performing the milling operations. If it is too slow then the Bed Flattening milling operations will take longer than necessary.  
+<P>
+</DL>
+<P>
+&nbsp;
+<P>
+<div class="navbar">&lt;&lt; <A href="LineGrinderHelp_IsolationCutFileManagers.html"> Back </A> || <a href="LineGrinderHelp_TableOfContents.html">Table of Contents</a> || <a href="http://www.OfItselfSo.com/LineGrinder/LineGrinder.php">Home Page</a> || <A href="LineGrinderHelp_ExcellonFileManagers.html"> Next </A> &gt;&gt;</div>
+<P>
+</body>
+</html>
+
