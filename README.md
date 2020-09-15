@@ -1,5 +1,5 @@
 # Line Grinder
-Line Grinder is a software package which can generate isolation routing GCode from the Gerber format plot files output by most PCB design programs. However, Line Grinder is intended to be a bit more than just the software. The GCode it produces, if run sequentially, should also provide a method for reliably producing nicely aligned, double sided isolation routed PCBs including the cutting of border outlines and the drilling of pad holes and vias. It is intended to be a one-stop-shop GCode generator and methodology which will produce consistent results when cutting circuit boards. 
+Line Grinder can generate isolation routing GCode from the Gerber format plot files output by most PCB design programs. The GCode Line Grinder produces, if run sequentially, should also provide a method for reliably producing nicely aligned, double sided isolation routed PCBs including the cutting of border outlines and the drilling of pad holes and vias. It is intended to be a one-stop-shop GCode generator and methodology which will produce consistent results when cutting circuit boards. 
 
 ## Capabilities
 
@@ -20,7 +20,7 @@ Please be aware that the Line Grinder software is purely a code generator. In ot
 
 ## Help Files and Manual
 
-The [http://www.ofitselfso.com/LineGrinder/LineGrinderHelp/LineGrinderHelp_TableOfContents.html](Online Manual) contains a set of help files which, when viewed in sequence, form a "Get Started Guide". There are also specific help files which discuss how to prepare and output suitable Gerber files from the Eagle and DesignSpark software. The Line Grinder software repository contains a complete set of these help files.
+The [http://www.ofitselfso.com/LineGrinder/LineGrinderHelp/LineGrinderHelp_TableOfContents.html] (Online Manual) contains a set of help files which, when viewed in sequence, form a "Get Started Guide". There are also specific help files which discuss how to prepare and output suitable Gerber files from the Eagle and DesignSpark software. The Line Grinder software repository contains a complete set of these help files.
 
 ## License
 
