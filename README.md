@@ -20,7 +20,7 @@ Please be aware that the Line Grinder software is purely a code generator. In ot
 
 ## Help Files and Manual
 
-The [http://www.ofitselfso.com/LineGrinder/LineGrinderHelp/LineGrinderHelp_TableOfContents.html(Online Manual)] contains a set of help files which, when viewed in sequence, form a "Get Started Guide". There are also specific help files which discuss how to prepare and output suitable Gerber files from the Eagle and DesignSpark software. The Line Grinder software repository contains a complete set of these help files.
+The [http://www.ofitselfso.com/LineGrinder/LineGrinderHelp/LineGrinderHelp_TableOfContents.html](Online Manual) contains a set of help files which, when viewed in sequence, form a "Get Started Guide". There are also specific help files which discuss how to prepare and output suitable Gerber files from the Eagle and DesignSpark software. The Line Grinder software repository contains a complete set of these help files.
 
 ## License
 
