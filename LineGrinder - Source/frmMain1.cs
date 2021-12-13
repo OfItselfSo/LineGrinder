@@ -40,6 +40,7 @@ namespace LineGrinder
     /// <history>
     ///    06 Jul 10  Cynic - Started
     ///    15 Sep 20  Cynic - Converted to .Net Framework 4.6 and VS 2019 Solution
+    ///    13 Dec 21  Cynic - Back under active development
     /// </history>
     public partial class frmMain1 : frmOISBase
     {
@@ -60,7 +61,7 @@ namespace LineGrinder
 
         // app constants
         private const string APPLICATION_NAME = "Line Grinder";
-        private const string APPLICATION_VERSION = "02.00";
+        private const string APPLICATION_VERSION = "02.01";
         private const string APPLICATION_HOME = @"http://www.OfItselfSo.com/LineGrinder/LineGrinder.php";
 
         private const string WARN01="The Line Grinder software is released under the MIT License. There";
