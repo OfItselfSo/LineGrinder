@@ -786,7 +786,7 @@ namespace LineGrinder
         /// <history>
         ///    29 Jul 10  Cynic - Started
         /// </history>
-        private void radioButtonIsoGCodePlot_CheckedChanged(object sender, EventArgs e)
+        private void radioButtonMainViewIsoGCodePlot_CheckedChanged(object sender, EventArgs e)
         {
             SyncGCodePlotToRadioButtons();
             ctlPlotViewer1.Invalidate();
@@ -976,7 +976,7 @@ namespace LineGrinder
                 ctlPlotViewer1.GCodeBuilderToDisplay = CurrentGCodeBuilder;
                 ctlPlotViewer1.GCodeFileToDisplay = CurrentIsolationGCodeFile;
             }
-            else if ((radioButtonIsoGCodePlot.Enabled == true) && (radioButtonIsoGCodePlot.Checked == true))
+            else if ((radioButtonMainViewIsoGCodePlot.Enabled == true) && (radioButtonMainViewIsoGCodePlot.Checked == true))
             {
                 ctlPlotViewer1.DisplayMode = ctlPlotViewer.DisplayModeEnum.DisplayMode_GCODEONLY;
                 ctlPlotViewer1.GerberFileToDisplay = CurrentGerberFile;
@@ -1302,7 +1302,7 @@ namespace LineGrinder
             radioButtonIsoPlotStep1.Enabled = false;
             radioButtonIsoPlotStep2.Enabled = false;
             radioButtonIsoPlotStep3.Enabled = false;
-            radioButtonIsoGCodePlot.Enabled = false;
+            radioButtonMainViewIsoGCodePlot.Enabled = false;
             radioButtonMainViewEdgeMillGCode.Enabled = false;
             radioButtonMainViewBedFlattenGCode.Enabled = false;
             radioButtonMainViewReferencePinsGCode.Enabled = false;
@@ -1349,7 +1349,7 @@ namespace LineGrinder
                 radioButtonIsoPlotStep1.Enabled = true;
                 radioButtonIsoPlotStep2.Enabled = true;
                 radioButtonIsoPlotStep3.Enabled = true;
-                radioButtonIsoGCodePlot.Enabled = true;
+                radioButtonMainViewIsoGCodePlot.Enabled = true;
                 labelOnGCodePlots.Enabled = true;
                 checkBoxOnGCodePlotShowGerber.Enabled = true;
             }
@@ -3021,6 +3021,40 @@ namespace LineGrinder
             fileManagerObj = ctlFileManagersDisplay1.GetMatchingFileManagersObject(filePathAndName);
             if ((fileManagerObj == null) || (fileManagerObj.OperationMode == FileManager.OperationModeEnum.Default))
             {
+                // lets check to see if we can guess the design tool that output this
+                List<FileManager.KnownDesignTool> toolList = FileManager.CheckExtensionForKnownToolType(filePathAndName);
+                // did we get one?
+                if (toolList.Count > 0)
+                {
+                    // set this now. Maybe later get a bit more sophisticated and offer a pick box if there are multiples
+                    FileManager.KnownDesignTool currentTool = toolList[0];
+                    dlgRes = OISMessageBox_YesNo("No File Manager could be found for this file. File Managers contain the configuration options for the file.\n\nIt looks like you are using " + currentTool.ToString() + ". Would you like to create a set of default File Managers for this software now?");
+                    if (dlgRes == DialogResult.Yes)
+                    {
+                        if ((currentTool is FileManager.KnownDesignTool.DESIGN_SPARK) == true)
+                        {
+                            // simulate a press on this button
+                            buttonQuickSetupDesignSpark_Click(this, new EventArgs());
+                        }
+                        else if ((currentTool is FileManager.KnownDesignTool.KICAD) == true)
+                        {
+                            // simulate a press on this button
+                            buttonQuickSetupKiCad_Click(this, new EventArgs());
+                        }
+                        else
+                        {
+                            // should never happen
+                            OISMessageBox("There was an error creating the File Manager. File Managers Not Found.\n\nPlease see the log file.");
+                            return;
+                        }
+                    }
+                }
+            }
+
+            // try again. now get the FileManagers object for the specified File
+            fileManagerObj = ctlFileManagersDisplay1.GetMatchingFileManagersObject(filePathAndName);
+            if ((fileManagerObj == null) || (fileManagerObj.OperationMode == FileManager.OperationModeEnum.Default))
+            {
                 dlgRes = OISMessageBox_YesNo("No File Manager could be found for this file. File Managers contain the configuration options for the file.\n\nWould you like to create a new File Manager now?");
                 if (dlgRes != DialogResult.Yes) return;
 
@@ -3756,10 +3790,63 @@ namespace LineGrinder
 
             // set this
             ClearPlotViewBitmap();
-            SyncFormVisualsToGerberExcellonAndGCodeState();
 
             PostSucessfulConversionMessage();
+
+            SyncFormVisualsToGerberExcellonAndGCodeState();
+            // now display the converted file
+            if (IsValidIsolationGCodeFileOpen() == true)
+            {
+                radioButtonMainViewIsoGCodePlot.Checked = true;
+            }
+            else if (IsValidEdgeMillGCodeFileOpen() == true)
+            {
+                radioButtonMainViewEdgeMillGCode.Checked = true;
+            }
+            else if (IsValidBedFlatteningGCodeFileOpen() == true)
+            {
+                radioButtonMainViewBedFlattenGCode.Checked = true;
+            }
+            else if (IsValidRefPinGCodeFileOpen() == true)
+            {
+                // we don't do this
+            }
+            else if (IsValidDrillGCodeFileOpen() == true)
+            {
+                radioButtonMainViewDrillGCode.Checked = true;
+            }
+
+            SyncFormVisualsToGerberExcellonAndGCodeState();
         }
+
+        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+        /// <summary>
+        /// Posts a message indicating which files have been converted
+        /// </summary>
+        /// <history>
+        ///    26 Aug 10  Cynic - Started
+        /// </history>
+        private void DisplayConvertedFile()
+        {
+            StringBuilder sb = new StringBuilder();
+
+            if (IsValidIsolationGCodeFileOpen() == true)
+            {
+                radioButtonMainViewIsoGCodePlot.Checked = true;
+            }
+            else if (IsValidEdgeMillGCodeFileOpen() == true)
+            {
+            }
+            else if (IsValidBedFlatteningGCodeFileOpen() == true)
+            {
+            }
+            else if (IsValidRefPinGCodeFileOpen() == true)
+            {
+            }
+            else if (IsValidDrillGCodeFileOpen() == true)
+            {
+            }
+         }
 
         /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
         /// <summary>
@@ -3773,32 +3860,31 @@ namespace LineGrinder
             StringBuilder sb = new StringBuilder();
 
             // set up the lead in text
-            sb.Append("The conversion of the Gerber file to GCode was successful. The following GCode files were generated:\n\n");
+            sb.Append("The conversion of the Gerber file to GCode was successful. ");
 
             if (IsValidIsolationGCodeFileOpen() == true)
             {
-                sb.Append("Isolation GCode File\n");
+                sb.Append("An Isolation GCode File");
             }
-            if (IsValidEdgeMillGCodeFileOpen() == true)
+            else if (IsValidEdgeMillGCodeFileOpen() == true)
             {
-                sb.Append("Edge Mill GCode File\n");
+                sb.Append("An Edge Mill GCode File");
             }
-            if (IsValidBedFlatteningGCodeFileOpen() == true)
+            else if (IsValidBedFlatteningGCodeFileOpen() == true)
             {
-                sb.Append("Bed Flattening GCode File\n");
+                sb.Append("A Bed Flattening GCode File");
             }
-            if (IsValidRefPinGCodeFileOpen() == true)
+            else if (IsValidRefPinGCodeFileOpen() == true)
             {
-                sb.Append("Reference Pins GCode File\n");
+                sb.Append("A Reference Pins GCode File");
             }
-            if (IsValidDrillGCodeFileOpen() == true)
+            else if (IsValidDrillGCodeFileOpen() == true)
             {
-                sb.Append("Drill GCode File\n");
+                sb.Append("A Drill GCode File");
             }
-            sb.Append("\nNew tabs with the GCode text have been created and the output can be viewed in the plot viewer.");
+            sb.Append(" was generated.\n\nA new tab with the GCode text has been created and the output will be displayed in the plot viewer.");
 
             OISMessageBox(sb.ToString());
-
         }
 
         /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
@@ -4015,7 +4101,7 @@ namespace LineGrinder
             mgrObj.OperationMode = FileManager.OperationModeEnum.IsolationCut;
             mgrObj.IsoFlipMode = FileManager.IsoFlipModeEnum.X_Flip;
             mgrObj.ReferencePinGCodeEnabled = false;
-            mgrObj.FilenamePattern = "Bottom Copper.gbr";
+            mgrObj.FilenamePattern = FileManager.KNOWN_EXT_BOTCOPPER_DSPARK;
             mgrObj.Description = "DesignSpark Bottom Layer";
             ctlFileManagersDisplay1.AddFileManager(mgrObj);
 
@@ -4023,7 +4109,7 @@ namespace LineGrinder
             mgrObj = FileManager.DeepClone(defMgrObj);
             mgrObj.OperationMode = FileManager.OperationModeEnum.IsolationCut;
             mgrObj.IsoFlipMode = FileManager.IsoFlipModeEnum.No_Flip;
-            mgrObj.FilenamePattern = "Top Copper.gbr";
+            mgrObj.FilenamePattern = FileManager.KNOWN_EXT_TOPCOPPER_DSPARK;
             mgrObj.Description = "DesignSpark Top Layer";
             ctlFileManagersDisplay1.AddFileManager(mgrObj);
 
@@ -4031,7 +4117,7 @@ namespace LineGrinder
             mgrObj = FileManager.DeepClone(defMgrObj);
             mgrObj.OperationMode = FileManager.OperationModeEnum.BoardEdgeMill;
             mgrObj.IsoFlipMode = FileManager.IsoFlipModeEnum.No_Flip;
-            mgrObj.FilenamePattern = "Board Outline.gbr";
+            mgrObj.FilenamePattern = FileManager.KNOWN_EXT_EDGECUT_DSPARK;
             mgrObj.Description = "DesignSpark Board Outline: This plot must be manually added in DesignSpark";
             ctlFileManagersDisplay1.AddFileManager(mgrObj);
 
@@ -4039,7 +4125,8 @@ namespace LineGrinder
             mgrObj = FileManager.DeepClone(defMgrObj);
             mgrObj.OperationMode = FileManager.OperationModeEnum.Excellon;
             mgrObj.IsoFlipMode = FileManager.IsoFlipModeEnum.No_Flip;
-            mgrObj.FilenamePattern = "Through Hole.drl";
+            mgrObj.FilenamePattern = FileManager.KNOWN_EXT_EXEL_DRILL_DSPARK;
+            mgrObj.DrillingNumberOfDecimalPlaces = 0;
             mgrObj.Description = "DesignSpark Excellon Drill file.";
             ctlFileManagersDisplay1.AddFileManager(mgrObj);
 
@@ -4067,7 +4154,7 @@ namespace LineGrinder
             mgrObj.OperationMode = FileManager.OperationModeEnum.IsolationCut;
             mgrObj.IsoFlipMode = FileManager.IsoFlipModeEnum.X_Flip;
             mgrObj.ReferencePinGCodeEnabled = false;
-            mgrObj.FilenamePattern = "Bottom.gbr";
+            mgrObj.FilenamePattern = "copper_bottom.gbr";
             mgrObj.Description = "Eagle Bottom Layer";
             ctlFileManagersDisplay1.AddFileManager(mgrObj);
 
@@ -4075,7 +4162,7 @@ namespace LineGrinder
             mgrObj = FileManager.DeepClone(defMgrObj);
             mgrObj.OperationMode = FileManager.OperationModeEnum.IsolationCut;
             mgrObj.IsoFlipMode = FileManager.IsoFlipModeEnum.No_Flip;
-            mgrObj.FilenamePattern = "Top.gbr";
+            mgrObj.FilenamePattern = "copper_top.gbr";
             mgrObj.Description = "Eagle Top Layer";
             ctlFileManagersDisplay1.AddFileManager(mgrObj);
 
@@ -4083,7 +4170,7 @@ namespace LineGrinder
             mgrObj = FileManager.DeepClone(defMgrObj);
             mgrObj.OperationMode = FileManager.OperationModeEnum.BoardEdgeMill;
             mgrObj.IsoFlipMode = FileManager.IsoFlipModeEnum.No_Flip;
-            mgrObj.FilenamePattern = "Outline.gbr";
+            mgrObj.FilenamePattern = "profile.gbr";
             mgrObj.Description = "Eagle Board Outline";
             ctlFileManagersDisplay1.AddFileManager(mgrObj);
 
@@ -4091,7 +4178,7 @@ namespace LineGrinder
             mgrObj = FileManager.DeepClone(defMgrObj);
             mgrObj.OperationMode = FileManager.OperationModeEnum.Excellon;
             mgrObj.IsoFlipMode = FileManager.IsoFlipModeEnum.No_Flip;
-            mgrObj.FilenamePattern = "Drill.gbr";
+            mgrObj.FilenamePattern = ".xln";
             mgrObj.Description = "Eagle Excellon Drill file.";
             mgrObj.DrillingNumberOfDecimalPlaces = 4;
             ctlFileManagersDisplay1.AddFileManager(mgrObj);
@@ -4105,6 +4192,7 @@ namespace LineGrinder
         /// </summary>
         /// <history>
         ///    26 Sep 10  Cynic - Started
+        ///    07 Dec 21  Cynic - Updated Kicad
         /// </history>
         private void buttonQuickSetupKiCad_Click(object sender, EventArgs e)
         {
@@ -4119,7 +4207,7 @@ namespace LineGrinder
             mgrObj.OperationMode = FileManager.OperationModeEnum.IsolationCut;
             mgrObj.IsoFlipMode = FileManager.IsoFlipModeEnum.X_Flip;
             mgrObj.ReferencePinGCodeEnabled = false;
-            mgrObj.FilenamePattern = "Cuivre.gbl";
+            mgrObj.FilenamePattern = FileManager.KNOWN_EXT_BOTCOPPER_KICAD;
             mgrObj.Description = "KiCad Bottom Layer";
             ctlFileManagersDisplay1.AddFileManager(mgrObj);
 
@@ -4127,7 +4215,8 @@ namespace LineGrinder
             mgrObj = FileManager.DeepClone(defMgrObj);
             mgrObj.OperationMode = FileManager.OperationModeEnum.IsolationCut;
             mgrObj.IsoFlipMode = FileManager.IsoFlipModeEnum.No_Flip;
-            mgrObj.FilenamePattern = "Composant.gtl";
+            mgrObj.ReferencePinGCodeEnabled = false;
+            mgrObj.FilenamePattern = FileManager.KNOWN_EXT_TOPCOPPER_KICAD;
             mgrObj.Description = "KiCad Top Layer";
             ctlFileManagersDisplay1.AddFileManager(mgrObj);
 
@@ -4135,16 +4224,35 @@ namespace LineGrinder
             mgrObj = FileManager.DeepClone(defMgrObj);
             mgrObj.OperationMode = FileManager.OperationModeEnum.BoardEdgeMill;
             mgrObj.IsoFlipMode = FileManager.IsoFlipModeEnum.No_Flip;
-            mgrObj.FilenamePattern = "PCB_Edges.gbr";
+            mgrObj.FilenamePattern = FileManager.KNOWN_EXT_EDGECUT_KICAD;
             mgrObj.Description = "KiCad Board Outline";
             ctlFileManagersDisplay1.AddFileManager(mgrObj);
 
-            // now create the excellon
+            // now create the excellon for plated holes
             mgrObj = FileManager.DeepClone(defMgrObj);
             mgrObj.OperationMode = FileManager.OperationModeEnum.Excellon;
             mgrObj.IsoFlipMode = FileManager.IsoFlipModeEnum.No_Flip;
-            mgrObj.FilenamePattern = ".drl";
-            mgrObj.Description = "KiCad Excellon Drill file.";
+            mgrObj.FilenamePattern = FileManager.KNOWN_EXT_EXEL_DRILL_PTH_KICAD;
+            mgrObj.Description = "KiCad Excellon Plated Drill file.";
+            mgrObj.DrillingNumberOfDecimalPlaces = 0;
+            ctlFileManagersDisplay1.AddFileManager(mgrObj);
+
+            // now create the excellon for nonplated holes
+            mgrObj = FileManager.DeepClone(defMgrObj);
+            mgrObj.OperationMode = FileManager.OperationModeEnum.Excellon;
+            mgrObj.IsoFlipMode = FileManager.IsoFlipModeEnum.No_Flip;
+            mgrObj.FilenamePattern = FileManager.KNOWN_EXT_EXEL_DRILL_NPTH_KICAD;
+            mgrObj.Description = "KiCad Excellon non-Plated Drill file.";
+            mgrObj.DrillingNumberOfDecimalPlaces = 0;
+            ctlFileManagersDisplay1.AddFileManager(mgrObj);
+
+            // now create the excellon for plated and nonplated holes
+            mgrObj = FileManager.DeepClone(defMgrObj);
+            mgrObj.OperationMode = FileManager.OperationModeEnum.Excellon;
+            mgrObj.IsoFlipMode = FileManager.IsoFlipModeEnum.No_Flip;
+            mgrObj.FilenamePattern = FileManager.KNOWN_EXT_EXEL_DRILL_KICAD;
+            mgrObj.Description = "KiCad Excellon Generic Drill file.";
+            mgrObj.DrillingNumberOfDecimalPlaces = 0;
             ctlFileManagersDisplay1.AddFileManager(mgrObj);
 
             OISMessageBox("Template File Managers suitable for KiCad  have been added.\n\nThe parameters will be at their default settings. You should check them to be sure they are set appropriate to your requirements.");
@@ -4214,6 +4322,7 @@ namespace LineGrinder
 
             // TODO set a extension here for the various PCB file software
             ofDialog.Filter = "Gerber files (*.gbr)|*.gbr|Excellon files (*.drl)|*.drl|All files (*.*)|*.*";
+            ofDialog.FilterIndex = 3;
             // can we set the initial directory? Perform some checks
             // if we can't set it we just go with whatever windows has
             // as a default
@@ -4732,6 +4841,7 @@ namespace LineGrinder
                 }
                 else
                 {
+                    /* we no longer warn here. Too many warnings
                     outputGerberFile.StateMachine.ReferencePinsFound = false;
                     DialogResult dlgRes = OISMessageBox_YesNo("Reference Pins are disabled in the File Manager. The alignment of double sided boards will not be possible.\n\nOpen anyways?");
                     if (dlgRes == DialogResult.No)
@@ -4740,6 +4850,7 @@ namespace LineGrinder
                         OISMessageBox(errStr);
                         return 107;
                     }
+                    */
                 }
 
                 if (outputGerberFile.StateMachine.ReferencePinsFound == true)

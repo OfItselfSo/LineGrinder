@@ -1167,7 +1167,6 @@ namespace LineGrinder
             }
         }
 
-
         /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
         /// <summary>
         /// Parses out the line and gets the required information from it

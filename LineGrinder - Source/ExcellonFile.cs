@@ -136,22 +136,22 @@ namespace LineGrinder
             // check to make sure there are valid Min and Max coodinates
             if (minDCodeXCoord == float.MaxValue)
             {
-                errStr = "minimum X coordinate not found in D Codes - something wrong with this file.";
+                errStr = "minimum X coordinate not found in D Codes - something is wrong with this file.";
                 return false;
             }
             if (minDCodeYCoord == float.MaxValue)
             {
-                errStr = "minimum Y coordinate not found in D Codes - something wrong with this file.";
+                errStr = "minimum Y coordinate not found in D Codes - something is wrong with this file.";
                 return false;
             }
             if (maxDCodeXCoord == float.MinValue)
             {
-                errStr = "maximum X coordinate not found in D Codes - something wrong with this file.";
+                errStr = "maximum X coordinate not found in D Codes - something is wrong with this file.";
                 return false;
             }
             if (maxDCodeYCoord == float.MinValue)
             {
-                errStr = "maximum Y coordinate not found in D Codes - something wrong with this file.";
+                errStr = "maximum Y coordinate not found in D Codes - something is wrong with this file.";
                 return false;
             }
 

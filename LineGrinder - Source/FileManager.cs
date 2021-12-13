@@ -119,6 +119,27 @@ namespace LineGrinder
         // there are 25.4 mm to the inch
         private const float INCHTOMMSCALERx10 = 254;
 
+        // some known design tools
+        public enum KnownDesignTool
+        {
+            Unknown,
+            KICAD,
+            DESIGN_SPARK,
+        }
+
+        // some known filename extensions
+        public const string KNOWN_EXT_TOPCOPPER_KICAD = "-F_Cu.gbr";
+        public const string KNOWN_EXT_BOTCOPPER_KICAD = "-B_Cu.gbr";
+        public const string KNOWN_EXT_EDGECUT_KICAD = "-Edge_Cuts.gbr";
+        public const string KNOWN_EXT_EXEL_DRILL_KICAD = ".drl";
+        public const string KNOWN_EXT_EXEL_DRILL_PTH_KICAD = "-PTH.drl";
+        public const string KNOWN_EXT_EXEL_DRILL_NPTH_KICAD = "-NPTH.drl";
+
+        public const string KNOWN_EXT_TOPCOPPER_DSPARK = "- Top Copper.gbr";
+        public const string KNOWN_EXT_BOTCOPPER_DSPARK = "- Bottom Copper.gbr";
+        public const string KNOWN_EXT_EDGECUT_DSPARK = "- Board Outline.gbr.gbr";
+        public const string KNOWN_EXT_EXEL_DRILL_DSPARK = "- [Through Hole].drl";
+
         // ####################################################################
         // ##### Isolation Cut category variables
         // ####################################################################
@@ -329,7 +350,7 @@ namespace LineGrinder
         private float referencePinPadDiameter = DEFAULT_REFERENCEPINSPADDIAMETER;
 
         // this determines whether we generate reference pins GCodes
-        public const bool DEFAULT_REFERENCEPINGCODE_ENABLED = true;
+        public const bool DEFAULT_REFERENCEPINGCODE_ENABLED = false;
         [DataMember]
         private bool referencePinGCodeEnabled = DEFAULT_REFERENCEPINGCODE_ENABLED;
 
@@ -889,6 +910,42 @@ namespace LineGrinder
                 return (FileManager)formatter.Deserialize(stream);
             }
  */ 
+        }
+
+        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+        /// <summary>
+        /// Checks an incoming file extension to see if it is from a known design
+        /// tool.
+        /// </summary>
+        /// <param name="filenameIn">The filename</param>
+        /// <returns>A list of possible KnownDesignTool enum vals, empty list for not found</returns>
+        /// <history>
+        ///    07 Dec 21  Cynic - Started
+        /// </history>
+        public static List<KnownDesignTool> CheckExtensionForKnownToolType(string filenameIn)
+        {
+            List<KnownDesignTool> outList = new List<KnownDesignTool>();
+
+            if (filenameIn == null) return outList;
+
+            // check DSPARK, this should come ahead of kicad because it has a more definitive drill file name
+            if (filenameIn.EndsWith(KNOWN_EXT_TOPCOPPER_DSPARK) == true) if (outList.Contains(KnownDesignTool.DESIGN_SPARK) == false) outList.Add(KnownDesignTool.DESIGN_SPARK);
+            if (filenameIn.EndsWith(KNOWN_EXT_BOTCOPPER_DSPARK) == true) if (outList.Contains(KnownDesignTool.DESIGN_SPARK) == false) outList.Add(KnownDesignTool.DESIGN_SPARK);
+            if (filenameIn.EndsWith(KNOWN_EXT_EDGECUT_DSPARK) == true) if (outList.Contains(KnownDesignTool.DESIGN_SPARK) == false) outList.Add(KnownDesignTool.DESIGN_SPARK);
+            if (filenameIn.EndsWith(KNOWN_EXT_EXEL_DRILL_DSPARK) == true) if (outList.Contains(KnownDesignTool.DESIGN_SPARK) == false) outList.Add(KnownDesignTool.DESIGN_SPARK);
+
+            // check Kicad
+            if (filenameIn.EndsWith(KNOWN_EXT_TOPCOPPER_KICAD) == true) if (outList.Contains(KnownDesignTool.KICAD) == false) outList.Add(KnownDesignTool.KICAD);
+            if (filenameIn.EndsWith(KNOWN_EXT_BOTCOPPER_KICAD) == true) if (outList.Contains(KnownDesignTool.KICAD) == false) outList.Add(KnownDesignTool.KICAD);
+            if (filenameIn.EndsWith(KNOWN_EXT_EDGECUT_KICAD) == true) if (outList.Contains(KnownDesignTool.KICAD) == false) outList.Add(KnownDesignTool.KICAD);
+            if (filenameIn.EndsWith(KNOWN_EXT_EXEL_DRILL_KICAD) == true) if (outList.Contains(KnownDesignTool.KICAD) == false) outList.Add(KnownDesignTool.KICAD);
+            if (filenameIn.EndsWith(KNOWN_EXT_EXEL_DRILL_PTH_KICAD) == true) if (outList.Contains(KnownDesignTool.KICAD) == false) outList.Add(KnownDesignTool.KICAD);
+            if (filenameIn.EndsWith(KNOWN_EXT_EXEL_DRILL_NPTH_KICAD) == true) if (outList.Contains(KnownDesignTool.KICAD) == false) outList.Add(KnownDesignTool.KICAD);
+
+            // later do others
+
+            // return the list
+            return outList;
         }
 
         // ####################################################################
@@ -2307,6 +2364,7 @@ namespace LineGrinder
         }
 
         #endregion
+
 
     }
 }

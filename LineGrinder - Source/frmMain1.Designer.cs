@@ -49,7 +49,7 @@
             this.checkBoxShowGerberApertures = new System.Windows.Forms.CheckBox();
             this.labelOnGerberPlots = new System.Windows.Forms.Label();
             this.checkBoxShowGerberCenterLines = new System.Windows.Forms.CheckBox();
-            this.radioButtonIsoGCodePlot = new System.Windows.Forms.RadioButton();
+            this.radioButtonMainViewIsoGCodePlot = new System.Windows.Forms.RadioButton();
             this.radioButtonIsoPlotStep3 = new System.Windows.Forms.RadioButton();
             this.radioButtonIsoPlotStep2 = new System.Windows.Forms.RadioButton();
             this.radioButtonMainViewEdgeMillGCode = new System.Windows.Forms.RadioButton();
@@ -249,7 +249,7 @@
             this.groupBox1.Controls.Add(this.checkBoxShowGerberApertures);
             this.groupBox1.Controls.Add(this.labelOnGerberPlots);
             this.groupBox1.Controls.Add(this.checkBoxShowGerberCenterLines);
-            this.groupBox1.Controls.Add(this.radioButtonIsoGCodePlot);
+            this.groupBox1.Controls.Add(this.radioButtonMainViewIsoGCodePlot);
             this.groupBox1.Controls.Add(this.radioButtonIsoPlotStep3);
             this.groupBox1.Controls.Add(this.radioButtonIsoPlotStep2);
             this.groupBox1.Controls.Add(this.radioButtonMainViewEdgeMillGCode);
@@ -379,16 +379,16 @@
             this.checkBoxShowGerberCenterLines.UseVisualStyleBackColor = true;
             this.checkBoxShowGerberCenterLines.CheckedChanged += new System.EventHandler(this.checkBoxShowGerberCenterLines_CheckedChanged);
             // 
-            // radioButtonIsoGCodePlot
+            // radioButtonMainViewIsoGCodePlot
             // 
-            this.radioButtonIsoGCodePlot.AutoSize = true;
-            this.radioButtonIsoGCodePlot.Location = new System.Drawing.Point(9, 106);
-            this.radioButtonIsoGCodePlot.Name = "radioButtonIsoGCodePlot";
-            this.radioButtonIsoGCodePlot.Size = new System.Drawing.Size(100, 17);
-            this.radioButtonIsoGCodePlot.TabIndex = 5;
-            this.radioButtonIsoGCodePlot.Text = "Isolation GCode";
-            this.radioButtonIsoGCodePlot.UseVisualStyleBackColor = true;
-            this.radioButtonIsoGCodePlot.CheckedChanged += new System.EventHandler(this.radioButtonIsoGCodePlot_CheckedChanged);
+            this.radioButtonMainViewIsoGCodePlot.AutoSize = true;
+            this.radioButtonMainViewIsoGCodePlot.Location = new System.Drawing.Point(9, 106);
+            this.radioButtonMainViewIsoGCodePlot.Name = "radioButtonMainViewIsoGCodePlot";
+            this.radioButtonMainViewIsoGCodePlot.Size = new System.Drawing.Size(100, 17);
+            this.radioButtonMainViewIsoGCodePlot.TabIndex = 5;
+            this.radioButtonMainViewIsoGCodePlot.Text = "Isolation GCode";
+            this.radioButtonMainViewIsoGCodePlot.UseVisualStyleBackColor = true;
+            this.radioButtonMainViewIsoGCodePlot.CheckedChanged += new System.EventHandler(this.radioButtonMainViewIsoGCodePlot_CheckedChanged);
             // 
             // radioButtonIsoPlotStep3
             // 
@@ -1273,7 +1273,7 @@
         private System.Windows.Forms.CheckBox checkBoxShowGerberApertures;
         private System.Windows.Forms.Label labelOnGerberPlots;
         private System.Windows.Forms.CheckBox checkBoxShowGerberCenterLines;
-        private System.Windows.Forms.RadioButton radioButtonIsoGCodePlot;
+        private System.Windows.Forms.RadioButton radioButtonMainViewIsoGCodePlot;
         private System.Windows.Forms.RadioButton radioButtonIsoPlotStep3;
         private System.Windows.Forms.RadioButton radioButtonIsoPlotStep2;
         private System.Windows.Forms.RadioButton radioButtonMainViewEdgeMillGCode;

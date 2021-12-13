@@ -180,22 +180,22 @@ namespace LineGrinder
             // check to make sure there are valid Min and Max coodinates
             if (minDCodeXCoord == float.MaxValue)
             {
-                errStr = "minimum X coordinate not found in D Codes - something wrong with this file.";
+                errStr = "minimum X coordinate not found in D Codes - something is wrong with this file.";
                 return false;
             }
             if (minDCodeYCoord == float.MaxValue)
             {
-                errStr = "minimum Y coordinate not found in D Codes - something wrong with this file.";
+                errStr = "minimum Y coordinate not found in D Codes - something is wrong with this file.";
                 return false;
             }
             if (maxDCodeXCoord == float.MinValue)
             {
-                errStr = "maximum X coordinate not found in D Codes - something wrong with this file.";
+                errStr = "maximum X coordinate not found in D Codes - something is wrong with this file.";
                 return false;
             }
             if (maxDCodeYCoord == float.MinValue)
             {
-                errStr = "maximum Y coordinate not found in D Codes - something wrong with this file.";
+                errStr = "maximum Y coordinate not found in D Codes - something is wrong with this file.";
                 return false;
             }
             // we have to make sure the UNITS used by the Gerber file are the 
@@ -956,6 +956,21 @@ namespace LineGrinder
                     if (retInt != 0)
                     {
                         LogMessage("lineStr(g), call to ParseLine returned " + retInt.ToString() + " Error on line " + lineNumber.ToString());
+                        return 800;
+                    }
+                    // it is good, add it
+                    sourceLines.Add(gObj);
+                    continue;
+                }
+                // Are we a T Code? These can start with %TG
+                else if (tmpLine1.StartsWith("T") == true)
+                {
+                    // we are a T Code
+                    GerberLine_TCode gObj = new GerberLine_TCode(lineStr, tmpLine1, lineNumber);
+                    retInt = gObj.ParseLine(tmpLine1, StateMachine);
+                    if (retInt != 0)
+                    {
+                        LogMessage("lineStr(T), call to ParseLine returned " + retInt.ToString() + " Error on line " + lineNumber.ToString());
                         return 800;
                     }
                     // it is good, add it

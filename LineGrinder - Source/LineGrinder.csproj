@@ -70,6 +70,7 @@
     <Compile Include="GCodeBuilderObject_EngravingLine.cs" />
     <Compile Include="GerberLine_G37Code.cs" />
     <Compile Include="GerberLine_G36Code.cs" />
+    <Compile Include="GerberLine_TCode.cs" />
     <Compile Include="GerberLine_SFCode.cs" />
     <Compile Include="GerberLine_INCode.cs" />
     <Compile Include="GerberLine_LNCode.cs" />
