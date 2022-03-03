@@ -7,19 +7,19 @@ using System.Text;
 using System.Windows.Forms;
 
 /// +------------------------------------------------------------------------------------------------------------------------------+
-/// ¦                                                   TERMS OF USE: MIT License                                                  ¦
-/// +------------------------------------------------------------------------------------------------------------------------------¦
-/// ¦Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation    ¦
-/// ¦files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy,    ¦
-/// ¦modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software¦
-/// ¦is furnished to do so, subject to the following conditions:                                                                   ¦
-/// ¦                                                                                                                              ¦
-/// ¦The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.¦
-/// ¦                                                                                                                              ¦
-/// ¦THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE          ¦
-/// ¦WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR         ¦
-/// ¦COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,   ¦
-/// ¦ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                         ¦
+/// ï¿½                                                   TERMS OF USE: MIT License                                                  ï¿½
+/// +------------------------------------------------------------------------------------------------------------------------------ï¿½
+/// ï¿½Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation    ï¿½
+/// ï¿½files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy,    ï¿½
+/// ï¿½modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Softwareï¿½
+/// ï¿½is furnished to do so, subject to the following conditions:                                                                   ï¿½
+/// ï¿½                                                                                                                              ï¿½
+/// ï¿½The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.ï¿½
+/// ï¿½                                                                                                                              ï¿½
+/// ï¿½THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE          ï¿½
+/// ï¿½WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR         ï¿½
+/// ï¿½COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,   ï¿½
+/// ï¿½ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                         ï¿½
 /// +------------------------------------------------------------------------------------------------------------------------------+
 
 /// #########
@@ -35,9 +35,6 @@ namespace OISCommon
     /// other options in a transparent way which still allows the ctl to inherit
     /// from UserControl.
     /// </summary>
-    /// <history>
-    ///    07 Nov 09  Cynic - Started
-    /// </history>
     public partial class ctlOISBase : UserControl
     {
         // the logger instance
@@ -47,9 +44,6 @@ namespace OISCommon
         /// <summary>
         /// Constructor
         /// </summary>
-        /// <history>
-        ///    07 Nov 09  Cynic - Started
-        /// </history>
         public ctlOISBase()
         {
             // Acquire the Singleton g_Logger instance - this must be done first
@@ -69,9 +63,6 @@ namespace OISCommon
         /// A wrapper to launch a modal Yes/No Message box, with logging
         /// </summary>
         /// <param name="boxText">The text to display in the box</param>
-        /// <history>
-        ///    31 Aug 10  Cynic - Started
-        /// </history>
         public DialogResult OISMessageBox_YesNo(string boxText)
         {
             if (boxText == null) boxText = "";
@@ -86,9 +77,6 @@ namespace OISCommon
         /// </summary>
         /// <param name="boxText">The text to display in the box</param>
         /// <param name="boxTitle">The box title</param>
-        /// <history>
-        ///    31 Aug 10  Cynic - Started
-        /// </history>
         public DialogResult OISMessageBox_YesNo(string boxText, string boxTitle)
         {
             if (boxTitle == null) boxTitle = "";
@@ -104,9 +92,6 @@ namespace OISCommon
         /// A wrapper to launch a modal Yes/No/Cancel Message box, with logging
         /// </summary>
         /// <param name="boxText">The text to display in the box</param>
-        /// <history>
-        ///    31 Aug 10  Cynic - Started
-        /// </history>
         public DialogResult OISMessageBox_YesNoCancel(string boxText)
         {
             if (boxText == null) boxText = "";
@@ -121,9 +106,6 @@ namespace OISCommon
         /// </summary>
         /// <param name="boxText">The text to display in the box</param>
         /// <param name="boxTitle">The box title</param>
-        /// <history>
-        ///    31 Aug 10  Cynic - Started
-        /// </history>
         public DialogResult OISMessageBox_YesNoCancel(string boxText, string boxTitle)
         {
             if (boxTitle == null) boxTitle = "";
@@ -140,9 +122,6 @@ namespace OISCommon
         /// </summary>
         /// <param name="boxText">The text to display in the box</param>
         /// <param name="boxTitle">The box title</param>
-        /// <history>
-        ///    07 Nov 09  Cynic - Started
-        /// </history>
         public void OISMessageBox(string boxText, string boxTitle)
         {
             if (boxTitle == null) boxTitle = "";
@@ -156,9 +135,6 @@ namespace OISCommon
         /// A wrapper to launch a modal Message box, with logging
         /// </summary>
         /// <param name="boxText">The text to display in the box</param>
-        /// <history>
-        ///    07 Nov 09  Cynic - Started
-        /// </history>
         public void OISMessageBox(string boxText)
         {
             if (boxText == null) boxText = "";
@@ -171,9 +147,6 @@ namespace OISCommon
         /// Simple wrapper for the most common record message call
         /// </summary>
         /// <param name="msgText">Text to Write to the Log</param>
-        /// <history>
-        ///    07 Nov 09  Cynic - Started
-        /// </history>
         public void LogMessage(string msgText)
         {
             // write it out to the log - but prepend the object type name
@@ -185,9 +158,6 @@ namespace OISCommon
         /// Simple wrapper for the most common debug mode record message call
         /// </summary>
         /// <param name="msgText">Text to Write to the Log</param>
-        /// <history>
-        ///    07 Nov 09  Cynic - Started
-        /// </history>
 #if DEBUG
         public void DebugMessage(string msgText)
         {
@@ -202,9 +172,6 @@ namespace OISCommon
         /// done before release
         /// </summary>
         /// <param name="msgText">The thing To Do</param>
-        /// <history>
-        ///    07 Nov 09  Cynic - Started
-        /// </history>
         public void DebugTODO(string msgText)
         {
         }
@@ -214,3 +181,4 @@ namespace OISCommon
 
     }
 }
+

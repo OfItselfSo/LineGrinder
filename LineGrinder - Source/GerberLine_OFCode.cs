@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -28,9 +28,6 @@ namespace LineGrinder
     /// <summary>
     /// A class to encapsulate a gerber OF Code
     /// </summary>
-    /// <history>
-    ///    22 Sep 10  Cynic - Started
-    /// </history>
     public class GerberLine_OFCode : GerberLine
     {
         public const float DEFAULT_XOFFSET = 0f;
@@ -45,9 +42,6 @@ namespace LineGrinder
         /// </summary>
         /// <param name="rawLineStrIn">The raw line string</param>
         /// <param name="processedLineStrIn">The processed line string</param>
-        /// <history>
-        ///    22 Sep 10  Cynic - Started
-        /// </history>
         public GerberLine_OFCode(string rawLineStrIn, string processedLineStrIn, int lineNumberIn)
             : base(rawLineStrIn, processedLineStrIn, lineNumberIn)
         {
@@ -58,9 +52,6 @@ namespace LineGrinder
         /// Gets the current xOffset. There is no set accessor
         /// as this is derived from the OFCode Line.
         /// </summary>
-        /// <history>
-        ///    22 Sep 10  Cynic - Started
-        /// </history>
         public float XOffset
         {
             get
@@ -74,9 +65,6 @@ namespace LineGrinder
         /// Gets the current yOffset. There is no set accessor
         /// as this is derived from the OFCode Line.
         /// </summary>
-        /// <history>
-        ///    22 Sep 10  Cynic - Started
-        /// </history>
         public float YOffset
         {
             get
@@ -93,9 +81,6 @@ namespace LineGrinder
         /// <param name="processedLineStr">a line string without block terminator or format parameters</param>
         /// <param name="stateMachine">The state machine containing the implied modal values</param>
         /// <returns>z success, nz fail</returns>
-        /// <history>
-        ///    22 Sep 10  Cynic - Started
-        /// </history>
         public override int ParseLine(string processedLineStr, GerberFileStateMachine stateMachine)
         {
             float outFloat = 0;
@@ -105,7 +90,7 @@ namespace LineGrinder
             LogMessage("ParseLine(OF) started");
 
             if (processedLineStr == null) return 100;
-            if (processedLineStr.StartsWith(GerberFile.RS274OFPARAM) == false) 
+            if (processedLineStr.StartsWith(GerberFile.RS274_OF_CMD) == false) 
             {
                 return 200;
             }
@@ -160,3 +145,4 @@ namespace LineGrinder
         }
     }
 }
+

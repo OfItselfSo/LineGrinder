@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -30,11 +30,10 @@ namespace LineGrinder
     /// A class to maintain tool head parameters (feed rates etc) used during
     /// the generation of the GCode 
     /// </summary>
-    /// <history>
-    ///    03 Sep 10  Cynic - Started
-    /// </history>
     public class ToolHeadParameters : OISObjBase
     {
+        int idVar = 0;
+
         // NOTE: the defaults here are the ISO defaults from the FileManager.
         //       There is no particular reason for this choice other than there
         //       has to be some default values and these seem reasonable
@@ -66,27 +65,34 @@ namespace LineGrinder
         // this is essentially the diameter of the line the isolation milling bit cuts at the ZCutLevel
         private float toolWidth = FileManager.DEFAULT_ISOCUT_WIDTH;
 
-        // These are preset values for GCode generation.  These make it easy to set
-        // different values for iso cuts, refPins, edgeMill etc.
-        public enum ToolHeadSetupModeEnum
+        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+        /// <summary>
+        /// Constructor 
+        /// </summary>
+        /// <param name="idVarIn">id value for diagnostics</param>
+        public ToolHeadParameters(int idVarIn)
         {
-            Default,
-            IsoCut,
-            TextAndLabels,
-            EdgeMill,
-            RefPins,
-            PadTouchDowns,
-            BedFlattening,
-            ExcellonDrill,
+            idVar = idVarIn;
+        }
+
+        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+        /// <summary>
+        /// Constructor 
+        /// </summary>
+        /// <param name="idVarIn">id value for diagnostics</param>
+        /// <param name="fileManagerObj">the file manager</param>
+        /// <param name="toolHeadMode">the mode</param>
+        public ToolHeadParameters(int idVarIn, FileManager fileManagerObj, ToolHeadParametersModeEnum toolHeadMode)
+        {
+            idVar = idVarIn;
+            // set up the parameters
+            SetToolHeadParametersFromMode(fileManagerObj, toolHeadMode);
         }
 
         /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
         /// <summary>
         /// Resets all toolhead parameters to the defaults. 
         /// </summary>
-        /// <history>
-        ///    03 Sep 10  Cynic - Started
-        /// </history>
         public void Reset()
         {
             zCutLevel = FileManager.DEFAULT_ISOZCUTLEVEL;
@@ -100,21 +106,21 @@ namespace LineGrinder
 
         /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
         /// <summary>
-        /// Sets the toolhead parameters according to a specified mode. 
+        /// Sets the toolhead parameters according to a specified mode. Things are
+        /// setup slightly differently sometimes depending on the mode
         /// </summary>
-        /// <history>
-        ///    03 Sep 10  Cynic - Started
-        /// </history>
-        public void SetToolHeadParametersFromMode(FileManager fileManagerObj, ToolHeadSetupModeEnum toolHeadSetupIn)
+        /// <param name="fileManagerObj">the file manager, if null just resets</param>
+        /// <param name="toolHeadMode">the mode for this toolhead</param>
+        private void SetToolHeadParametersFromMode(FileManager fileManagerObj, ToolHeadParametersModeEnum toolHeadMode)
         {
             if(fileManagerObj==null)
             {
                 Reset();
                 return;
             }
-            switch (toolHeadSetupIn)
+            switch (toolHeadMode)
             {
-                case ToolHeadSetupModeEnum.IsoCut:
+                case ToolHeadParametersModeEnum.ISOCUT:
                   //  DebugMessage("isocutwidth d=" + fileManagerObj.IsoCutWidth.ToString());
                     toolWidth = fileManagerObj.IsoCutWidth;
                     xyFeedRate = fileManagerObj.IsoXYFeedRate;
@@ -124,7 +130,7 @@ namespace LineGrinder
                     zMoveLevel = fileManagerObj.IsoZMoveLevel;
                     zClearLevel = fileManagerObj.IsoZClearLevel;
                     return;
-                case ToolHeadSetupModeEnum.TextAndLabels:
+                case ToolHeadParametersModeEnum.TEXTANDLABELS:
                     toolWidth = fileManagerObj.IsoCutWidth;
                   //  DebugMessage("isocutwidth e=" + fileManagerObj.IsoCutWidth.ToString());
                     xyFeedRate = fileManagerObj.IsoXYFeedRate;
@@ -134,7 +140,7 @@ namespace LineGrinder
                     zMoveLevel = fileManagerObj.IsoZMoveLevel;
                     zClearLevel = fileManagerObj.IsoZClearLevel;
                     return;
-                case ToolHeadSetupModeEnum.EdgeMill:
+                case ToolHeadParametersModeEnum.EDGEMILL:
                     toolWidth = fileManagerObj.EdgeMillCutWidth;
                     xyFeedRate = fileManagerObj.EdgeMillXYFeedRate;
                     zFeedRate = fileManagerObj.EdgeMillZFeedRate;
@@ -143,7 +149,7 @@ namespace LineGrinder
                     zMoveLevel = fileManagerObj.EdgeMillZMoveLevel;
                     zClearLevel = fileManagerObj.EdgeMillZClearLevel;
                     return;
-                case ToolHeadSetupModeEnum.RefPins:
+                case ToolHeadParametersModeEnum.REFPINS:
                     toolWidth = fileManagerObj.ReferencePinPadDiameter;
                     xyFeedRate = fileManagerObj.ReferencePinsXYFeedRate;
                     zFeedRate = fileManagerObj.ReferencePinsZFeedRate;
@@ -152,7 +158,7 @@ namespace LineGrinder
                     zMoveLevel = fileManagerObj.ReferencePinsZClearLevel; // no move level here
                     zClearLevel = fileManagerObj.ReferencePinsZClearLevel;
                     return;
-                case ToolHeadSetupModeEnum.PadTouchDowns:
+                case ToolHeadParametersModeEnum.PADTOUCHDOWNS:
                     toolWidth = fileManagerObj.IsoPadTouchDownZLevel;
                     xyFeedRate = fileManagerObj.IsoXYFeedRate;
                     zFeedRate = fileManagerObj.IsoZFeedRate;
@@ -161,7 +167,7 @@ namespace LineGrinder
                     zMoveLevel = fileManagerObj.IsoZMoveLevel; // use iso move level
                     zClearLevel = fileManagerObj.IsoZClearLevel; // use iso clear level
                     return;
-                case ToolHeadSetupModeEnum.BedFlattening:
+                case ToolHeadParametersModeEnum.BEDFLATTENING:
                     toolWidth = fileManagerObj.BedFlatteningMillWidth;
                     xyFeedRate = fileManagerObj.BedFlatteningXYFeedRate;
                     zFeedRate = fileManagerObj.BedFlatteningZFeedRate;
@@ -170,7 +176,7 @@ namespace LineGrinder
                     zMoveLevel = fileManagerObj.BedFlatteningZClearLevel; // no move level here
                     zClearLevel = fileManagerObj.BedFlatteningZClearLevel;
                     return;
-                case ToolHeadSetupModeEnum.ExcellonDrill:
+                case ToolHeadParametersModeEnum.EXCELLONDRILL:
                     toolWidth = FileManager.DEFAULT_ISOCUT_WIDTH;
                     xyFeedRate = fileManagerObj.DrillingXYFeedRate;
                     zFeedRate = fileManagerObj.DrillingZFeedRate;
@@ -179,7 +185,7 @@ namespace LineGrinder
                     zMoveLevel = fileManagerObj.DrillingZClearLevel; // no move level here
                     zClearLevel = fileManagerObj.DrillingZClearLevel; 
                     return;
-                case ToolHeadSetupModeEnum.Default:
+                case ToolHeadParametersModeEnum.DEFAULT:
                 default:
                     Reset();
                     return;
@@ -190,9 +196,6 @@ namespace LineGrinder
         /// <summary>
         /// Gets/Sets the zCutLevel. 
         /// </summary>
-        /// <history>
-        ///    03 Sep 10  Cynic - Started
-        /// </history>
         public float ZCutLevel
         {
             get
@@ -209,9 +212,6 @@ namespace LineGrinder
         /// <summary>
         /// Gets/Sets the zAlt1CutLevel. 
         /// </summary>
-        /// <history>
-        ///    05 Sep 10  Cynic - Started
-        /// </history>
         public float ZAlt1CutLevel
         {
             get
@@ -228,9 +228,6 @@ namespace LineGrinder
         /// <summary>
         /// Gets/Sets the zMoveLevel. 
         /// </summary>
-        /// <history>
-        ///    03 Sep 10  Cynic - Started
-        /// </history>
         public float ZMoveLevel
         {
             get
@@ -247,9 +244,6 @@ namespace LineGrinder
         /// <summary>
         /// Gets/Sets the zClearLevel. 
         /// </summary>
-        /// <history>
-        ///    03 Sep 10  Cynic - Started
-        /// </history>
         public float ZClearLevel
         {
             get
@@ -267,9 +261,6 @@ namespace LineGrinder
         /// Gets/Sets the zFeedRate. Will never get or set a negative
         /// or zero value. 
         /// </summary>
-        /// <history>
-        ///    03 Sep 10  Cynic - Started
-        /// </history>
         public float ZFeedRate
         {
             get
@@ -289,9 +280,6 @@ namespace LineGrinder
         /// Gets/Sets the xyFeedRate. Will never get or set a negative
         /// or xyero value. 
         /// </summary>
-        /// <history>
-        ///    03 Sep 10  Cynic - Started
-        /// </history>
         public float XYFeedRate
         {
             get
@@ -311,9 +299,6 @@ namespace LineGrinder
         /// Gets/Sets the toolWidth. Will never get or set a negative
         /// or zero value. 
         /// </summary>
-        /// <history>
-        ///    03 Sep 10  Cynic - Started
-        /// </history>
         public float ToolWidth
         {
             get
@@ -330,3 +315,4 @@ namespace LineGrinder
 
     }
 }
+

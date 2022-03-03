@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.IO;
 using System.Runtime.Serialization;
 using System.Runtime.Serialization.Formatters.Binary;     
@@ -34,9 +34,6 @@ namespace LineGrinder
     /// </summary>
     /// <remarks>we do not inherit from OISBase here because that class is
     /// not serializable</remarks>
-    /// <history>
-    ///    23 Aug 10  Cynic - Started
-    /// </history>
     [DataContract]
     public class FileManager 
     {
@@ -51,21 +48,11 @@ namespace LineGrinder
         // IMPORTANT NOTE; If you add a property here make sure to also add a line
         //   in the IsAtDefaults() and Reset() functions.
 
-        // this determines the method used to flip the display
-        // so that bottom copper isolation modes can be cut
+        // this determines the margin mode for bed flattening
         public enum BedFlatteningSizeModeEnum
         {
             Add_Margin_To_Border,
             Absolute_Size
-        }
-
-        // this determines the method used to flip the display
-        // so that bottom copper isolation modes can be cut
-        public enum IsoFlipModeEnum
-        {
-            No_Flip,
-            X_Flip,
-            Y_Flip,
         }
 
         // this determines the style of the option
@@ -81,11 +68,15 @@ namespace LineGrinder
         [DataMember]
         private OperationModeEnum operationMode = DEFAULT_OPERATION_MODE;
 
+        public const ApplicationUnitsEnum DEFAULT_FILEMANGER_UNITS = ApplicationUnitsEnum.INCHES;
+        [DataMember]
+        private ApplicationUnitsEnum fileManagerUnits = DEFAULT_FILEMANGER_UNITS;
+
         // this determines whether we automatically adjust the origin
         // in the output GCode file
-        public const bool DEFAULT_AUTOADJUSTORIGIN = false;
+        public const bool DEFAULT_GCODEORIGINATCENTER = true;
         [DataMember]
-        private bool autoAdjustOrigin = DEFAULT_AUTOADJUSTORIGIN;
+        private bool gCodeOriginAtCenter = DEFAULT_GCODEORIGINATCENTER;
 
         // this determines whether we automatically generate GCodes when
         // the gerber file is opened
@@ -96,7 +87,7 @@ namespace LineGrinder
         // this will cause line numbers to be output to the gcode file
         public const bool DEFAULT_SHOWGCODE_LINENUMBERS = false;
         [DataMember]
-        private bool showGCodeLineNumbers = DEFAULT_SHOWGCODE_LINENUMBERS;
+        private bool showGCodeCmdNumbers = DEFAULT_SHOWGCODE_LINENUMBERS;
 
         // this determines whether we warn if we are overwriting on a save
         public const bool DEFAULT_OVERWRITEWARN = true;
@@ -137,7 +128,7 @@ namespace LineGrinder
 
         public const string KNOWN_EXT_TOPCOPPER_DSPARK = "- Top Copper.gbr";
         public const string KNOWN_EXT_BOTCOPPER_DSPARK = "- Bottom Copper.gbr";
-        public const string KNOWN_EXT_EDGECUT_DSPARK = "- Board Outline.gbr.gbr";
+        public const string KNOWN_EXT_EDGECUT_DSPARK = "- Board Outline.gbr";
         public const string KNOWN_EXT_EXEL_DRILL_DSPARK = "- [Through Hole].drl";
 
         // ####################################################################
@@ -160,8 +151,8 @@ namespace LineGrinder
 
         // this is the distance into the material we cut this will be negative 
         // because zero is the surface of the pcb we are cutting
-        public const float DEFAULT_ISOZCUTLEVEL = -0.002f;
-        public const float DEFAULT_ISOALT1ZCUTLEVEL = -0.002f;
+        public const float DEFAULT_ISOZCUTLEVEL = -0.015f;
+        public const float DEFAULT_ISOALT1ZCUTLEVEL = -0.015f;
         [DataMember]
         private float isoZCutLevel = DEFAULT_ISOZCUTLEVEL;
 
@@ -191,13 +182,13 @@ namespace LineGrinder
         private float isoXYFeedRate = DEFAULT_ISOXYFEEDRATE;
 
         // this is essentially the diameter of the line the isolation milling bit cuts at the IsoZCutLevel
-        public const float DEFAULT_ISOCUT_WIDTH = 0.010f;
+        public const float DEFAULT_ISOCUT_WIDTH = 0.005f;
         [DataMember]
         private float isoCutWidth = DEFAULT_ISOCUT_WIDTH;
 
         // this will cause the milling bit to dip into each pad to provide
         // a drilling center hole
-        public const bool DEFAULT_ISOPADTOUCHDOWNS_WANTED = true;
+        public const bool DEFAULT_ISOPADTOUCHDOWNS_WANTED = false;
         [DataMember]
         private bool isoPadTouchDownsWanted = DEFAULT_ISOPADTOUCHDOWNS_WANTED;
 
@@ -305,7 +296,7 @@ namespace LineGrinder
 
         // this is the distance into the material we cut this will be negative 
         // because zero is the surface of the pcb we are cutting
-        public const float DEFAULT_BEDFLATTENINGZCUTLEVEL = -0.025f;
+        public const float DEFAULT_BEDFLATTENINGZCUTLEVEL = -0.04f;
         [DataMember]
         private float bedFlatteningZCutLevel = DEFAULT_BEDFLATTENINGZCUTLEVEL;
 
@@ -388,6 +379,16 @@ namespace LineGrinder
         [DataMember]
         private int referencePinsMaxNumber = DEFAULT_REFERENCEPINS_MAXNUMBER;
 
+        // this is the diameter of the drill holes on the PCB we should use as reference pins.
+        public const float DEFAULT_DRILLINGREFERENCEPINDIAMETER = 0.125f;
+        [DataMember]
+        private float drillingReferencePinDiameter = DEFAULT_DRILLINGREFERENCEPINDIAMETER;
+
+        // this is the maximum number of drilling reference pins we expect to see in the Gerber file
+        private const int DEFAULT_DRILLINGREFERENCEPINS_MAXNUMBER = 6;
+        [DataMember]
+        private int drillingReferencePinsMaxNumber = DEFAULT_DRILLINGREFERENCEPINS_MAXNUMBER;
+
         #endregion
 
         // ####################################################################
@@ -400,14 +401,20 @@ namespace LineGrinder
         [DataMember]
         private bool drillingGCodeEnabled = DEFAULT_DRILLINGGCODE_ENABLED;
 
+        // this determines whether we look for drillingreference pins
+        public const bool DEFAULT_DRILLINGREFERENCEPINS_ENABLED = false;
+        [DataMember]
+        private bool drillingReferencePinsEnabled = DEFAULT_DRILLINGREFERENCEPINS_ENABLED;
+
         // this determines the method used to deal with leading zeros in the excellon file
         public enum ExcellonDrillingCoordinateZerosModeEnum
         {
+            DecimalNumber,
             FixedDecimalPoint,
             OmitLeadingZeros,
           //not supported  OmitTrailingZeros, 
         }
-        public const ExcellonDrillingCoordinateZerosModeEnum DEFAULT_DRILLING_COORDINATEZEROS_MODE = ExcellonDrillingCoordinateZerosModeEnum.FixedDecimalPoint;
+        public const ExcellonDrillingCoordinateZerosModeEnum DEFAULT_DRILLING_COORDINATEZEROS_MODE = ExcellonDrillingCoordinateZerosModeEnum.DecimalNumber;
         [DataMember]
         private ExcellonDrillingCoordinateZerosModeEnum drillingDrillingCoordinateZerosMode = DEFAULT_DRILLING_COORDINATEZEROS_MODE;
 
@@ -432,8 +439,7 @@ namespace LineGrinder
         // because it is above the surface of the pcb we are cutting
         // and should be large enough to clear all hold downs and clamps etc
         public const float DEFAULT_DRILLINGZCLEARLEVEL = 0.25f;
-        [DataMember]
-        private float drillingZClearLevel = DEFAULT_DRILLINGZCLEARLEVEL;
+        [DataMember]        private float drillingZClearLevel = DEFAULT_DRILLINGZCLEARLEVEL;
 
         // this is the speed at which the tool (in application units per minute) moves vertically into the work.
         public const float DEFAULT_DRILLZFEEDRATE = 20f;
@@ -451,9 +457,6 @@ namespace LineGrinder
         /// <summary>
         /// Constructor
         /// </summary>
-        /// <history>
-        ///    23 Aug 10  Cynic - Started
-        /// </history>
         public FileManager()
         {
         }
@@ -462,9 +465,6 @@ namespace LineGrinder
         /// <summary>
         /// Constructor
         /// </summary>
-        /// <history>
-        ///    23 Aug 10  Cynic - Started
-        /// </history>
         public FileManager(OperationModeEnum operationModeIn)
         {
             // set this now
@@ -475,9 +475,16 @@ namespace LineGrinder
         /// <summary>
         /// Constructor
         /// </summary>
-        /// <history>
-        ///    23 Aug 10  Cynic - Started
-        /// </history>
+        public FileManager(ApplicationUnitsEnum fileManagerUnitsIn)
+        {
+            // set this now
+            fileManagerUnits = fileManagerUnitsIn;
+        }
+
+        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+        /// <summary>
+        /// Constructor
+        /// </summary>
         public FileManager(string fileWildCardTextIn)
         {
             // add it through the property to sanity check it
@@ -489,9 +496,6 @@ namespace LineGrinder
         /// We sometimes need to know the max tool width so we can calculate 
         /// borders etc. This provides an estimate
         /// </summary>
-        /// <history>
-        ///    23 Aug 10  Cynic - Started
-        /// </history>
         public float GetMaxToolWidthForEnabledOperationMode()
         {
             switch (OperationMode)
@@ -518,9 +522,6 @@ namespace LineGrinder
         /// <summary>
         /// Detects if the FileManager class is currently at its default values
         /// </summary>
-        /// <history>
-        ///    23 Aug 10  Cynic - Started
-        /// </history>
         public bool IsAtDefaults()
         {
             return IsAtDefaults(false);
@@ -532,9 +533,6 @@ namespace LineGrinder
         /// </summary>
         /// <param name="doNotTestFilenamePattern">if true we do not test the
         /// filenamepattern, operationmode or description</param>
-        /// <history>
-        ///    23 Aug 10  Cynic - Started
-        /// </history>
         public bool IsAtDefaults(bool doNotTestFilenamePattern)
         {
             if (doNotTestFilenamePattern == false)
@@ -546,9 +544,9 @@ namespace LineGrinder
             }
 
             // general
-            if (autoAdjustOrigin != DEFAULT_AUTOADJUSTORIGIN) return false;
+            if (gCodeOriginAtCenter != DEFAULT_GCODEORIGINATCENTER) return false;
             if (autoGenerateGCode != DEFAULT_AUTOGENERATE_GCODE) return false;
-            if (showGCodeLineNumbers != DEFAULT_SHOWGCODE_LINENUMBERS) return false;
+            if (showGCodeCmdNumbers != DEFAULT_SHOWGCODE_LINENUMBERS) return false;
 
             // edgeMill cuts
             if (edgeMillingGCodeEnabled != DEFAULT_EDGEMILLINGGCODE_ENABLED) return false;
@@ -607,21 +605,11 @@ namespace LineGrinder
             if (drillingZFeedRate != DEFAULT_DRILLZFEEDRATE) return false;
             if (drillingXYFeedRate != DEFAULT_DRILLINGZFEEDRATE) return false;
             if (drillingGCodeEnabled != DEFAULT_DRILLINGGCODE_ENABLED) return false;
+            if (drillingReferencePinsEnabled != DEFAULT_DRILLINGREFERENCEPINS_ENABLED) return false;
+            if (drillingReferencePinDiameter != DEFAULT_DRILLINGREFERENCEPINDIAMETER) return false;
+            if (drillingReferencePinsMaxNumber != DEFAULT_DRILLINGREFERENCEPINS_MAXNUMBER) return false;
 
             return true;
-        }
-
-        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
-        /// <summary>
-        /// Resets all values in the file manager to their defaults
-        /// </summary>
-        /// <history>
-        ///    23 Aug 10  Cynic - Started
-        /// </history>
-        public void Reset()
-        {
-            // reset everything
-            Reset(true);
         }
 
         /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
@@ -631,10 +619,8 @@ namespace LineGrinder
         /// </summary>
         /// <param name="alsoResetFilenamePattern">if true we do not reset the 
         /// FileNamePattern, Description and OperationMode</param>
-        /// <history>
-        ///    31 Aug 10  Cynic - Started
-        /// </history>
-        public void Reset(bool alsoResetFilenamePattern)
+        /// <param name="applicationUnits">the current application units</param>
+        public void Reset(bool alsoResetFilenamePattern, ApplicationUnitsEnum applicationUnits)
         {
             if(alsoResetFilenamePattern==true)
             {
@@ -645,9 +631,10 @@ namespace LineGrinder
             }
 
             // general
-            autoAdjustOrigin = DEFAULT_AUTOADJUSTORIGIN;
+            fileManagerUnits = DEFAULT_FILEMANGER_UNITS;
+            gCodeOriginAtCenter = DEFAULT_GCODEORIGINATCENTER;
             autoGenerateGCode = DEFAULT_AUTOGENERATE_GCODE;
-            showGCodeLineNumbers = DEFAULT_SHOWGCODE_LINENUMBERS;
+            showGCodeCmdNumbers = DEFAULT_SHOWGCODE_LINENUMBERS;
 
             // edgeMillcuts
             edgeMillGCodeFileOutputExtension = DEFAULT_EDGEMILL_OUTPUTEXTENSION;
@@ -706,27 +693,50 @@ namespace LineGrinder
             drillingZFeedRate = DEFAULT_DRILLZFEEDRATE;
             drillingXYFeedRate = DEFAULT_DRILLINGZFEEDRATE;
             drillingGCodeEnabled = DEFAULT_DRILLINGGCODE_ENABLED;
+            drillingReferencePinsEnabled = DEFAULT_DRILLINGREFERENCEPINS_ENABLED;
+            drillingReferencePinDiameter = DEFAULT_DRILLINGREFERENCEPINDIAMETER;
+            drillingReferencePinsMaxNumber = DEFAULT_DRILLINGREFERENCEPINS_MAXNUMBER;
 
+            // do we have to convert? We do if it is not the default of inches
+            if (applicationUnits == ApplicationUnitsEnum.MILLIMETERS)
+            {                
+                // this will automatically convert
+                this.ConvertFromInchToMM();
+            }
+
+        }
+
+        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+        /// <summary>
+        /// Sets the units we work with to the desired uints. This potentially means
+        /// converting a lot of numbers
+        /// </summary>
+        public void SyncUnitsToFile(ApplicationUnitsEnum desiredUnits)
+        {
+            // just do the conversion. If we are already in that mode this will just skip
+            if (desiredUnits == ApplicationUnitsEnum.MILLIMETERS) ConvertFromInchToMM();
+            else ConvertFromMMToInch();
         }
 
         /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
         /// <summary>
         /// Converts all convertable settings from inches to MM
         /// </summary>
-        /// <history>
-        ///    20 Nov 10  Cynic - Started
-        /// </history>
         public void ConvertFromInchToMM()
         {
+            // are we already in MM mode?
+            if (fileManagerUnits == ApplicationUnitsEnum.MILLIMETERS) return;
+
             // filemanager
             // n/a description 
             // n/a operationMode 
             // n/a filenamePattern 
+            fileManagerUnits = ApplicationUnitsEnum.MILLIMETERS;
 
             //general
-            // n/a autoAdjustOrigin 
+            // n/a gCodeOriginAtCenter 
             // n/a autoGenerateGCode 
-            // n/a showGCodeLineNumbers 
+            // n/a showGCodeCmdNumbers 
 
             //edgeMillcuts
             // n/a edgeMillingGCodeEnabled
@@ -785,26 +795,30 @@ namespace LineGrinder
             drillingZFeedRate = (drillingZFeedRate * INCHTOMMSCALERx10) / 10;
             drillingXYFeedRate = (drillingXYFeedRate * INCHTOMMSCALERx10) / 10;
             // n/a drillingGCodeEnabled
+            // n/a drillingReferencePinsEnabled
+            drillingReferencePinDiameter = (drillingReferencePinDiameter * INCHTOMMSCALERx10) / 10;
+            // n/a drillingReferencePinsMaxNumber
         }
 
         /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
         /// <summary>
         /// Converts all convertable settings from MM to Inch
         /// </summary>
-        /// <history>
-        ///    20 Nov 10  Cynic - Started
-        /// </history>
         public void ConvertFromMMToInch()
         {
+            // are we already in IN mode?
+            if (fileManagerUnits == ApplicationUnitsEnum.INCHES) return;
+
             // filemanager
             // n/a description 
             // n/a operationMode 
             // n/a filenamePattern 
+            fileManagerUnits = ApplicationUnitsEnum.INCHES;
 
             //general
-            // n/a autoAdjustOrigin 
+            // n/a gCodeOriginAtCenter 
             // n/a autoGenerateGCode 
-            // n/a showGCodeLineNumbers 
+            // n/a showGCodeCmdNumbers 
 
             //edgeMillcuts
             // n/a edgeMillingGCodeEnabled
@@ -863,6 +877,9 @@ namespace LineGrinder
             drillingZFeedRate = (drillingZFeedRate * 10) / INCHTOMMSCALERx10;
             drillingXYFeedRate = (drillingXYFeedRate * 10) / INCHTOMMSCALERx10;
             // n/a drillingGCodeEnabled
+            // n/a drillingReferencePinsEnabled
+            drillingReferencePinDiameter = (drillingReferencePinDiameter * 10) / INCHTOMMSCALERx10;
+            // n/a drillingReferencePinsMaxNumber
         }
 
         /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
@@ -871,10 +888,6 @@ namespace LineGrinder
         /// </summary>
         /// <param name="source">The object instance to copy.</param>
         /// <returns>The copied object.</returns>
-        /// <history>
-        ///    23 Aug 10  Cynic - Started
-        ///    09 Sep 10  Cynic - Converted from Serializable to DataContractSerializer
-        /// </history>
         public static FileManager DeepClone(FileManager sourceObj)
         {
             MemoryStream stream1 = new MemoryStream();
@@ -887,29 +900,7 @@ namespace LineGrinder
 
             //Deserialize the Record object back into a new record object.
             FileManager outMgr = (FileManager)serializer.ReadObject(stream1);
-            return outMgr;
-
-/*
-            if (!typeof(FileManager).IsSerializable)
-            {
-                throw new ArgumentException("The type must be serializable.", "sourceObj");
-            }
-
-            // Don't serialize a null object, simply return the default for that object
-            if (Object.ReferenceEquals(sourceObj, null))
-            {
-                return default(FileManager);
-            }
-
-            IFormatter formatter = new BinaryFormatter();
-            Stream stream = new MemoryStream();
-            using (stream)
-            {
-                formatter.Serialize(stream, sourceObj);
-                stream.Seek(0, SeekOrigin.Begin);
-                return (FileManager)formatter.Deserialize(stream);
-            }
- */ 
+            return outMgr; 
         }
 
         /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
@@ -919,9 +910,6 @@ namespace LineGrinder
         /// </summary>
         /// <param name="filenameIn">The filename</param>
         /// <returns>A list of possible KnownDesignTool enum vals, empty list for not found</returns>
-        /// <history>
-        ///    07 Dec 21  Cynic - Started
-        /// </history>
         public static List<KnownDesignTool> CheckExtensionForKnownToolType(string filenameIn)
         {
             List<KnownDesignTool> outList = new List<KnownDesignTool>();
@@ -958,9 +946,6 @@ namespace LineGrinder
         /// Gets/Sets the operationMode value. This determines the usage the fileoption
         /// object will be used for and the options it will present
         /// </summary>
-        /// <history>
-        ///    23 Aug 10  Cynic - Started
-        /// </history>
         [CategoryAttribute(" File Manager")]
         [DescriptionAttribute("Gerber files from various layers require different operations to be performed on them. This setting determines the operations performed on the file which matches the specified FilenamePattern.")]
         [ReadOnlyAttribute(true)]
@@ -979,13 +964,31 @@ namespace LineGrinder
 
         /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
         /// <summary>
+        /// Gets/Sets the fileManagerUnits value. This determines the units used to 
+        /// specify the values in the file manager. 
+        /// </summary>
+        [CategoryAttribute(" File Manager")]
+        [DescriptionAttribute("File Managers can be configured in Inches or millimeters. This setting determines the units used to specify the values in the File Manager. If a Gerber File matches the name pattern but uses a different set of units, then the units in the File Manager will automatically be converted before use. This setting cannot be changed - drop the file manager, reset the default units appropriately, and then re-create it to change this value.")]
+        [ReadOnlyAttribute(true)]
+        [BrowsableAttribute(true)]
+        public ApplicationUnitsEnum FileManagerUnits
+        {
+            get
+            {
+                return fileManagerUnits;
+            }
+            set
+            {
+                fileManagerUnits = value;
+            }
+        }
+
+        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+        /// <summary>
         /// Gets/Sets the filenamePattern value. This is the value we use
         /// to match the filename to see if the other options set in this file apply
         /// </summary>
         /// <remarks>will never get or set null or empty string</remarks>
-        /// <history>
-        ///    23 Aug 10  Cynic - Started
-        /// </history>
         [DescriptionAttribute("The part of the filename to match. If this text is present in the filename, then the options and actions in this File Manager are applied to that file. This name should be changed to match the Gerber or Excellon file you wish to process with these options.")]
         [CategoryAttribute(" File Manager")]
         [ReadOnlyAttribute(false)]
@@ -1012,9 +1015,6 @@ namespace LineGrinder
         /// Gets/Sets the description value. 
         /// </summary>
         /// <remarks>will never get or set null or empty string</remarks>
-        /// <history>
-        ///    24 Aug 10  Cynic - Started
-        /// </history>
         [DescriptionAttribute("User specified text. Can be used for documentation purposes.")]
         [CategoryAttribute(" File Manager")]
         [ReadOnlyAttribute(false)]
@@ -1050,26 +1050,23 @@ namespace LineGrinder
 
         /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
         /// <summary>
-        /// Gets/Sets the autoAdjustOrigin flag
+        /// Gets/Sets the gCodeOriginAtCenter flag
         /// </summary>
-        /// <history>
-        ///    23 Aug 10  Cynic - Started
-        /// </history>
-        [DescriptionAttribute("Automatically adjusts the (0,0) origin based on the Gerber file contents. Only useful for single sided boards.")]
+        /// NOTE: this is set to true by default and is not browseable. Due to some 
+        /// outstanding bugs on the origin of the xy flip boards this mode is temporarily disabled
+        [DescriptionAttribute("Automatically adjusts the (0,0) origin in the output GCode file to be identical to that of the center of the Gerber/Excellon plot. Otherwise the (0.0) origin is at the lower left corner.")]
         [CategoryAttribute(" General")]
-        [ReadOnlyAttribute(false)]
+        [ReadOnlyAttribute(true)]
         [BrowsableAttribute(false)]
-        public bool AutoAdjustOrigin
+        public bool GCodeOriginAtCenter
         {
             get
             {
-                // we never adjust origin anymore, bad idea
-                return false;
-                //return autoAdjustOrigin;
+                return gCodeOriginAtCenter;
             }
             set
             {
-                autoAdjustOrigin = value;
+                gCodeOriginAtCenter = value;
             }
         }
 
@@ -1077,9 +1074,6 @@ namespace LineGrinder
         /// <summary>
         /// Gets/Sets the autoGenerateGCode flag
         /// </summary>
-        /// <history>
-        ///    23 Aug 10  Cynic - Started
-        /// </history>
         [DescriptionAttribute("Automatically generates GCode when the Gerber or Excellon file is opened. The type of GCode generated depends on the OperationMode and configured options.")]
         [CategoryAttribute(" General")]
         [ReadOnlyAttribute(false)]
@@ -1098,24 +1092,21 @@ namespace LineGrinder
 
         /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
         /// <summary>
-        /// Gets/Sets the showGCodeLineNumbers flag
+        /// Gets/Sets the showGCodeCmdNumbers flag
         /// </summary>
-        /// <history>
-        ///    23 Aug 10  Cynic - Started
-        /// </history>
         [DescriptionAttribute("Places line numbers in the GCode File. Most people do not want these.")]
         [CategoryAttribute(" General")]
         [ReadOnlyAttribute(false)]
         [BrowsableAttribute(true)]
-        public bool ShowGCodeLineNumbers
+        public bool ShowGCodeCmdNumbers
         {
             get
             {
-                return showGCodeLineNumbers;
+                return showGCodeCmdNumbers;
             }
             set
             {
-                showGCodeLineNumbers = value;
+                showGCodeCmdNumbers = value;
             }
         }
 
@@ -1123,9 +1114,6 @@ namespace LineGrinder
         /// <summary>
         /// Gets/Sets the warnAboutOverwriting flag
         /// </summary>
-        /// <history>
-        ///    23 Aug 10  Cynic - Started
-        /// </history>
         [DescriptionAttribute("Generates a warning if the save of the GCode file will overwrite an existing GCode file.")]
         [CategoryAttribute(" General")]
         [ReadOnlyAttribute(false)]
@@ -1153,9 +1141,6 @@ namespace LineGrinder
         /// <summary>
         /// Gets/Sets the edgeMillingGCodeEnabled flag 
         /// </summary>
-        /// <history>
-        ///    07 Sep 10  Cynic - Started
-        /// </history>
         [DescriptionAttribute("This option enables the generation of the GCode file for Edge Milling. These cuts define the board outline.")]
         [CategoryAttribute("Board Edge Milling")]
         [ReadOnlyAttribute(false)]
@@ -1178,9 +1163,6 @@ namespace LineGrinder
         /// save the gcode under 
         /// </summary>
         /// <remarks>will never get or set null or empty string</remarks>
-        /// <history>
-        ///    26 Aug 10  Cynic - Started
-        /// </history>
         [DescriptionAttribute("The filename extension to use when the Edge Mill GCode file is saved. The existing filename extension will be stripped off and replaced with this text.")]
         [CategoryAttribute("Board Edge Milling")]
         [ReadOnlyAttribute(false)]
@@ -1203,9 +1185,6 @@ namespace LineGrinder
         /// <summary>
         /// Gets/Sets the edgeMillZCutLevel. 
         /// </summary>
-        /// <history>
-        ///    24 Aug 10  Cynic - Started
-        /// </history>
         [DescriptionAttribute("This is the distance into the material we cut defined in application units (inches,mm). The value should be negative and larger than the thickness of the PCB board since you wish to cut through it in this mode.")]
         [CategoryAttribute("Board Edge Milling")]
         [ReadOnlyAttribute(false)]
@@ -1226,9 +1205,6 @@ namespace LineGrinder
         /// <summary>
         /// Gets/Sets the zEdgeMillMoveLevel. 
         /// </summary>
-        /// <history>
-        ///    24 Aug 10  Cynic - Started
-        /// </history>
         [DescriptionAttribute("This is the distance above the PCB we move the z axis to so that we can hop from cut to cut. It will be positive because it is above the surface of the pcb being cut.")]
         [CategoryAttribute("Board Edge Milling")]
         [ReadOnlyAttribute(false)]
@@ -1249,9 +1225,6 @@ namespace LineGrinder
         /// <summary>
         /// Gets/Sets the edgeMillZClearLevel. 
         /// </summary>
-        /// <history>
-        ///    24 Aug 10  Cynic - Started
-        /// </history>
         [DescriptionAttribute("This is the distance above the PCB we move the z axis to so that we can move about. It will be positive because it is above the surface of the pcb being cut and should be large enough to clear all hold downs and clamps etc.")]
         [CategoryAttribute("Board Edge Milling")]
         [ReadOnlyAttribute(false)]
@@ -1273,9 +1246,6 @@ namespace LineGrinder
         /// Gets/Sets the edgeMillZFeedRate. Will never get or set a negative
         /// or zero value. 
         /// </summary>
-        /// <history>
-        ///    24 Aug 10  Cynic - Started
-        /// </history>
         [DescriptionAttribute("This is the speed at which the tool (in application units per minute) moves vertically into the work.")]
         [CategoryAttribute("Board Edge Milling")]
         [ReadOnlyAttribute(false)]
@@ -1299,9 +1269,6 @@ namespace LineGrinder
         /// Gets/Sets the edgeMillXYFeedRate. Will never get or set a negative
         /// or xyero value. 
         /// </summary>
-        /// <history>
-        ///    24 Aug 10  Cynic - Started
-        /// </history>
         [DescriptionAttribute("This is the speed at which the tool (in application units per minute) moves horizontally over the work.")]
         [CategoryAttribute("Board Edge Milling")]
         [ReadOnlyAttribute(false)]
@@ -1325,9 +1292,6 @@ namespace LineGrinder
         /// Gets/Sets the edgeMillCutWidth. Will never get or set a negative
         /// or xyero value. 
         /// </summary>
-        /// <history>
-        ///    24 Aug 10  Cynic - Started
-        /// </history>
         [DescriptionAttribute("This is the width of the line the Edge Cutting milling bit cuts when at the EdgeMillZCutLevel")]
         [CategoryAttribute("Board Edge Milling")]
         [ReadOnlyAttribute(false)]
@@ -1351,9 +1315,6 @@ namespace LineGrinder
         /// Gets/Sets the edgeMillNumTabs. Will never get or set a negative
         ///  value. 
         /// </summary>
-        /// <history>
-        ///    27 Sep 10  Cynic - Started
-        /// </history>
         [DescriptionAttribute("This is the number of tabs left between the inner board and the larger blank PCB. These serve to hold the board in place. Set to zero for no tabs - but make sure the board being cut out is secured some other way.")]
         [CategoryAttribute("Board Edge Milling")]
         [ReadOnlyAttribute(false)]
@@ -1377,9 +1338,6 @@ namespace LineGrinder
         /// Gets/Sets the edgeMillNumTabs. Will never get or set a negative
         /// or zero value. 
         /// </summary>
-        /// <history>
-        ///    27 Sep 10  Cynic - Started
-        /// </history>
         [DescriptionAttribute("This is the width of the tabs (in Application Units) left between the inner board and the larger blank PCB. These serve to hold the board in place.")]
         [CategoryAttribute("Board Edge Milling")]
         [ReadOnlyAttribute(false)]
@@ -1410,9 +1368,6 @@ namespace LineGrinder
         /// Gets/Sets the bedFlatteningSizeMode value. This determines how we calculate
         /// the size of the bed flattening area.
         /// </summary>
-        /// <history>
-        ///    12 Sep 10  Cynic - Started
-        /// </history>
         [DescriptionAttribute("This determines how the size of the bed flattening area is calculated. In Margin Mode a margin is applied to the existing plot border. In Absolute Mode the X and Y size options are used.")]
         [CategoryAttribute("Bed Flattening")]
         [ReadOnlyAttribute(false)]
@@ -1433,9 +1388,6 @@ namespace LineGrinder
         /// <summary>
         /// Gets/Sets the bedFlatteningSizeX. Never gets or sets a value <=0
         /// </summary>
-        /// <history>
-        ///    12 Sep 10  Cynic - Started
-        /// </history>
         [DescriptionAttribute("This is the X size (in application units) of the bed flattening GCode. Only used when the BedFlatteningSizeMode is set to Absolute_Size.")]
         [CategoryAttribute("Bed Flattening")]
         [ReadOnlyAttribute(false)]
@@ -1458,9 +1410,6 @@ namespace LineGrinder
         /// <summary>
         /// Gets/Sets the bedFlatteningSizeY. Never gets or sets a value <=0
         /// </summary>
-        /// <history>
-        ///    12 Sep 10  Cynic - Started
-        /// </history>
         [DescriptionAttribute("This is the Y size (in application units) of the bed flattening GCode. Only used when the BedFlatteningSizeMode is set to Absolute_Size.")]
         [CategoryAttribute("Bed Flattening")]
         [ReadOnlyAttribute(false)]
@@ -1483,9 +1432,6 @@ namespace LineGrinder
         /// <summary>
         /// Gets/Sets thebedFlatteningGCodeEnabled. 
         /// </summary>
-        /// <history>
-        ///    24 Aug 10  Cynic - Started
-        /// </history>
         [DescriptionAttribute("This option generates an optional GCode file which will mill the bed flat when run. This makes sure the bed is perfectly flat relative to the bit and is usually performed on a scrap piece of wood mounted on the bed.")]
         [CategoryAttribute("Bed Flattening")]
         [ReadOnlyAttribute(false)]
@@ -1508,9 +1454,6 @@ namespace LineGrinder
         /// save the bed flattening gcode under 
         /// </summary>
         /// <remarks>will never get or set null or empty string</remarks>
-        /// <history>
-        ///    24 Aug 10  Cynic - Started
-        /// </history>
         [DescriptionAttribute("This is the output file name extension for the Bed Flattening GCode file (if generated).")]
         [CategoryAttribute("Bed Flattening")]
         [ReadOnlyAttribute(false)]
@@ -1533,9 +1476,6 @@ namespace LineGrinder
         /// <summary>
         /// Gets/Sets the bedFlatteningZCutLevel. 
         /// </summary>
-        /// <history>
-        ///    24 Aug 10  Cynic - Started
-        /// </history>
         [DescriptionAttribute("This is the distance into the bed material we mill defined in application units (inches,mm). The value should be negative and need only be large enough to ensure the entire surface is milled flat.")]
         [CategoryAttribute("Bed Flattening")]
         [ReadOnlyAttribute(false)]
@@ -1556,9 +1496,6 @@ namespace LineGrinder
         /// <summary>
         /// Gets/Sets the bedFlatteningZClearLevel. 
         /// </summary>
-        /// <history>
-        ///    24 Aug 10  Cynic - Started
-        /// </history>
         [DescriptionAttribute("This is the distance above the bed we move the z axis to so that we can move about. It will be positive because it is above the surface of the pcb being cut and should be large enough to clear all hold downs and clamps etc.")]
         [CategoryAttribute("Bed Flattening")]
         [ReadOnlyAttribute(false)]
@@ -1580,9 +1517,6 @@ namespace LineGrinder
         /// Gets/Sets the bedFlatteningZFeedRate. Will never get or set a negative
         /// or zero value. 
         /// </summary>
-        /// <history>
-        ///    24 Aug 10  Cynic - Started
-        /// </history>
         [DescriptionAttribute("This is the speed at which the tool (in application units per minute) moves vertically into the work.")]
         [CategoryAttribute("Bed Flattening")]
         [ReadOnlyAttribute(false)]
@@ -1606,9 +1540,6 @@ namespace LineGrinder
         /// Gets/Sets the bedFlatteningXYFeedRate. Will never get or set a negative
         /// or xyero value. 
         /// </summary>
-        /// <history>
-        ///    24 Aug 10  Cynic - Started
-        /// </history>
         [DescriptionAttribute("This is the speed at which the tool (in application units per minute) moves horizontally over the work.")]
         [CategoryAttribute("Bed Flattening")]
         [ReadOnlyAttribute(false)]
@@ -1632,9 +1563,6 @@ namespace LineGrinder
         /// Gets/Sets the bedFlatteningMillWidth. Will never get or set a negative
         /// or xyero value. 
         /// </summary>
-        /// <history>
-        ///    24 Aug 10  Cynic - Started
-        /// </history>
         [DescriptionAttribute("This is the diameter of the Bed Flattening milling bit when at the BedFlatteningZCutLevel")]
         [CategoryAttribute("Bed Flattening")]
         [ReadOnlyAttribute(false)]
@@ -1658,9 +1586,6 @@ namespace LineGrinder
         /// Gets/Sets the bedFlatteningMargin. Will never get or set a negative
         /// or xyero value. 
         /// </summary>
-        /// <history>
-        ///    24 Aug 10  Cynic - Started
-        /// </history>
         [DescriptionAttribute("The size of the generated bed flattening pattern is the size of the PCB board outline with this margin added around each dimension. Only used when the BedFlatteningSizeMode is set to Add_Margin_To_Border.")]
         [CategoryAttribute("Bed Flattening")]
         [ReadOnlyAttribute(false)]
@@ -1690,9 +1615,6 @@ namespace LineGrinder
         /// <summary>
         /// Gets/Sets the isoCutGCodeEnabled flag 
         /// </summary>
-        /// <history>
-        ///    07 Sep 10  Cynic - Started
-        /// </history>
         [DescriptionAttribute("This option indicates that the GCode file for Isolation Cuts is to be generated. These cuts outline the traces on the PCB, thus electrically isolating them.")]
         [CategoryAttribute("Isolation Cuts")]
         [ReadOnlyAttribute(false)]
@@ -1715,9 +1637,6 @@ namespace LineGrinder
         /// save the gcode under 
         /// </summary>
         /// <remarks>will never get or set null or empty string</remarks>
-        /// <history>
-        ///    23 Aug 10  Cynic - Started
-        /// </history>
         [DescriptionAttribute("The filename extension to use when the Isolation GCode file is saved. The existing filename extension will be stripped off and replaced with this text.")]
         [CategoryAttribute("Isolation Cuts")]
         [ReadOnlyAttribute(false)]
@@ -1741,9 +1660,6 @@ namespace LineGrinder
         /// Gets/Sets the isoFlipMode value. This determines how we flip the x or y
         /// coordinates so that we can cut bottom copper isolation traces.
         /// </summary>
-        /// <history>
-        ///    21 Aug 10  Cynic - Started
-        /// </history>
         [DescriptionAttribute("This determines how we flip the X or Y coordinate so that bottom layer isolation traces line up with the ones cut on the top layer. Usually this is No_Flip for the top layer and X_Flip for bottom layers.")]
         [CategoryAttribute("Isolation Cuts")]
         [ReadOnlyAttribute(false)]
@@ -1764,9 +1680,6 @@ namespace LineGrinder
         /// <summary>
         /// Gets/Sets the isoZCutLevel. 
         /// </summary>
-        /// <history>
-        ///    24 Aug 10  Cynic - Started
-        /// </history>
         [DescriptionAttribute("This is the distance into the material we cut defined in application units (inches,mm). The value should be negative as zero is traditionally the surface of the pcb being cut.")]
         [CategoryAttribute("Isolation Cuts")]
         [ReadOnlyAttribute(false)]
@@ -1787,9 +1700,6 @@ namespace LineGrinder
         /// <summary>
         /// Gets/Sets the isoZMoveLevel. 
         /// </summary>
-        /// <history>
-        ///    24 Aug 10  Cynic - Started
-        /// </history>
         [DescriptionAttribute("This is the distance above the PCB we move the z axis to so that we can hop from cut to cut. It will be positive because it is above the surface of the pcb being cut.")]
         [CategoryAttribute("Isolation Cuts")]
         [ReadOnlyAttribute(false)]
@@ -1810,9 +1720,6 @@ namespace LineGrinder
         /// <summary>
         /// Gets/Sets the isoZClearLevel. 
         /// </summary>
-        /// <history>
-        ///    24 Aug 10  Cynic - Started
-        /// </history>
         [DescriptionAttribute("This is the distance above the PCB we move the z axis to so that we can move about. It will be positive because it is above the surface of the pcb being cut and should be large enough to clear all hold downs and clamps etc.")]
         [CategoryAttribute("Isolation Cuts")]
         [ReadOnlyAttribute(false)]
@@ -1834,9 +1741,6 @@ namespace LineGrinder
         /// Gets/Sets the isoZFeedRate. Will never get or set a negative
         /// or zero value. 
         /// </summary>
-        /// <history>
-        ///    24 Aug 10  Cynic - Started
-        /// </history>
         [DescriptionAttribute("This is the speed at which the tool (in application units per minute) moves vertically into the work.")]
         [CategoryAttribute("Isolation Cuts")]
         [ReadOnlyAttribute(false)]
@@ -1860,9 +1764,6 @@ namespace LineGrinder
         /// Gets/Sets the isoXYFeedRate. Will never get or set a negative
         /// or xyero value. 
         /// </summary>
-        /// <history>
-        ///    24 Aug 10  Cynic - Started
-        /// </history>
         [DescriptionAttribute("This is the speed at which the tool (in application units per minute) moves horizontally over the work.")]
         [CategoryAttribute("Isolation Cuts")]
         [ReadOnlyAttribute(false)]
@@ -1886,9 +1787,6 @@ namespace LineGrinder
         /// Gets/Sets the isoCutWidth. Will never get or set a negative
         /// or xyero value. 
         /// </summary>
-        /// <history>
-        ///    24 Aug 10  Cynic - Started
-        /// </history>
         [DescriptionAttribute("This is the width of the line the isolation milling bit cuts when at the IsoZCutLevel.")]
         [CategoryAttribute("Isolation Cuts")]
         [ReadOnlyAttribute(false)]
@@ -1912,9 +1810,6 @@ namespace LineGrinder
         /// Gets/Sets the isoPadTouchDownsWanted
         /// or xyero value. 
         /// </summary>
-        /// <history>
-        ///    30 Aug 10  Cynic - Started
-        /// </history>
         [DescriptionAttribute("This causes the isolation milling bit to touch down in the center of each pad to a distance of IsoPadTouchDownZLevel and hence provides a centering point for manual drilling.")]
         [CategoryAttribute("Isolation Cuts")]
         [ReadOnlyAttribute(false)]
@@ -1936,9 +1831,6 @@ namespace LineGrinder
         /// Gets/Sets the isoPadTouchDownsWanted
         /// or xyero value. 
         /// </summary>
-        /// <history>
-        ///    30 Aug 10  Cynic - Started
-        /// </history>
         [DescriptionAttribute("This is the distance into the work the isolation milling bit moves when creating pad touchdowns and should be negative because it is below the surface of the PCB. It is intended to provide a centering point for the manual drilling of through holes.")]
         [CategoryAttribute("Isolation Cuts")]
         [ReadOnlyAttribute(false)]
@@ -1966,9 +1858,6 @@ namespace LineGrinder
         /// <summary>
         /// Gets/Sets thereferencePinGCodeEnabled. 
         /// </summary>
-        /// <history>
-        ///    26 Aug 10  Cynic - Started
-        /// </history>
         [DescriptionAttribute("This option indicates if a Reference Pin GCode file is to be generated.")]
         [CategoryAttribute("Reference Pins")]
         [ReadOnlyAttribute(false)]
@@ -1991,9 +1880,6 @@ namespace LineGrinder
         /// save the bed flattening gcode under 
         /// </summary>
         /// <remarks>will never get or set null or empty string</remarks>
-        /// <history>
-        ///    26 Aug 10  Cynic - Started
-        /// </history>
         [DescriptionAttribute("This is the output file name extension for the Reference Pin GCode file (if generated).")]
         [CategoryAttribute("Reference Pins")]
         [ReadOnlyAttribute(false)]
@@ -2016,9 +1902,6 @@ namespace LineGrinder
         /// <summary>
         /// Gets/Sets the referencePinsZDrillDepth. 
         /// </summary>
-        /// <history>
-        ///    26 Aug 10  Cynic - Started
-        /// </history>
         [DescriptionAttribute("This is the distance into the bed material we drill, defined in application units (inches,mm), so the reference pins can be set. The value should be negative and should be large enough to ensure the pin is embedded firmly and protrudes above the surface of the PCB.")]
         [CategoryAttribute("Reference Pins")]
         [ReadOnlyAttribute(false)]
@@ -2039,9 +1922,6 @@ namespace LineGrinder
         /// <summary>
         /// Gets/Sets the referencePinsZClearLevel. 
         /// </summary>
-        /// <history>
-        ///    26 Aug 10  Cynic - Started
-        /// </history>
         [DescriptionAttribute("This is the distance above the bed we move the z axis to so that we can move about. It will be positive because it is above the surface of the pcb being cut and should be large enough to clear all hold downs and clamps etc.")]
         [CategoryAttribute("Reference Pins")]
         [ReadOnlyAttribute(false)]
@@ -2063,9 +1943,6 @@ namespace LineGrinder
         /// Gets/Sets the referencePinsZFeedRate. Will never get or set a negative
         /// or zero value. 
         /// </summary>
-        /// <history>
-        ///    26 Aug 10  Cynic - Started
-        /// </history>
         [DescriptionAttribute("This is the speed at which the drill (in application units per minute) moves vertically into the work.")]
         [CategoryAttribute("Reference Pins")]
         [ReadOnlyAttribute(false)]
@@ -2089,9 +1966,6 @@ namespace LineGrinder
         /// Gets/Sets the referencePinsXYFeedRate. Will never get or set a negative
         /// or zero value. 
         /// </summary>
-        /// <history>
-        ///    26 Aug 10  Cynic - Started
-        /// </history>
         [DescriptionAttribute("This is the speed at which the toolhead (in application units per minute) moves horizontally over the work.")]
         [CategoryAttribute("Reference Pins")]
         [ReadOnlyAttribute(false)]
@@ -2115,9 +1989,6 @@ namespace LineGrinder
         /// Gets/Sets the referencePinsMaxNumber. Can be positive or negative
         /// or xyero value. 
         /// </summary>
-        /// <history>
-        ///    26 Aug 10  Cynic - Started
-        /// </history>
         [DescriptionAttribute("This is the maximum number of Reference Pins we expect to see in the Gerber File. It is used as a sanity check when generating the GCode.")]
         [CategoryAttribute("Reference Pins")]
         [ReadOnlyAttribute(false)]
@@ -2138,9 +2009,6 @@ namespace LineGrinder
         /// <summary>
         /// Gets/Sets the referencePinPadDiameter. 
         /// </summary>
-        /// <history>
-        ///    26 Aug 10  Cynic - Started
-        /// </history>
         [DescriptionAttribute("This is diameter of the pads on the PCB which should be used as markers for Reference Pins. Only pads intended to be used as reference pins should be this size and the pads should be positioned in a rectangular or linear formation.")]
         [CategoryAttribute("Reference Pins")]
         [ReadOnlyAttribute(false)]
@@ -2171,10 +2039,7 @@ namespace LineGrinder
         /// <summary>
         /// Gets/Sets the Excellon drillingDrillingCoordinateZerosMode value. 
         /// </summary>
-        /// <history>
-        ///    01 Sep 10  Cynic - Started
-        /// </history>
-        [DescriptionAttribute("This determines how the coordinates on the XY drill positions are scaled. The Excellon protocol (there are many different ones) does not provide any consistent method to specify this in the file itself - so you have to explicitly state it here.")]
+        [DescriptionAttribute("This determines how the coordinates on the XY drill positions are scaled. Modern software usually specifies the coordinates as full DecimalNumbers. Older versions of the Excellon protocol (there are many different ones) does not provide any consistent method to specify coordinate formats in the file itself - so you have to might have to explicitly state it.")]
         [CategoryAttribute("Excellon Drilling")]
         [ReadOnlyAttribute(false)]
         [BrowsableAttribute(true)]
@@ -2194,10 +2059,7 @@ namespace LineGrinder
         /// <summary>
         /// Gets/Sets the number of decimal places in the excellon file. Cannot be negative
         /// </summary>
-        /// <history>
-        ///    01 Sep 10  Cynic - Started
-        /// </history>
-        [DescriptionAttribute("This indicates the number of decimal places used on the XY drill positions and hence how those values are scaled. The Excellon protocol (there are many different ones) does not provide any consistent method to specify this in the file itself - so you have to explicitly state it here.")]
+        [DescriptionAttribute("This indicates the number of decimal places used on the XY drill positions for older Excellon versions and hence how those values are scaled. This value is not used in DecimalNumber mode. You may have to explicitly state the number of decimals for older Excellon modes here.")]
         [CategoryAttribute("Excellon Drilling")]
         [ReadOnlyAttribute(false)]
         [BrowsableAttribute(true)]
@@ -2221,9 +2083,6 @@ namespace LineGrinder
         /// save the drill gcode under 
         /// </summary>
         /// <remarks>will never get or set null or empty string</remarks>
-        /// <history>
-        ///    03 Sep 10  Cynic - Started
-        /// </history>
         [DescriptionAttribute("This is the output file name extension for the Drill GCode file (if generated).")]
         [CategoryAttribute("Excellon Drilling")]
         [ReadOnlyAttribute(false)]
@@ -2246,9 +2105,6 @@ namespace LineGrinder
         /// <summary>
         /// Gets/Sets the drillingZDepth. 
         /// </summary>
-        /// <history>
-        ///    03 Sep 10  Cynic - Started
-        /// </history>
         [DescriptionAttribute("This is the distance into the PCB and bed material we drill, defined in application units (inches,mm). The value should be negative and should be large enough to ensure the drill completely exits the far side of the PCB.")]
         [CategoryAttribute("Excellon Drilling")]
         [ReadOnlyAttribute(false)]
@@ -2269,9 +2125,6 @@ namespace LineGrinder
         /// <summary>
         /// Gets/Sets the drillingZClearLevel. 
         /// </summary>
-        /// <history>
-        ///    03 Sep 10  Cynic - Started
-        /// </history>
         [DescriptionAttribute("This is the distance above the bed we move the z axis to so that we can move about. It will be positive because it is above the surface of the pcb we are drilling.")]
         [CategoryAttribute("Excellon Drilling")]
         [ReadOnlyAttribute(false)]
@@ -2293,9 +2146,6 @@ namespace LineGrinder
         /// Gets/Sets the drillingZFeedRate. Will never get or set a negative
         /// or zero value. 
         /// </summary>
-        /// <history>
-        ///    03 Sep 10  Cynic - Started
-        /// </history>
         [DescriptionAttribute("This is the speed at which the drill (in application units per minute) moves vertically into the work.")]
         [CategoryAttribute("Excellon Drilling")]
         [ReadOnlyAttribute(false)]
@@ -2319,9 +2169,6 @@ namespace LineGrinder
         /// Gets/Sets the drillingXYFeedRate. Will never get or set a negative
         /// or zero value. 
         /// </summary>
-        /// <history>
-        ///    03 Sep 10  Cynic - Started
-        /// </history>
         [DescriptionAttribute("This is the speed at which the toolhead (in application units per minute) moves horizontally over the work.")]
         [CategoryAttribute("Excellon Drilling")]
         [ReadOnlyAttribute(false)]
@@ -2344,9 +2191,6 @@ namespace LineGrinder
         /// <summary>
         /// Gets/Sets the drillingGCodeEnabled flag 
         /// </summary>
-        /// <history>
-        ///    07 Sep 10  Cynic - Started
-        /// </history>
         [DescriptionAttribute("This option enables the conversion of the Excellon file into GCode suitable for drilling the holes for pads and vias. When the GCode file is run, you will be prompted to change the drill for different hole sizes.")]
         [CategoryAttribute("Excellon Drilling")]
         [ReadOnlyAttribute(false)]
@@ -2363,8 +2207,72 @@ namespace LineGrinder
             }
         }
 
+        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+        /// <summary>
+        /// Gets/Sets the drillingReferencePinsEnabled flag 
+        /// </summary>
+        [DescriptionAttribute("This option enables the detection of reference pads in the Excellon file and makes aligning the drill gcode with the isolation routing gcode much more accurate.")]
+        [CategoryAttribute("Excellon Drilling")]
+        [ReadOnlyAttribute(false)]
+        [BrowsableAttribute(true)]
+        public bool DrillingReferencePinsEnabled
+        {
+            get
+            {
+                return drillingReferencePinsEnabled;
+            }
+            set
+            {
+                drillingReferencePinsEnabled = value;
+            }
+        }
+
+        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+        /// <summary>
+        /// Gets/Sets the drillingReferencePinDiameter. 
+        /// </summary>
+        [DescriptionAttribute("This is diameter of the holes on the PCB which should be used as markers for Reference Pins. Only holes intended to be used as reference pins should be this size and the pads should be positioned in a rectangular or linear formation.")]
+        [CategoryAttribute("Excellon Drilling")]
+        [ReadOnlyAttribute(false)]
+        [BrowsableAttribute(true)]
+        public float DrillingReferencePinDiameter
+        {
+            get
+            {
+                if (drillingReferencePinDiameter <= 0) drillingReferencePinDiameter = DEFAULT_DRILLINGREFERENCEPINDIAMETER;
+                return drillingReferencePinDiameter;
+            }
+            set
+            {
+                drillingReferencePinDiameter = value;
+                if (drillingReferencePinDiameter <= 0) drillingReferencePinDiameter = DEFAULT_DRILLINGREFERENCEPINDIAMETER;
+            }
+        }
+
+        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+        /// <summary>
+        /// Gets/Sets the drillingReferencePinsMaxNumber. Can be positive or 0
+        /// or xyero value. 
+        /// </summary>
+        [DescriptionAttribute("This is the maximum number of Reference Pins we expect to see in the Excellon File. It is used as a sanity check when generating the GCode.")]
+        [CategoryAttribute("Excellon Drilling")]
+        [ReadOnlyAttribute(false)]
+        [BrowsableAttribute(true)]
+        public int DrillingReferencePinsMaxNumber
+        {
+            get
+            {
+                return drillingReferencePinsMaxNumber;
+            }
+            set
+            {
+                drillingReferencePinsMaxNumber = value;
+            }
+        }
+
         #endregion
 
 
     }
 }
+

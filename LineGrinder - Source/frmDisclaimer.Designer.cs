@@ -1,4 +1,4 @@
-﻿namespace LineGrinder
+namespace LineGrinder
 {
     partial class frmDisclaimer
     {
@@ -115,3 +115,4 @@
         private System.Windows.Forms.Button buttonAgree;
     }
 }
+

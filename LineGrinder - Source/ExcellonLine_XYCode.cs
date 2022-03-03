@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -28,9 +28,6 @@ namespace LineGrinder
     /// <summary>
     /// A class to encapsulate a excellon XY Code
     /// </summary>
-    /// <history>
-    ///    01 Sep 10  Cynic - Started
-    /// </history>
     public class ExcellonLine_XYCode : ExcellonLine
     {
 
@@ -42,6 +39,10 @@ namespace LineGrinder
         /// are not yet scaled to plot coordinates.
         private float xCoord = 0;
         private float yCoord = 0;
+        private float lastDrillWidth = 0;
+        // these are the last plot coords used
+        private int lastPlotXCoordEnd = 0;
+        private int lastPlotYCoordEnd = 0;
 
         /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
         /// <summary>
@@ -49,9 +50,6 @@ namespace LineGrinder
         /// </summary>
         /// <param name="rawLineStrIn">The raw line string</param>
         /// <param name="processedLineStrIn">The processed line string</param>
-        /// <history>
-        ///    01 Sep 10  Cynic - Started
-        /// </history>
         public ExcellonLine_XYCode(string rawLineStrIn, string processedLineStrIn, int lineNumberIn)
             : base(rawLineStrIn, processedLineStrIn, lineNumberIn)
         {
@@ -59,11 +57,24 @@ namespace LineGrinder
 
         /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
         /// <summary>
+        /// Gets/Sets the last used drill width value
+        /// </summary>
+        public float LastDrillWidth
+        {
+            get
+            {
+                return lastDrillWidth;
+            }
+            set
+            {
+                lastDrillWidth = value;
+            }
+        }
+
+        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+        /// <summary>
         /// Gets/Sets the current X Coordinate value
         /// </summary>
-        /// <history>
-        ///    01 Sep 10  Cynic - Started
-        /// </history>
         public float XCoord
         {
             get
@@ -80,9 +91,6 @@ namespace LineGrinder
         /// <summary>
         /// Gets/Sets the current Y Coordinate value
         /// </summary>
-        /// <history>
-        ///    01 Sep 10  Cynic - Started
-        /// </history>
         public float YCoord
         {
             get
@@ -97,12 +105,32 @@ namespace LineGrinder
 
         /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
         /// <summary>
+        /// Gets/Sets the last plotted X Coordinate value
+        /// </summary>
+        public float LastPlotXCoordEnd
+        {
+            get
+            {
+                return lastPlotXCoordEnd;
+            }
+        }
+
+        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+        /// <summary>
+        /// Gets/Sets the last plotted Y Coordinate value
+        /// </summary>
+        public float LastPlotYCoordEnd
+        {
+            get
+            {
+                return lastPlotYCoordEnd;
+            }
+        }
+
+        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+        /// <summary>
         /// Gets the current gx0 value, but applies offset compensation
         /// </summary>
-        /// <history>
-        ///    06 Sep 10  Cynic - Started
-        ///    03 Oct 10  Cynic - added Math.Round 
-        /// </history>
         public float gX0OffsetCompensated
         {
             get
@@ -116,10 +144,6 @@ namespace LineGrinder
         /// <summary>
         /// Gets the current gy0 value, but applies offset compensation
         /// </summary>
-        /// <history>
-        ///    06 Sep 10  Cynic - Started
-        ///    03 Oct 10  Cynic - added Math.Round 
-        /// </history>
         public float gY0OffsetCompensated
         {
             get
@@ -131,58 +155,58 @@ namespace LineGrinder
 
         /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
         /// <summary>
-        /// Inserts decimal places into the XY coordinate values as appropriate
+        /// Gets the current X Coordinate value with origin compensation
         /// </summary>
-        /// <param name="numToScale">the number we need to scale</param>
-        /// <param name="integerPlaces">the number of integer places</param>
-        /// <param name="decimalPlaces">the number of decimal places</param>
-        /// <param name="leadingZeroMode">a flag to indicate if leading or traling zeros are discarded</param>
-        /// <returns>z success, nz fail</returns>
-        /// <history>
-        ///    01 Sep 10  Cynic - Started
-        /// </history>
-        private float DecimalScaleNumber(float numToScale, int decimalPlaces, FileManager.ExcellonDrillingCoordinateZerosModeEnum leadingZeroMode)
+        public float CoordOriginCompensated_X
         {
-            switch (leadingZeroMode)
+            get
             {
-                case FileManager.ExcellonDrillingCoordinateZerosModeEnum.FixedDecimalPoint:
-                case FileManager.ExcellonDrillingCoordinateZerosModeEnum.OmitLeadingZeros:
-                {
-                    // all we have to do is divide the number by the 10^decimalPlaces
-                    // for example if decimalPlaces is three and numToScale is 1503
-                    // then the real number should be 01.503
-                    if (decimalPlaces == 0) return numToScale;
-                    float tmpFloat = numToScale / (float)Math.Pow(10, decimalPlaces);
-                    return tmpFloat;
-                }
-                default: // probably omit trailing zeros mode
-                {
-                    // this is a lot more tricky since we have to have the original text
-                    // value in order to figure this out. This blows chunks, and I have
-                    // a hard time believing anybody uses it. I will leave it as not
-                    // implemented at the moment because I have better things to do.
-                    throw new NotImplementedException("Excellon Files in Omit Trailing Zeros Mode are not Supported");
-                }
+                return XCoord + PlotXCoordOriginAdjust;
             }
         }
-        
+
         /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
         /// <summary>
-        /// Performs the action the plot requires based on the current context
+        /// Gets the current Y Coordinate value with origin compensation
         /// </summary>
-        /// <param name="graphicsObj">a graphics object on which to plot</param>
-        /// <param name="stateMachine">the excellon plot state machine</param>
-        /// <param name="errorString">the error string we return on fail</param>
-        /// <param name="errorValue">the error value we return on fail, z success, nz fail </param>
-        /// <returns>an enum value indicating what next action to take</returns>
-        /// <history>
-        ///    01 Sep 10  Cynic - Started
-        /// </history>
-        public override ExcellonLine.PlotActionEnum PerformPlotExcellonAction(Graphics graphicsObj, ExcellonFileStateMachine stateMachine, ref int errorValue, ref string errorString)
+        public float CoordOriginCompensated_Y
         {
-            errorValue = 0;
-            errorString = "Successful End";
-            return ExcellonLine.PlotActionEnum.PlotAction_End;
+            get
+            {
+                return YCoord + PlotYCoordOriginAdjust;
+            }
+        }
+
+        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+        /// <summary>
+        /// Gets the current X Coordinate value with origin compensation
+        /// and flipping applied (if necessary)
+        /// </summary>
+        public int GetIsoPlotCoordOriginCompensated_X(ExcellonFileStateMachine stateMachine)
+        {
+            // Just return this
+            return (int)Math.Round((CoordOriginCompensated_X * stateMachine.IsoPlotPointsPerAppUnit));
+        }
+
+        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+        /// <summary>
+        /// Gets the current Y Coordinate value with origin compensation
+        /// and flipping applied (if necessary)
+        /// </summary>
+        public int GetIsoPlotCoordOriginCompensated_Y(ExcellonFileStateMachine stateMachine)
+        {
+            // Just return this
+            return (int)Math.Round((CoordOriginCompensated_Y * stateMachine.IsoPlotPointsPerAppUnit));
+        }
+
+        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+        /// <summary>
+        /// Resets for a new plot
+        /// </summary>
+        public override void ResetForPlot()
+        {
+            lastPlotXCoordEnd = 0;
+            lastPlotYCoordEnd = 0;
         }
 
         /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
@@ -192,9 +216,6 @@ namespace LineGrinder
         /// <param name="processedLineStr">a line string without block terminator or format parameters</param>
         /// <param name="stateMachine">The state machine containing the implied modal values</param>
         /// <returns>z success, nz fail</returns>
-        /// <history>
-        ///    01 Sep 10  Cynic - Started
-        /// </history>
         public override int ParseLine(string processedLineStr, ExcellonFileStateMachine stateMachine)
         {
             float outFloat = 0;
@@ -271,37 +292,83 @@ namespace LineGrinder
         /// <param name="gcLineList">a list of the equivalent gcode line object. This can be 
         /// empty if there is no direct conversion</param>
         /// <returns>z success, nz fail</returns>
-        /// <history>
-        ///    05 Sep 10  Cynic - Started
-        /// </history>
-        public override int GetGCodeLine(ExcellonFileStateMachine stateMachine, out List<GCodeLine> gcLineList)
+        public override int GetGCodeCmd(ExcellonFileStateMachine stateMachine, out List<GCodeCmd> gcLineList)
         {
-            GCodeLine_ZMove zLine = null;
-            GCodeLine_RapidMove rmLine = null;
-            gcLineList = new List<GCodeLine>();
+            gcLineList = null;
 
-            float x0 = xCoord + this.PlotXCoordOriginAdjust;
-            float y0 = yCoord + this.PlotYCoordOriginAdjust;
+            GCodeCmd_ZMove zLine = null;
+            GCodeCmd_RapidMove rmLine = null;
+            gcLineList = new List<GCodeCmd>();
+
+            int x0 = GetIsoPlotCoordOriginCompensated_X(stateMachine);
+            int y0 = GetIsoPlotCoordOriginCompensated_Y(stateMachine);
 
             // G00 rapid move tool head to the xCoord, yCoord
-            rmLine = new GCodeLine_RapidMove(x0, y0);
+            rmLine = new GCodeCmd_RapidMove(x0, y0);
             gcLineList.Add(rmLine);
-            stateMachine.LastDCodeXCoord = x0;
-            stateMachine.LastDCodeYCoord = y0;
+            stateMachine.LastXCoord = XCoord;
+            stateMachine.LastYCoord = YCoord;
+            stateMachine.LastPlotXCoord = x0;
+            stateMachine.LastPlotYCoord = y0;
+            // record locally
+            lastPlotXCoordEnd = x0;
+            lastPlotYCoordEnd = y0;
+
+            // set the drill width
+            float workingDrillWidth = stateMachine.LastDrillWidth * stateMachine.IsoPlotPointsPerAppUnit;
+            // remember this
+            LastDrillWidth = stateMachine.LastDrillWidth;
 
             // G00 - put the bit into the work piece
-            zLine = new GCodeLine_ZMove(GCodeLine_ZMove.GCodeZMoveHeightEnum.GCodeZMoveHeight_ZCoordForCut);
-            zLine.SetGCodePlotDrillValues(x0, y0, stateMachine.LastDrillWidth);
+            zLine = new GCodeCmd_ZMove(GCodeCmd_ZMove.GCodeZMoveHeightEnum.GCodeZMoveHeight_ZCoordForCut);
+            zLine.SetGCodePlotDrillValues(x0, y0, workingDrillWidth);
             zLine.WantLinearMove = true;
             gcLineList.Add(zLine);
 
             // G00 - pull the bit out of the work piece
-            zLine = new GCodeLine_ZMove(GCodeLine_ZMove.GCodeZMoveHeightEnum.GCodeZMoveHeight_ZCoordForClear);
-            zLine.SetGCodePlotDrillValues(x0, y0, stateMachine.LastDrillWidth);
+            zLine = new GCodeCmd_ZMove(GCodeCmd_ZMove.GCodeZMoveHeightEnum.GCodeZMoveHeight_ZCoordForClear);
+            zLine.SetGCodePlotDrillValues(x0, y0, workingDrillWidth);
             gcLineList.Add(zLine);
 
             return 0;
         }
 
+        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+        /// <summary>
+        /// Performs the action the plot requires based on the current context
+        /// </summary>
+        /// <param name="graphicsObj">a graphics object on which to plot</param>
+        /// <param name="stateMachine">the excellon plot state machine</param>
+        /// <param name="errorString">the error string we return on fail</param>
+        /// <param name="errorValue">the error value we return on fail, z success, nz fail </param>
+        /// <returns>an enum value indicating what next action to take</returns>
+        public override PlotActionEnum PerformPlotExcellonAction(Graphics graphicsObj, ExcellonFileStateMachine stateMachine, ref int errorValue, ref string errorString)
+        {
+
+            int x0 = GetIsoPlotCoordOriginCompensated_X(stateMachine);
+            int y0 = GetIsoPlotCoordOriginCompensated_Y(stateMachine);
+
+            // G00 rapid move tool head to the xCoord, yCoord
+            stateMachine.LastXCoord = XCoord;
+            stateMachine.LastYCoord = YCoord;
+            stateMachine.LastPlotXCoord = x0;
+            stateMachine.LastPlotYCoord = y0;
+            // record locally
+            lastPlotXCoordEnd = x0;
+            lastPlotYCoordEnd = y0;
+
+            // set the drill width
+            float workingDrillWidth = stateMachine.LastDrillWidth * stateMachine.IsoPlotPointsPerAppUnit;
+            // remember this
+            LastDrillWidth = stateMachine.LastDrillWidth;
+
+            MiscGraphicsUtils.FillEllipseCenteredOnPoint(graphicsObj, stateMachine.ExcellonHoleBrush, x0, y0, workingDrillWidth, workingDrillWidth);
+
+            errorValue = 0;
+            errorString = "Successful End";
+            return PlotActionEnum.PlotAction_Continue;
+        }
+
     }
 }
+

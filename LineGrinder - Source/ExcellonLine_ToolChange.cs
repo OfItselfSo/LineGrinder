@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -28,9 +28,6 @@ namespace LineGrinder
     /// <summary>
     /// A class to encapsulate a excellon Tool Change T Code
     /// </summary>
-    /// <history>
-    ///    01 Sep 10  Cynic - Started
-    /// </history>
     public class ExcellonLine_ToolChange : ExcellonLine
     {
 
@@ -42,9 +39,6 @@ namespace LineGrinder
         /// </summary>
         /// <param name="rawLineStrIn">The raw line string</param>
         /// <param name="processedLineStrIn">The processed line string</param>
-        /// <history>
-        ///    01 Sep 10  Cynic - Started
-        /// </history>
         public ExcellonLine_ToolChange(string rawLineStrIn, string processedLineStrIn, int lineNumberIn)
             : base(rawLineStrIn, processedLineStrIn, lineNumberIn)
         {
@@ -54,9 +48,6 @@ namespace LineGrinder
         /// <summary>
         /// Gets/Sets the current D Code value
         /// </summary>
-        /// <history>
-        ///    01 Sep 10  Cynic - Started
-        /// </history>
         public int ToolNumber
         {
             get
@@ -71,14 +62,31 @@ namespace LineGrinder
 
         /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
         /// <summary>
+        /// Performs the action the plot requires based on the current context
+        /// </summary>
+        /// <param name="graphicsObj">a graphics object on which to plot</param>
+        /// <param name="stateMachine">the excellon plot state machine</param>
+        /// <param name="errorString">the error string we return on fail</param>
+        /// <param name="errorValue">the error value we return on fail, z success, nz fail </param>
+        /// <returns>an enum value indicating what next action to take</returns>
+        public override PlotActionEnum PerformPlotExcellonAction(Graphics graphicsObj, ExcellonFileStateMachine stateMachine, ref int errorValue, ref string errorString)
+        {
+            ExcellonLine_ToolTable toolTabObj = null;
+            // see if we can find the tool table object for this change
+            toolTabObj = stateMachine.GetToolTableObjectByToolNumber(toolNumber);
+            if (toolTabObj != null) stateMachine.LastDrillWidth = toolTabObj.DrillDiameter;
+            errorValue = 0;
+            errorString = "Successful End";
+            return PlotActionEnum.PlotAction_Continue;
+        }
+
+        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+        /// <summary>
         /// Parses out the line and gets the required information from it
         /// </summary>
         /// <param name="processedLineStr">a line string without block terminator or format parameters</param>
         /// <param name="stateMachine">The state machine containing the implied modal values</param>
         /// <returns>z success, nz fail</returns>
-        /// <history>
-        ///    01 Sep 10  Cynic - Started
-        /// </history>
         public override int ParseLine(string processedLineStr, ExcellonFileStateMachine stateMachine)
         {
             int outInt = -1;
@@ -129,12 +137,9 @@ namespace LineGrinder
         /// <param name="gcLineList">a list of the equivalent gcode line object. This can be 
         /// empty if there is no direct conversion</param>
         /// <returns>z success, nz fail</returns>
-        /// <history>
-        ///    05 Sep 10  Cynic - Started
-        /// </history>
-        public override int GetGCodeLine(ExcellonFileStateMachine stateMachine, out List<GCodeLine> gcLineList)
+        public override int GetGCodeCmd(ExcellonFileStateMachine stateMachine, out List<GCodeCmd> gcLineList)
         {
-            GCodeLine_ToolChange tcLine;
+            GCodeCmd_ToolChange tcLine;
             ExcellonLine_ToolTable toolTabObj = null;
             string commentStr = null;
 
@@ -146,8 +151,8 @@ namespace LineGrinder
                 // also remember this
                 stateMachine.LastDrillWidth = toolTabObj.DrillDiameter;
             }
-            gcLineList = new List<GCodeLine>();
-            tcLine = new GCodeLine_ToolChange(toolNumber);
+            gcLineList = new List<GCodeCmd>();
+            tcLine = new GCodeCmd_ToolChange(toolNumber);
             if (commentStr != null) tcLine.CommentText = commentStr;
             gcLineList.Add(tcLine);
             return 0;
@@ -155,3 +160,4 @@ namespace LineGrinder
 
     }
 }
+

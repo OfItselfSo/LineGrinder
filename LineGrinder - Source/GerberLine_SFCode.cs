@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -28,9 +28,6 @@ namespace LineGrinder
     /// <summary>
     /// A class to encapsulate a gerber SF Code
     /// </summary>
-    /// <history>
-    ///    01 Jan 11  Cynic - Started
-    /// </history>
     public class GerberLine_SFCode : GerberLine
     {
 
@@ -40,9 +37,6 @@ namespace LineGrinder
         /// </summary>
         /// <param name="rawLineStrIn">The raw line string</param>
         /// <param name="processedLineStrIn">The processed line string</param>
-        /// <history>
-        ///    01 Jan 11  Cynic - Started
-        /// </history>
         public GerberLine_SFCode(string rawLineStrIn, string processedLineStrIn, int lineNumberIn)
             : base(rawLineStrIn, processedLineStrIn, lineNumberIn)
         {
@@ -55,15 +49,12 @@ namespace LineGrinder
         /// <param name="processedLineStr">a line string without block terminator or format parameters</param>
         /// <param name="stateMachine">The state machine containing the implied modal values</param>
         /// <returns>z success, nz fail</returns>
-        /// <history>
-        ///    01 Jan 11  Cynic - Started
-        /// </history>
         public override int ParseLine(string processedLineStr, GerberFileStateMachine stateMachine)
         {
             LogMessage("ParseLine(SF) started");
 
             if (processedLineStr == null) return 100;
-            if (processedLineStr.StartsWith(GerberFile.RS274SFPARAM) == false) 
+            if (processedLineStr.StartsWith(GerberFile.RS274_SF_CMD) == false) 
             {
                 return 200;
             }
@@ -72,3 +63,4 @@ namespace LineGrinder
         }
     }
 }
+

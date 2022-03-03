@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Drawing;
@@ -32,31 +32,19 @@ namespace LineGrinder
     /// <summary>
     /// A control to graphically display Gerber and G-code files
     /// </summary>
-    /// <history>
-    ///    01 Sep 10  Cynic - Started
-    ///    26 Feb 11  Cynic - Added code to show the origin
-    ///    26 Feb 11  Cynic - Added code to enable panning of the display
-    /// </history>
     public partial class ctlPlotViewer : ctlOISBase
     {
 
         // this determines the view we use to display the plot
-        public enum DisplayModeEnum
-        {
-            DisplayMode_NONE,
-            DisplayMode_GERBERONLY,
-            DisplayMode_ISOSTEP1,
-            DisplayMode_ISOSTEP2,
-            DisplayMode_ISOSTEP3,
-            DisplayMode_GCODEONLY
-        }
         private DisplayModeEnum displayMode = DisplayModeEnum.DisplayMode_GERBERONLY;
 
         // this is the gerber file we display
         private GerberFile gerberFileToDisplay = new GerberFile();
-        // this is the display gcode builder it should have been built from the gerberFileToDisplay
-        private GCodeBuilder gcodeBuilderToDisplay = null;
-        // this is the display gcode file it should have been built from the gcodeBuilderToDisplay
+        // this is the excellon file we display
+        private ExcellonFile excellonFileToDisplay = new ExcellonFile();
+        // this is the display IsoPlotBuilder it should have been built from the gerberFileToDisplay
+        private IsoPlotBuilder isoplotBuilderToDisplay = null;
+        // this is the display gcode file it should have been built from the isoplotBuilderToDisplay
         private GCodeFile gcodeFileToDisplay = null;
 
         // this, if false, disables all plot displays
@@ -68,6 +56,15 @@ namespace LineGrinder
 
         public const bool DEFAULT_SHOW_ORIGIN = false;
         private bool showOrigin = DEFAULT_SHOW_ORIGIN;
+
+        public const bool DEFAULT_SHOW_GCODE_ORIGIN = false;
+        private bool showGCodeOrigin = DEFAULT_SHOW_GCODE_ORIGIN;
+
+        public const bool DEFAULT_SHOW_FLIP_AXIS = false;
+        private bool showFlipAxis = DEFAULT_SHOW_FLIP_AXIS;
+
+        public const bool DEFAULT_GCODE_AXIS_IS_IN_CENTER = true;
+        private bool gcodeOriginAtCenter = DEFAULT_GCODE_AXIS_IS_IN_CENTER;
 
         // these are the values we add to the plot origin in order
         // to find the true origin of the plot display. This is the 
@@ -83,6 +80,8 @@ namespace LineGrinder
         private float minPlotYCoord = 0;
         private float maxPlotXCoord = 0;
         private float maxPlotYCoord = 0;
+        private float midPlotXCoord = 0;
+        private float midPlotYCoord = 0;
 
         private PointF workingOrigin = new PointF(0, 0);
         private const int DEFAULT_PADDING_LEFT = 10;
@@ -101,13 +100,13 @@ namespace LineGrinder
         // this is the size of the virtual GerberPlot including padding
         Size virtualScreenSize = new Size(DEFAULT_PLOT_WIDTH + DEFAULT_PADDING_LEFT + DEFAULT_PADDING_RIGHT, DEFAULT_PLOT_HEIGHT + DEFAULT_PADDING_RIGHT + DEFAULT_PADDING_BOTTOM);
 
-        private float isoPlotPointsPerAppUnit = ApplicationImplicitSettings.DEFAULT_ISOPLOTPOINTS_PER_APPUNIT;
-        private ApplicationUnitsEnum applicationUnits = ApplicationImplicitSettings.DEFAULT_APPLICATION_UNITS;
+        private float isoPlotPointsPerAppUnit = ApplicationImplicitSettings.DEFAULT_ISOPLOTPOINTS_PER_APPUNIT_IN;
+        private ApplicationUnitsEnum screenUnits = ApplicationImplicitSettings.DEFAULT_APPLICATION_UNITS;
 
         // this bitmap is used to display temp iso plot steps
         Bitmap backgroundBitmap = null;
         // this is the displayMode the background bitmap is appropriate for
-        private ctlPlotViewer.DisplayModeEnum bitmapMode = ctlPlotViewer.DisplayModeEnum.DisplayMode_GERBERONLY;
+        private DisplayModeEnum bitmapMode = DisplayModeEnum.DisplayMode_GERBERONLY;
 
         // this is the default magnification level we return to whenever we open a new file
         // these are percents values *1.00 is 100%)
@@ -131,7 +130,6 @@ namespace LineGrinder
         // there are 25.4 mm to the inch
         private const int INCHTOMMSCALERx10 = 254;
 
-
         //TODO when using the scroll wheel to scale, adjust the x and  offset so the 
         // pixel under the mouse stays in roughly the same place
 
@@ -139,13 +137,13 @@ namespace LineGrinder
         private PointF workingOriginAtMouseDown = new PointF(0, 0);
         private bool panningActive = false;
 
+        private TextBox mouseCursorDisplayControl = null;
+        //private Matrix lastTransformMatrix = null;
+
         /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
         /// <summary>
         /// Constructor
         /// </summary>
-        /// <history>
-        ///    01 Sep 10  Cynic - Started
-        /// </history>
         public ctlPlotViewer()
         {
             InitializeComponent();            
@@ -153,11 +151,24 @@ namespace LineGrinder
 
         /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
         /// <summary>
+        /// Gets/Sets the control we use to display the mouse cursor position
+        /// </summary>
+        public TextBox MouseCursorDisplayControl
+        {
+            get
+            {
+                return mouseCursorDisplayControl;
+            }
+            set
+            {
+                mouseCursorDisplayControl = value;
+            }
+        }
+
+        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+        /// <summary>
         /// An invalidate routine for this control
         /// </summary>
-        /// <history>
-        ///    01 Sep 10  Cynic - Started
-        /// </history>        
         public new void Invalidate()
         {
             base.Invalidate();
@@ -172,9 +183,6 @@ namespace LineGrinder
         /// <summary>
         /// Gets/Sets whether we show the GCode cut lines when plotting GCodes
         /// </summary>
-        /// <history>
-        ///    11 Jul 10  Cynic - Started
-        /// </history>
         public bool ShowGerberOnGCode
         {
             get
@@ -191,9 +199,6 @@ namespace LineGrinder
         /// <summary>
         /// Gets/Sets whether we show the (0,0) origin on the display
         /// </summary>
-        /// <history>
-        ///    26 Feb 11  Cynic - Started
-        /// </history>
         public bool ShowOrigin
         {
             get
@@ -208,11 +213,57 @@ namespace LineGrinder
 
         /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
         /// <summary>
+        /// Gets/Sets whether we show the GCode origin on the display
+        /// </summary>
+        public bool ShowGCodeOrigin
+        {
+            get
+            {
+                return showGCodeOrigin;
+            }
+            set
+            {
+                showGCodeOrigin = value;
+            }
+        }
+
+
+        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+        /// <summary>
+        /// Gets/Sets whether we show the GCode origin in the center of the plot
+        /// </summary>
+        public bool GcodeOriginAtCenter
+        {
+            get
+            {
+                return gcodeOriginAtCenter;
+            }
+            set
+            {
+                gcodeOriginAtCenter = value;
+            }
+        }
+
+        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+        /// <summary>
+        /// Gets/Sets whether we show the FlipAxis on the display
+        /// </summary>
+        public bool ShowFlipAxis
+        {
+            get
+            {
+                return showFlipAxis;
+            }
+            set
+            {
+                showFlipAxis = value;
+            }
+        }
+
+        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+        /// <summary>
         /// Gets/Sets the GerberFile to display. Will never set or get a null value.
         /// </summary>
-        /// <history>
-        ///    01 Sep 10  Cynic - Started
-        /// </history>
         [Browsable(false)]
         [DefaultValue(null)]
         [ReadOnlyAttribute(true)]
@@ -232,23 +283,41 @@ namespace LineGrinder
 
         /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
         /// <summary>
-        /// Gets/Sets the GCode Builder to display. Can set or get a null value.
+        /// Gets/Sets the ExcellonFile to display. Will never set or get a null value.
         /// </summary>
-        /// <history>
-        ///    01 Sep 10  Cynic - Started
-        /// </history>
+        [Browsable(false)]
+        [DefaultValue(null)]
+        [ReadOnlyAttribute(true)]
+        public ExcellonFile ExcellonFileToDisplay
+        {
+            set
+            {
+                excellonFileToDisplay = value;
+                if (excellonFileToDisplay == null) excellonFileToDisplay = new ExcellonFile();
+            }
+            get
+            {
+                if (excellonFileToDisplay == null) excellonFileToDisplay = new ExcellonFile();
+                return excellonFileToDisplay;
+            }
+        }
+
+        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+        /// <summary>
+        /// Gets/Sets the isoplotbuilder to display. Can set or get a null value.
+        /// </summary>
         [BrowsableAttribute(false)]
         [DefaultValue(null)]
         [ReadOnlyAttribute(true)]
-        public GCodeBuilder GCodeBuilderToDisplay
+        public IsoPlotBuilder IsoPlotBuilderToDisplay
         {
             get
             {
-                return gcodeBuilderToDisplay;
+                return isoplotBuilderToDisplay;
             }
             set
             {
-                gcodeBuilderToDisplay = value;
+                isoplotBuilderToDisplay = value;
             }
         }
 
@@ -256,9 +325,6 @@ namespace LineGrinder
         /// <summary>
         /// Gets/Sets the GCodeFile to display. Can set or get a null value.
         /// </summary>
-        /// <history>
-        ///    01 Sep 10  Cynic - Started
-        /// </history>
         [BrowsableAttribute(false)]
         [DefaultValue(null)]
         [ReadOnlyAttribute(true)]
@@ -278,9 +344,6 @@ namespace LineGrinder
         /// <summary>
         /// Gets the background bitmap which represents the interim GCode calculation stages
         /// </summary>
-        /// <history>
-        ///    29 Jul 10  Cynic - Started
-        /// </history>        
         [Browsable(false)]
         [DefaultValue(null)]
         [ReadOnlyAttribute(true)]
@@ -296,10 +359,7 @@ namespace LineGrinder
         /// <summary>
         /// Sets the background bitmap which represents the interim GCode calculation stages
         /// </summary>
-        /// <history>
-        ///    31 Jul 10  Cynic - Started
-        /// </history>        
-        public void SetBackgroundBitmap(Bitmap bitmapIn, ctlPlotViewer.DisplayModeEnum displayModeIn)
+        public void SetBackgroundBitmap(Bitmap bitmapIn, DisplayModeEnum displayModeIn)
         {
             backgroundBitmap = bitmapIn;
             bitmapMode = displayModeIn;
@@ -309,9 +369,6 @@ namespace LineGrinder
         /// <summary>
         /// Gets the display mode the current background bitmap is appropriate for
         /// </summary>
-        /// <history>
-        ///    31 Jul 10  Cynic - Started
-        /// </history>        
         [Browsable(false)]
         [DefaultValue(null)]
         [ReadOnlyAttribute(true)]
@@ -327,9 +384,6 @@ namespace LineGrinder
         /// <summary>
         /// Gets/Sets the which plot of the display we show
         /// </summary>
-        /// <history>
-        ///    29 Jul 10  Cynic - Started
-        /// </history>        
         [Browsable(false)]
         [DefaultValue(null)]
         [ReadOnlyAttribute(true)]
@@ -349,14 +403,8 @@ namespace LineGrinder
         /// <summary>
         /// Resets the display
         /// </summary>
-        /// <history>
-        ///    01 Sep 10  Cynic - Started
-        /// </history>
         public void Reset()
         {
-            //?? need this ?? applicationUnits = ApplicationImplicitSettings.DEFAULT_APPLICATION_UNITS;
-            //?? need this ?? isoPlotPointsPerAppUnit = ApplicationImplicitSettings.DEFAULT_ISOPLOTPOINTS_PER_APPUNIT;
-
             showPlot = DEFAULT_SHOW_PLOT;
             plotXOriginLocation = 0;
             plotYOriginLocation = 0;
@@ -370,7 +418,7 @@ namespace LineGrinder
             virtualPlotSize = new Size(DEFAULT_PLOT_WIDTH, DEFAULT_PLOT_HEIGHT);
             virtualScreenSize = new Size(DEFAULT_PLOT_WIDTH + DEFAULT_PADDING_LEFT + DEFAULT_PADDING_RIGHT, DEFAULT_PLOT_HEIGHT + DEFAULT_PADDING_RIGHT + DEFAULT_PADDING_BOTTOM);
             // we do not have these
-            GCodeBuilderToDisplay = null;
+            IsoPlotBuilderToDisplay = null;
             GCodeFileToDisplay = null;
             workingOrigin.X = 0;
             workingOrigin.Y = 0;
@@ -383,9 +431,6 @@ namespace LineGrinder
         /// set when the gerber file is plotted. Never returns a value with a
         /// height or width of zero
         /// </summary>
-        /// <history>
-        ///    01 Sep 10  Cynic - Started
-        /// </history>
         [Browsable(false)]
         [DefaultValue(null)]
         [ReadOnlyAttribute(true)]
@@ -403,20 +448,18 @@ namespace LineGrinder
 
         /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
         /// <summary>
-        /// Gets/Sets the currently set Application Units as an enum
+        /// Gets/Sets the currently set Screen Units as an enum
         /// </summary>
-        /// <history>
-        ///    20 Nov 10  Cynic - Started
-        /// </history>
-        public ApplicationUnitsEnum ApplicationUnits
+        [Browsable(false)]
+        public ApplicationUnitsEnum ScreenUnits
         {
             get
             {
-                return applicationUnits;
+                return screenUnits;
             }
             set
             {
-                applicationUnits = value;
+                screenUnits = value;
             }
         }
 
@@ -425,9 +468,6 @@ namespace LineGrinder
         /// Gets/Sets the virtual plot size.  Never gets/sets a value less than
         /// or equal to zero
         /// </summary>
-        /// <history>
-        ///    01 Sep 10  Cynic - Started
-        /// </history>
         [Browsable(false)]
         [DefaultValue(null)]
         [ReadOnlyAttribute(true)]
@@ -437,7 +477,7 @@ namespace LineGrinder
             {
                 if (isoPlotPointsPerAppUnit <= 0)
                 {
-                    if (ApplicationUnits == ApplicationUnitsEnum.INCHES)
+                    if (ScreenUnits == ApplicationUnitsEnum.INCHES)
                     {
                         isoPlotPointsPerAppUnit = ApplicationImplicitSettings.DEFAULT_VIRTURALCOORD_PER_INCH;
                     }
@@ -453,7 +493,7 @@ namespace LineGrinder
                 isoPlotPointsPerAppUnit = value;
                 if (isoPlotPointsPerAppUnit <= 0)
                 {
-                    if (ApplicationUnits == ApplicationUnitsEnum.INCHES)
+                    if (ScreenUnits == ApplicationUnitsEnum.INCHES)
                     {
                         isoPlotPointsPerAppUnit = ApplicationImplicitSettings.DEFAULT_VIRTURALCOORD_PER_INCH;
                     }
@@ -469,10 +509,6 @@ namespace LineGrinder
         /// <summary>
         /// Shows whatever objects we have configured on the plot
         /// </summary>
-        /// <history>
-        ///    01 Sep 10  Cynic - Started
-        ///    01 Sep 10  Cynic - refactored
-        /// </history>
         public void ShowPlot()
         {
              // a reset is assumed to have been done prior to this call
@@ -485,9 +521,6 @@ namespace LineGrinder
         /// Gets/sets the current magnification level. Will never get/set a value less
         /// than zero.
         /// </summary>
-        /// <history>
-        ///    01 Sep 10  Cynic - Started
-        /// </history>
         public float MagnificationLevel
         {
             get
@@ -508,9 +541,6 @@ namespace LineGrinder
         /// plot origin in order to find the true origin of the plot display. This 
         /// is the (0,0) origin actually used in the Gerber or Excellon file
         /// </summary>
-        /// <history>
-        ///    27 Feb 11  Cynic - Started
-        /// </history>
         public float PlotXOriginLocation
         {
             get
@@ -529,9 +559,6 @@ namespace LineGrinder
         /// plot origin in order to find the true origin of the plot display. This 
         /// is the (0,0) origin actually used in the Gerber or Excellon file
         /// </summary>
-        /// <history>
-        ///    27 Feb 11  Cynic - Started
-        /// </history>
         public float PlotYOriginLocation
         {
             get
@@ -549,9 +576,6 @@ namespace LineGrinder
         /// Figures out the virtual plot dimensions using the largest sizes we have
         /// and the scaling factor
         /// </summary>
-        /// <history>
-        ///    01 Sep 10  Cynic - Started
-        /// </history>
         public void SetVirtualPlotSize()
         {
             // the virtual plot size must be large enough to take the full size of the GerberPlot to display
@@ -574,7 +598,8 @@ namespace LineGrinder
             virtualPlotSize = new Size((int)xSize, (int)ySize);
             virtualScreenSize = new Size((int)xSize + plotPadding.Left + plotPadding.Right, (int)ySize + plotPadding.Top + plotPadding.Bottom);
 
-            LogMessage("SetVirtualPlotSize: virtualPlotSize: (0,0) (" + xSize.ToString() + "," + ySize.ToString() + ")");
+            LogMessage("SetVirtualPlotSize: virtualPlotSize: (0,0) " + virtualPlotSize.ToString());
+            LogMessage("SetVirtualPlotSize: virtualScreenSize: (0,0) " + virtualScreenSize.ToString());
 
         }
 
@@ -588,15 +613,19 @@ namespace LineGrinder
         /// <param name="maxYCoordIn">maxY</param>
         /// <param name="minXCoordIn">minX</param>
         /// <param name="minYCoordIn">minY</param>
-        /// <history>
-        ///    01 Sep 10  Cynic - Started
-        /// </history>
-        public int SetPlotObjectLimits(float minXCoordIn, float minYCoordIn, float maxXCoordIn, float maxYCoordIn)
+        /// <param name="midXCoordIn">minX</param>
+        /// <param name="midYCoordIn">minY</param>
+        public int SetPlotObjectLimits(float minXCoordIn, float minYCoordIn, float maxXCoordIn, float maxYCoordIn, float midXCoordIn, float midYCoordIn)
         {
             minPlotXCoord = minXCoordIn;
             minPlotYCoord = minYCoordIn;
             maxPlotXCoord = maxXCoordIn;
             maxPlotYCoord = maxYCoordIn;
+            midPlotXCoord = midXCoordIn;
+            midPlotYCoord = midYCoordIn;
+
+            //DebugMessage("SetPlotObjectLimits minX=" + minPlotXCoord.ToString() + ", maxX=" + maxPlotXCoord.ToString() + ", minY=" + minPlotYCoord.ToString() + ", maxY=" + maxPlotYCoord.ToString() + ", midX=" + midPlotXCoord.ToString() + ", midY=" + midPlotYCoord.ToString());
+
             return 0;
         }
 
@@ -604,9 +633,6 @@ namespace LineGrinder
         /// <summary>
         /// Handles a size change event
         /// </summary>
-        /// <history>
-        ///    01 Sep 10  Cynic - Started
-        /// </history>
         private void panel1_SizeChanged(object sender, EventArgs e)
         {
             SetScrollBarMaxMinLimits();
@@ -616,9 +642,6 @@ namespace LineGrinder
         /// <summary>
         /// Handles a mouse wheel event
         /// </summary>
-        /// <history>
-        ///    11 Jul 10  Cynic - Started
-        /// </history>
         public void HandleMouseWheelEvent(object sender, System.Windows.Forms.MouseEventArgs e)
         {
             int currIndex = 0;
@@ -655,9 +678,6 @@ namespace LineGrinder
         /// returns the index of the entry in the DEFAULT_MAGNIFICATION_LEVELS just
         /// equal to greater than the current magnification level
         /// </summary>
-        /// <history>
-        ///    11 Jul 10  Cynic - Started
-        /// </history>
         public int GetCurrentMagLevelsIndexIntoDefaultMagLevelArray()
         {
             for (int index = 0; index < DEFAULT_MAGNIFICATION_LEVELS.Count(); index++ )
@@ -672,11 +692,20 @@ namespace LineGrinder
         /// <summary>
         /// Paints the control according to the currently loaded gerber file
         /// </summary>
-        /// <history>
-        ///    01 Sep 10  Cynic - Started
-        /// </history>
         private void panel1_Paint(object sender, PaintEventArgs e)
         {
+            // this is the translation and scaling matrix we use to draw on the panel
+            Matrix R1 = null;
+
+            // Note that flipX means that we 
+            // flip about the center vertical axis such that the Y values remain constant but 
+            // the X values are mirrored around the center between the minimum and maximum
+
+            // this is 0 in normal mode or set to a value to shift the X axis offset if we are
+            // X flipping
+            int flipXCompensator = 0;  
+            // normally 1, this gets set to -1 to initiate a flip about the Y axis
+            int matrixXFlipInitiator = 1;
 
             // get the graphics object
             System.Drawing.Graphics graphicsObj = panel1.CreateGraphics();
@@ -703,6 +732,15 @@ namespace LineGrinder
                     // if this is true, we are done, screen is automatically cleared
                     if (DisplayMode == DisplayModeEnum.DisplayMode_NONE) return;
 
+
+                    if ((GerberFileToDisplay.IsPopulated==true) && (GerberFileToDisplay.FlipMode == IsoFlipModeEnum.X_Flip))
+                    {
+                        // yes, we do want to flip about the Y axis. We will need to adjust some things on the display
+                        flipXCompensator = (int)(gerberFileToDisplay.MaxPlotXCoord * isoPlotPointsPerAppUnit);
+                        matrixXFlipInitiator = -1;
+                    }
+                    else { } // leave everyting at defaults
+
                     const int INVERSION_COMPENSATOR_OFFSET = 3;
                     // set up the matrix to invert on the Y axis. This
                     // puts the origin 0,0 in the lower left hand corner
@@ -710,15 +748,24 @@ namespace LineGrinder
                     // the reflection and translation are off slightly. I think
                     // this is due to the borders or something, anyhoo this makes
                     // it come out right
-                    Matrix R1 = new Matrix(1, 0, 0, -1, 0, 0);
+                    R1 = new Matrix(1* matrixXFlipInitiator, 0, 0, -1, 0, 0);
                     R1.Translate(0, panel1.Height - INVERSION_COMPENSATOR_OFFSET, MatrixOrder.Append);
-                    R1.Translate(workingOrigin.X, workingOrigin.Y);
+                    // R1.Translate(workingOrigin.X, workingOrigin.Y);
+                    R1.Translate(workingOrigin.X * matrixXFlipInitiator, workingOrigin.Y);
                     // now compensate for the left, and top padding
                     R1.Translate(plotPadding.Left, plotPadding.Top);
                     // now compensate for the scaling
                     float xScreenScale = ConvertMagnificationLevelToXScreenScaleFactor(MagnificationLevel);
                     float yScreenScale = ConvertMagnificationLevelToYScreenScaleFactor(MagnificationLevel);
                     R1.Scale(xScreenScale, yScreenScale);
+                    // now translate appropriately. Normally this will be 0,0 but if we are flip X axis 
+                    // it will have other values. Note this MUST come after the above scaling!!! Note that
+                    // it goes in negative. The matrix math seems to require this
+                    R1.Translate(flipXCompensator * matrixXFlipInitiator, 0);
+
+                    //DebugMessage("workingOrigin=" + workingOrigin.ToString());
+
+
                    // DebugMessage("");
                    // DebugMessage("MagnificationLevel=" + MagnificationLevel.ToString());
                    // DebugMessage("xScreenScale=" + xScreenScale.ToString());
@@ -731,16 +778,20 @@ namespace LineGrinder
                     graphicsObj.Transform = R1;
                     // draw the background and the border
                     DrawBackground(graphicsObj, ApplicationColorManager.DEFAULT_PLOT_BACKGROUND_BRUSH);
-                   // DrawBorder(graphicsObj, ApplicationColorManager.DEFAULT_PLOT_BORDER_PEN);
+                    //DebugTODO("make the border and corners options");
+                    //DrawBorder(graphicsObj, ApplicationColorManager.DEFAULT_PLOT_BORDER_PEN);
                     //DrawDiagnosticCornerBoxes(graphicsObj);
-                    DrawOrigin(graphicsObj, ApplicationColorManager.DEFAULT_PLOT_ORIGIN_PEN);
 
                     if (DisplayMode == DisplayModeEnum.DisplayMode_GERBERONLY)
                     {
                         // Draw the Gerber File
                         if ((GerberFileToDisplay != null) && (GerberFileToDisplay.IsPopulated == true))
                         {
-                            GerberFileToDisplay.PlotGerberFile(graphicsObj, isoPlotPointsPerAppUnit);
+                            GerberFileToDisplay.PlotGerberFile(graphicsObj);
+                        }
+                        else if ((ExcellonFileToDisplay != null) && (ExcellonFileToDisplay.IsPopulated == true))
+                        {
+                            ExcellonFileToDisplay.PlotExcellonFile(graphicsObj);
                         }
                     }
                     else if (DisplayMode == DisplayModeEnum.DisplayMode_ISOSTEP1)
@@ -753,7 +804,7 @@ namespace LineGrinder
                             // Draw the Gerber File
                             if ((GerberFileToDisplay != null) && (GerberFileToDisplay.IsPopulated == true))
                             {
-                                GerberFileToDisplay.PlotGerberFile(graphicsObj, isoPlotPointsPerAppUnit);
+                                GerberFileToDisplay.PlotGerberFile(graphicsObj);
                             }
                         }
                     }
@@ -766,20 +817,20 @@ namespace LineGrinder
                             // Draw the Gerber File
                             if ((GerberFileToDisplay != null) && (GerberFileToDisplay.IsPopulated == true))
                             {
-                                GerberFileToDisplay.PlotGerberFile(graphicsObj, isoPlotPointsPerAppUnit);
+                                GerberFileToDisplay.PlotGerberFile(graphicsObj);
                             }
                         }
                     }
                     else if (DisplayMode == DisplayModeEnum.DisplayMode_ISOSTEP3)
                     {
-                        if (GCodeBuilderToDisplay != null) GCodeBuilderToDisplay.PlotIsoStep3(graphicsObj, isoPlotPointsPerAppUnit);
+                        if (backgroundBitmap != null) graphicsObj.DrawImage(backgroundBitmap, 0, 0);
                         // do we want to show the gerber plot anyways?
                         if (ShowGerberOnGCode == true)
                         {
                             // Draw the Gerber File
                             if ((GerberFileToDisplay != null) && (GerberFileToDisplay.IsPopulated == true))
                             {
-                                GerberFileToDisplay.PlotGerberFile(graphicsObj, isoPlotPointsPerAppUnit);
+                                GerberFileToDisplay.PlotGerberFile(graphicsObj);
                             }
                         }
                     }
@@ -788,7 +839,7 @@ namespace LineGrinder
                         // show the GCode File
                         if (GCodeFileToDisplay != null)
                         {
-                            GCodeFileToDisplay.PlotGCodeFile(graphicsObj, isoPlotPointsPerAppUnit, false);
+                            GCodeFileToDisplay.PlotGCodeFile(graphicsObj, false);
                         }
                         // do we want to show the gerber plot anyways?
                         if (ShowGerberOnGCode == true)
@@ -796,10 +847,25 @@ namespace LineGrinder
                             // Draw the Gerber File
                             if ((GerberFileToDisplay != null) && (GerberFileToDisplay.IsPopulated == true))
                             {
-                                GerberFileToDisplay.PlotGerberFile(graphicsObj, isoPlotPointsPerAppUnit);
+                                GerberFileToDisplay.PlotGerberFile(graphicsObj);
+                            }
+                            else if ((ExcellonFileToDisplay != null) && (ExcellonFileToDisplay.IsPopulated == true))
+                            {
+                                ExcellonFileToDisplay.PlotExcellonFile(graphicsObj);
                             }
                         }
                     }
+                    // draw the Flip Axis origin, if enabled
+                    DrawFlipAxis(graphicsObj, ApplicationColorManager.DEFAULT_PLOT_FLIPAXIS_PEN);
+                    // draw the GCode origin, if enabled
+                    DrawGCodeOrigin(graphicsObj, ApplicationColorManager.DEFAULT_PLOT_GCODE_ORIGIN_PEN);
+                    // draw the origin, if enabled, this always goes over top the GCode origin
+                    DrawOrigin(graphicsObj, ApplicationColorManager.DEFAULT_PLOT_ORIGIN_PEN);
+
+                    // actually this returns a clone it will need to be disposed
+                    //Matrix R2 = graphicsObj.Transform;
+                    //R2.Invert();
+                    //lastTransformMatrix = R2;
                 }
             }
             finally
@@ -815,9 +881,6 @@ namespace LineGrinder
         /// <summary>
         /// This handles a mouse down event for the panel
         /// </summary>
-        /// <history>
-        ///    25 Feb 11  Cynic - Started
-        /// </history>
         private void panel1_MouseDown(object sender, MouseEventArgs e)
         {
             // test the buttons, we only care about left and right at the moment
@@ -840,9 +903,6 @@ namespace LineGrinder
         /// <summary>
         /// This handles a mouse up event for the panel
         /// </summary>
-        /// <history>
-        ///    25 Feb 11  Cynic - Started
-        /// </history>
         private void panel1_MouseUp(object sender, MouseEventArgs e)
         {
             if (e.Button == MouseButtons.Left)
@@ -858,15 +918,56 @@ namespace LineGrinder
 
         }
 
+        Point MouseToWorld(Point location)
+        {
+            return new Point(0, 0);
+            // this was an attempt to have the actual gerber/gcode coords display in the 
+            // bottom right of the main form. Never could get it to work and so backed it out
+            //if(lastTransformMatrix!=null)
+            //{
+            //    Point[] ptArray = new Point[3];
+            //    ptArray[0] = location;
+            //    //ptArray[0] = new Point(location.X * (int)IsoPlotPointsPerAppUnit, location.Y* (int)IsoPlotPointsPerAppUnit);
+            //    ptArray[1] = new Point(0, 0);
+            //    ptArray[2] = new Point(100,100);
+            //    lastTransformMatrix.TransformPoints(ptArray);
+
+            //    //return new Point(ptArray[1].X, ptArray[1].Y);
+
+
+            //    total crap in here
+            //    // the zero in here just re-inforces that we are offsetting from the (0,0) plot position
+            //    //double xOrigin = (ptArray[0].X * IsoPlotPointsPerAppUnit) - ptArray[1].X;
+            //    //double yOrigin = (ptArray[0].Y * IsoPlotPointsPerAppUnit) - ptArray[1].Y;
+            //    //double xOrigin = (ptArray[0].X ) - ptArray[1].X;
+            //    // double yOrigin = (ptArray[0].Y ) - ptArray[1].Y;
+
+            //    DebugMessage(ptArray[0].X.ToString() + " " + ptArray[1].X + " " + ptArray[2].X);
+            //    int real_X = ptArray[0].X - ptArray[1].X;
+            //    int scale_X = ptArray[2].X - ptArray[1].X;
+            //    int xOrigin = (real_X * 100) / scale_X;
+            //    int yOrigin = ptArray[0].Y;
+
+            //    return new Point((int)xOrigin, (int)yOrigin);
+            //}
+            //else return new Point(location.X, location.Y);
+
+            ////return new Point((int)((float)(location.X) / pageScale - xformPoint.X + 0.5F),
+            ////        (int)((float)(location.Y) / pageScale - xformPoint.Y + 0.5F));
+        }
+
         /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
         /// <summary>
         /// This handles a mouse move event for the panel
         /// </summary>
-        /// <history>
-        ///    25 Feb 11  Cynic - Started
-        /// </history>
         private void panel1_MouseMove(object sender, MouseEventArgs e)
         {
+            //if(mouseCursorDisplayControl != null)
+            //{
+            //    Point convertedPoint = MouseToWorld(Cursor.Position);
+
+            //    mouseCursorDisplayControl.Text = string.Format("X: {0} , Y: {1}", convertedPoint.X, convertedPoint.Y);
+            //}
 
             PointF tmpOrigin = new PointF();
             if (panningActive == true)
@@ -965,14 +1066,11 @@ namespace LineGrinder
         /// app units are inches this is the screen resolution in dpi. Otherwise
         /// this is the dpmm
         /// </summary>
-        /// <history>
-        ///    23 Nov 10  Cynic - Started
-        /// </history>
         private float DotsPerAppUnitX
         {
             get
             {
-                if (ApplicationUnits == ApplicationUnitsEnum.INCHES)
+                if (ScreenUnits == ApplicationUnitsEnum.INCHES)
                 {
                     return _dpiX;
                 }
@@ -989,14 +1087,11 @@ namespace LineGrinder
         /// app units are inches this is the screen resolution in dpi. Otherwise
         /// this is the dpmm
         /// </summary>
-        /// <history>
-        ///    23 Nov 10  Cynic - Started
-        /// </history>
         private float DotsPerAppUnitY
         {
             get
             {
-                if (ApplicationUnits == ApplicationUnitsEnum.INCHES)
+                if (ScreenUnits == ApplicationUnitsEnum.INCHES)
                 {
                     return _dpiY;
                 }
@@ -1012,11 +1107,7 @@ namespace LineGrinder
         /// We have to take the DPI of the screen into account when presenting
         /// the user with a particular magnification level. This does that
         /// </summary>
-        /// <history>
-        ///    01 Sep 10  Cynic - Started
-        ///    23 Nov 10  Cynic - removed dependence on a graphic object and 
         ///                       also made it support mm app units
-        /// </history>
         private float ConvertMagnificationLevelToXScreenScaleFactor(float magLevel)
         {
             if (magLevel >= 1)
@@ -1035,11 +1126,7 @@ namespace LineGrinder
         /// We have to take the DPI of the screen into account when presenting
         /// the user with a particular magnification level. This does that
         /// </summary>
-        /// <history>
-        ///    01 Sep 10  Cynic - Started
-        ///    23 Nov 10  Cynic - removed dependence on a graphic object and 
         ///                       also made it support mm app units
-        /// </history>
         private float ConvertMagnificationLevelToYScreenScaleFactor(float magLevel)
         {
             if (magLevel >= 1)
@@ -1056,9 +1143,6 @@ namespace LineGrinder
         /// <summary>
         /// Handle a scroll event on the horizontal scroll bar
         /// </summary>
-        /// <history>
-        ///    11 Jul 10  Cynic - Started
-        /// </history>
         private void hScrollBar1_Scroll(object sender, ScrollEventArgs e)
         {
             // the algorythm in the SetScrollBar values makes this 
@@ -1072,9 +1156,6 @@ namespace LineGrinder
         /// <summary>
         /// Handle a scroll event on the vertical scroll bar
         /// </summary>
-        /// <history>
-        ///    11 Jul 10  Cynic - Started
-        /// </history>
         private void vScrollBar1_Scroll(object sender, ScrollEventArgs e)
         {
             // the algorythm in the SetScrollBar values makes this 
@@ -1088,9 +1169,6 @@ namespace LineGrinder
         /// <summary>
         /// Syncs the scroll bar slider positions to the current origin
         /// </summary>
-        /// <history>
-        ///    11 Jul 10  Cynic - Started
-        /// </history>
         public void SyncCurrentOriginToScrollBarSliderPositions()
         {
             try
@@ -1151,9 +1229,6 @@ namespace LineGrinder
         /// Set the scroll bar values, code derived from sample at
         /// http://msdn.microsoft.com/en-us/library/system.windows.forms.scrollbar.maximum.aspx
         /// </summary>
-        /// <history>
-        ///    11 Jul 10  Cynic - Started
-        /// </history>
         public void SetScrollBarMaxMinLimits()
         {
             int workingSmallChange = 0;
@@ -1286,23 +1361,94 @@ namespace LineGrinder
 
             SyncCurrentOriginToScrollBarSliderPositions();
         }
-                
+
         /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
         /// <summary>
-        /// Draws the mill start position (the origin)
+        /// Draws the flip axis line - the line we flip around
         /// </summary>
         /// <param name="graphicsObj"> a valid graphics object</param>
         /// <param name="borderPen">a 1 pixel wide pen to draw the border with</param>
-        /// <history>
-        ///    22 Aug 10  Cynic - Started, then left as a stub
-        ///    26 Feb 11  Cynic - made it work
-        /// </history>
+        private void DrawFlipAxis(Graphics graphicsObj, Pen originPen)
+        {
+            float flipAxisLen = (float)(maxPlotYCoord * IsoPlotPointsPerAppUnit);
+
+            if (ShowFlipAxis == false) return;
+            if (graphicsObj == null) return;
+            if (originPen == null) return;
+
+            //float xScreenScale = ConvertMagnificationLevelToXScreenScaleFactor(MagnificationLevel);
+            //float yScreenScale = ConvertMagnificationLevelToYScreenScaleFactor(MagnificationLevel);
+            int yLineLen = (int)(flipAxisLen);
+
+            //  DebugMessage("xScreenScale = " + xScreenScale.ToString() + " xLineLen=" + xLineLen.ToString() + " MagnificationLevel=" + MagnificationLevel.ToString());
+
+            // the zero in here just re-inforces that we are offsetting from the (0,0) plot position
+            double xOrigin = 0 + Math.Round((this.midPlotXCoord * IsoPlotPointsPerAppUnit)); ;
+           // double yOrigin = 0 + Math.Round((plotYOriginLocation * IsoPlotPointsPerAppUnit)); ;
+
+            // DebugMessage("xOrigin = " + xOrigin.ToString() + " xScreenScale=" + xScreenScale.ToString());
+
+            Point startPointY = new Point((int)xOrigin, 0);
+            Point endPointY = new Point((int)xOrigin, yLineLen);
+
+            // draw the flip axis line
+            graphicsObj.DrawLine(originPen, startPointY, endPointY);
+
+        }
+
+        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+        /// <summary>
+        /// Draws the (0,0) position (the origin)
+        /// </summary>
+        /// <param name="graphicsObj"> a valid graphics object</param>
+        /// <param name="borderPen">a 1 pixel wide pen to draw the border with</param>
         private void DrawOrigin(Graphics graphicsObj, Pen originPen)
+        {
+            const float ORIGIN_CROSSHAIR_LEN = 10;
+
+            if (ShowOrigin == false) return;
+            if (graphicsObj == null) return;
+            if (originPen == null) return;
+
+            float xScreenScale = ConvertMagnificationLevelToXScreenScaleFactor(MagnificationLevel);
+            float yScreenScale = ConvertMagnificationLevelToYScreenScaleFactor(MagnificationLevel);
+            int xLineLen = (int)(ORIGIN_CROSSHAIR_LEN / xScreenScale);
+            int yLineLen = (int)(ORIGIN_CROSSHAIR_LEN / yScreenScale);
+
+            //  DebugMessage("xScreenScale = " + xScreenScale.ToString() + " xLineLen=" + xLineLen.ToString() + " MagnificationLevel=" + MagnificationLevel.ToString());
+
+            // the zero in here just re-inforces that we are offsetting from the (0,0) plot position
+            double xOrigin = 0 + Math.Round((plotXOriginLocation * IsoPlotPointsPerAppUnit)); ;
+            double yOrigin = 0 + Math.Round((plotYOriginLocation * IsoPlotPointsPerAppUnit)); ;
+
+         //   DebugMessage("xOrigin = " + xOrigin.ToString() + " xScreenScale=" + xScreenScale.ToString());
+
+            Point startPointX = new Point(((int)xOrigin)+(xLineLen * -1), (int)yOrigin);
+            Point endPointX = new Point(((int)xOrigin)+xLineLen, (int)yOrigin);
+            Point startPointY = new Point((int)xOrigin, ((int)yOrigin)+(yLineLen * -1));
+            Point endPointY = new Point((int)xOrigin, ((int)yOrigin)+yLineLen);
+
+            // draw the cross hair lines
+            graphicsObj.DrawLine(originPen, startPointX, endPointX);
+            graphicsObj.DrawLine(originPen, startPointY, endPointY);
+
+        }
+
+        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+        /// <summary>
+        /// Draws the GCode start position (the origin), can be (0,0) or it can be
+        /// elsewhere
+        /// </summary>
+        /// <param name="graphicsObj"> a valid graphics object</param>
+        /// <param name="borderPen">a 1 pixel wide pen to draw the border with</param>
+        private void DrawGCodeOrigin(Graphics graphicsObj, Pen originPen)
         {
             const float ORIGIN_CROSSHAIR_LEN = 20;
             const float ORIGIN_CIRCLE_RADIUS = 10;
+            double xOrigin = 0;
+            double yOrigin = 0;
 
-            if (ShowOrigin == false) return;
+            if (ShowGCodeOrigin == false) return;
             if (graphicsObj == null) return;
             if (originPen == null) return;
 
@@ -1315,16 +1461,27 @@ namespace LineGrinder
 
             //  DebugMessage("xScreenScale = " + xScreenScale.ToString() + " xLineLen=" + xLineLen.ToString() + " MagnificationLevel=" + MagnificationLevel.ToString());
 
-            // the zero in here just re-inforces that we are offsetting from the (0,0) plot position
-            double xOrigin = 0 + Math.Round((plotXOriginLocation * IsoPlotPointsPerAppUnit)); ;
-            double yOrigin = 0 + Math.Round((plotYOriginLocation * IsoPlotPointsPerAppUnit)); ;
+            if (gcodeOriginAtCenter == true)
+            {
+                float xCenterOffset = (float)(this.midPlotXCoord * IsoPlotPointsPerAppUnit);
+                float yCenterOffset = (float)(this.midPlotYCoord * IsoPlotPointsPerAppUnit);
 
-           // DebugMessage("xOrigin = " + xOrigin.ToString() + " xScreenScale=" + xScreenScale.ToString());
+                xOrigin = xCenterOffset + Math.Round((plotXOriginLocation * IsoPlotPointsPerAppUnit)); ;
+                yOrigin = yCenterOffset + Math.Round((plotYOriginLocation * IsoPlotPointsPerAppUnit)); ;
+            }
+            else
+            {
+                // the zero in here just re-inforces that we are offsetting from the (0,0) plot position
+                xOrigin = 0 + Math.Round((plotXOriginLocation * IsoPlotPointsPerAppUnit)); ;
+                yOrigin = 0 + Math.Round((plotYOriginLocation * IsoPlotPointsPerAppUnit)); ;
+            }
 
-            Point startPointX = new Point(((int)xOrigin)+(xLineLen * -1), (int)yOrigin);
-            Point endPointX = new Point(((int)xOrigin)+xLineLen, (int)yOrigin);
-            Point startPointY = new Point((int)xOrigin, ((int)yOrigin)+(yLineLen * -1));
-            Point endPointY = new Point((int)xOrigin, ((int)yOrigin)+yLineLen);
+            // DebugMessage("xOrigin = " + xOrigin.ToString() + " xScreenScale=" + xScreenScale.ToString());
+
+            Point startPointX = new Point(((int)xOrigin) + (xLineLen * -1), (int)yOrigin);
+            Point endPointX = new Point(((int)xOrigin) + xLineLen, (int)yOrigin);
+            Point startPointY = new Point((int)xOrigin, ((int)yOrigin) + (yLineLen * -1));
+            Point endPointY = new Point((int)xOrigin, ((int)yOrigin) + yLineLen);
 
             // draw the cross hair lines
             graphicsObj.DrawLine(originPen, startPointX, endPointX);
@@ -1340,9 +1497,6 @@ namespace LineGrinder
         /// these for testing the scroll etc
         /// </summary>
         /// <param name="graphicsObj"> a valid graphics object</param>
-        /// <history>
-        ///    11 Jul 10  Cynic - Started
-        /// </history>
         private void DrawDiagnosticCornerBoxes(Graphics graphicsObj)
         {
             const int TEST_LINELEN = 10;
@@ -1398,9 +1552,6 @@ namespace LineGrinder
         /// </summary>
         /// <param name="graphicsObj"> a valid graphics object</param>
         /// <param name="borderPen">a 1 pixel wide pen to draw the border with</param>
-        /// <history>
-        ///    11 Jul 10  Cynic - Started
-        /// </history>
         private void DrawBorder(Graphics graphicsObj, Pen borderPen)
         {
             if (graphicsObj == null) return;
@@ -1415,9 +1566,6 @@ namespace LineGrinder
         /// Draw the virtualPlot in a different colour
         /// </summary>
         /// <param name="graphicsObj"> a valid graphics object</param>
-        /// <history>
-        ///    11 Jul 10  Cynic - Started
-        /// </history>
         private void DrawBackground(Graphics graphicsObj, Brush backgroundBrush)
         {
             if (graphicsObj == null) return;
@@ -1446,3 +1594,4 @@ namespace LineGrinder
 
     }
 }
+

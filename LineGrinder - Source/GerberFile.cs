@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -29,9 +29,6 @@ namespace LineGrinder
     /// <summary>
     /// A class to encapsulate a Gerber file in an easily manipulable manner
     /// </summary>
-    /// <history>
-    ///    06 Jul 10  Cynic - Started
-    /// </history>
     public class GerberFile : OISObjBase
     {
         // this is the path and name of the source Gerber file
@@ -40,25 +37,63 @@ namespace LineGrinder
         // this is the current file source
         private List<GerberLine> sourceLines = new List<GerberLine>();
 
+        // this is the list of lines for each command. Some can be multi line
+        private List<GerberCommandSourceLines> gerberCommandLineList = new List<GerberCommandSourceLines>();
+
         // our state machine. Each line of a Gerber File can assume many things based
         // on the state of the previously executed commands
         GerberFileStateMachine stateMachine = new GerberFileStateMachine();
 
-        public const string RS274PARAMDELIMITER = @"%";
-        public const char RS274PARAMDELIMITER_CHAR = '%';
-        public const string RS274FORMATPARAM = @"FS";
-        public const string RS274MODEPARAM = @"MO";
-        public const string RS274AMPARAM = @"AM";
-        public const string RS274APDEFPARAM = @"AD";
-        public const string RS274OFPARAM = @"OF";
-        public const string RS274INPARAM = @"IN";
-        public const string RS274IPPARAM = @"IP";
-        public const string RS274LPPARAM = @"LP";
-        public const string RS274LNPARAM = @"LN";
-        public const string RS274SFA1B1PARAM = @"SFA1B1";
-        public const string RS274SFPARAM = @"SF";
-        public const string RS274BLOCKTERMINATOR = @"*";
-        public const char RS274BLOCKTERMINATOR_CHAR = '*';
+        public const string RS274_AB_CMD = @"AB";
+        public const string RS274_AD_CMD = @"AD";
+        public const string RS274_AM_CMD = @"AM";
+        public const string RS274_D_CMD = @"D";
+        public const string RS274_FS_CMD = @"FS";
+
+        public const string RS274_G01_CMD = @"G01";
+        public const string RS274_G02_CMD = @"G02";
+        public const string RS274_G03_CMD = @"G03";
+        public const string RS274_G04_CMD = @"G04";
+        public const string RS274_G36_CMD = @"G36";
+        public const string RS274_G37_CMD = @"G37";
+        public const string RS274_G54_CMD = @"G54";
+        public const string RS274_G70_CMD = @"G70";
+        public const string RS274_G71_CMD = @"G71";
+        public const string RS274_G74_CMD = @"G74";
+        public const string RS274_G75_CMD = @"G75";
+        public const string RS274_G90_CMD = @"G90";
+        public const string RS274_G91_CMD = @"G91";
+
+        public const string RS274_IN_CMD = @"IN";
+        public const string RS274_IP_CMD = @"IP";
+        public const string RS274_LM_CMD = @"LM";
+        public const string RS274_LN_CMD = @"LN";
+        public const string RS274_LP_CMD = @"LP";
+        public const string RS274_LR_CMD = @"LR";
+        public const string RS274_LS_CMD = @"LS";
+
+        public const string RS274_MO_CMD = @"MO";
+
+        public const string RS274_M00_CMD = @"MO0";
+        public const string RS274_M01_CMD = @"MO1";
+        public const string RS274_M02_CMD = @"M02";
+
+        public const string RS274_OF_CMD = @"OF";
+        public const string RS274_SF_CMD = @"SF";
+        public const string RS274_SR_CMD = @"SR";
+        public const string RS274_TA_CMD = @"TA";
+        public const string RS274_TD_CMD = @"TD";
+        public const string RS274_TF_CMD = @"TF";
+        public const string RS274_TO_CMD = @"TO";
+        public const string RS274_X_CMD = @"X";
+        public const string RS274_Y_CMD = @"Y";
+        public const string RS274_SFA1B1_CMD = @"SFA1B1";
+
+        public const string RS274_CMD_DELIMITER = @"%";
+        public const char RS274_CMD_DELIMITER_CHAR = '%';
+
+        public const string RS274_BLOCK_TERMINATOR = @"*";
+        public const char RS274_BLOCK_TERMINATOR_CHAR = '*';
 
         // NOTE: In general, if a coordinate is an int it has been scaled and it represents
         //       a value in plot coordinates. If it is a float it represents an unscaled
@@ -75,18 +110,13 @@ namespace LineGrinder
         private float minDCodeYCoord = float.MaxValue;
         private float maxDCodeXCoord = float.MinValue;
         private float maxDCodeYCoord = float.MinValue;
-
-        // these are built from the reference pins
-        private float midDCodeXCoord = 0;
-        private float midDCodeYCoord = 0;
+        private float midDCodeXCoord = 0;      // will be set by refPins if refPins exist otherwise set from max/min
+        private float midDCodeYCoord = 0;      // will be set by refPins if refPins exist otherwise set from max/min
 
         /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
         /// <summary>
         /// Constructor
         /// </summary>
-        /// <history>
-        ///    06 Jul 10  Cynic - Started
-        /// </history>
         public GerberFile()
         {
         }
@@ -96,9 +126,6 @@ namespace LineGrinder
         /// Gets whether the file is populated. We assume it is populated if there
         /// is at least one source line
         /// </summary>
-        /// <history>
-        ///    12 Jul 10  Cynic - Started
-        /// </history>
         public bool IsPopulated
         {
             get
@@ -112,9 +139,6 @@ namespace LineGrinder
         /// <summary>
         /// Gets/sets the current gerber source files path and name
         /// </summary>
-        /// <history>
-        ///    10 Aug 10  Cynic - Started
-        /// </history>
         public string GerberFilePathAndName
         {
             get
@@ -135,32 +159,236 @@ namespace LineGrinder
         /// </summary>
         /// <param name="errStr">we return the error string in here</param>
         /// <returns>true all ok, false a failure was detected</returns>
-        /// <history>
-        ///    15 Jan 11  Cynic - Started
-        /// </history>
         public bool PerformOpenPostProcessingFixups(out string errStr)
         {
-            // did we ever get a situation in which we are drawing lines but 
-            // they were not for isolation routing?
-            if (StateMachine.CurrentLinesAreNotForIsolationHasBeenEnabled == true)
-            {
-                // yes we did, we have to find all the GerberLine_DCode objects
-                // and see if the application actually drew traces in for them
-                // in prior X and Y commands. This can happen when some programs
-                // generate flood fill commands. They draw the outline in thin traces
-                // then generate a G36 code for the flood fill and runover the outline
-                // again. If we leave the first codes in there the flooded area gets
-                // cut into slightly by the isolation traces around it - which is not
-                // the intended effect. On a gerber plot they would just be exposed twice
+            errStr = "";
 
-                // we go through each line in the gerber file and build a list of the ones
-                // which are marked as CurrentLineIsNotForIsolation. Then we go back and see
-                // if there are any lines before or after that which that lie under those lines
-                // If so, we mark them as DoNotDisplay.
-            }
+            float lastDCodeXCoord = 0;
+            float lastDCodeYCoord = 0;
+
+            bool contourModeActive = false;
+            List<GerberContourLineContainer> contourList = new List<GerberContourLineContainer>();
+
+            // get all of the DCode lines into the list
+            foreach (GerberLine gLineObj in SourceLines)
+            {
+                if ((gLineObj is GerberLine_G36Code) == true) contourModeActive = true;
+                if ((gLineObj is GerberLine_G37Code) == true) contourModeActive = false;
+                    
+                // we are in a D code
+                if((gLineObj is GerberLine_DCode) == true)
+                {
+                    // set this now for convenience
+                    GerberLine_DCode dCodeObj = (GerberLine_DCode)gLineObj;
+
+                    // if it is just an aperture define ignore it
+                    if (dCodeObj.DCode > 3) continue;
+
+                    // make sure we fill in defaults if necessary
+                    dCodeObj.SetDefaultCoordsIfRequired(lastDCodeXCoord, lastDCodeYCoord);
+
+                    if (contourModeActive == true)
+                    {
+                        // are we a line draw DCode?
+                        if (dCodeObj.DCode == 1)
+                        {
+                            // if we get here we have a line D code inside a contourMode statement
+                            contourList.Add(new GerberContourLineContainer(lastDCodeXCoord, lastDCodeYCoord, dCodeObj.DCodeCoord_X, dCodeObj.DCodeCoord_Y, dCodeObj));
+                        }
+                        else if (dCodeObj.DCode == 2)
+                        {
+                            // are we a D02 move
+                            // coincident lines only matter to each other within a D02 section so check now
+                            MarkCoincidentLinesInContourList(contourList);
+                            // reset now
+                            contourList = new List<GerberContourLineContainer>();
+                        }
+                    }
+
+                    // now update the last coords 
+                    lastDCodeXCoord = dCodeObj.DCodeCoord_X;
+                    lastDCodeYCoord = dCodeObj.DCodeCoord_Y;
+                }
+            } // bottom of foreach (GerberLine gLineObj in SourceLines)
+
+            // at this point we may have DCodes in a contour list which have not been processed 
+            // as a final D02 is not required. we check what we have now
+            MarkCoincidentLinesInContourList(contourList);
 
             errStr = "";
             return true;
+        }
+
+        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+        /// <summary>
+        /// Revisits the gerber lines and figures out the minimum and maximum coords
+        /// each will use. Will set the max/min values in this gerber file
+        /// </summary>
+        public void FindAllMinMaxPlotSizesAndSetInGerberFile()
+        {
+            PointF ptLL = new PointF(0, 0);
+            PointF ptUR = new PointF(0, 0);
+
+            // create a dummy statemachine We can only get a lot of the information from the DCodes
+            // by simulating a run. They use the results of the previous DCode a lot
+            GerberFileStateMachine workingStateMachine = new GerberFileStateMachine();
+            workingStateMachine.MacroCollection = stateMachine.MacroCollection;
+            workingStateMachine.ApertureCollection = stateMachine.ApertureCollection;
+
+            // get all of the DCode lines into the list
+            foreach (GerberLine gLineObj in SourceLines)
+            {
+                // Check what kind of code we are in, we need some of these to properly set the stateMachine
+                // note that we are using the workingSateMachine here
+                if (gLineObj is GerberLine_G01Code)
+                {
+                    workingStateMachine.GerberFileInterpolationMode = GerberInterpolationModeEnum.INTERPOLATIONMODE_LINEAR;
+                    continue;
+                }
+                if (gLineObj is GerberLine_G02Code)
+                {
+                    workingStateMachine.GerberFileInterpolationMode = GerberInterpolationModeEnum.INTERPOLATIONMODE_CIRCULAR;
+                    workingStateMachine.GerberFileInterpolationCircularDirectionMode = GerberInterpolationCircularDirectionModeEnum.DIRECTIONMODE_CLOCKWISE;
+                    continue;
+                }
+                if (gLineObj is GerberLine_G03Code)
+                {
+                    workingStateMachine.GerberFileInterpolationMode = GerberInterpolationModeEnum.INTERPOLATIONMODE_CIRCULAR;
+                    workingStateMachine.GerberFileInterpolationCircularDirectionMode = GerberInterpolationCircularDirectionModeEnum.DIRECTIONMODE_COUNTERCLOCKWISE;
+                    continue;
+                }
+                if (gLineObj is GerberLine_AMCode)
+                {
+                    GerberLine_AMCode gMacroObj = (GerberLine_AMCode)gLineObj;
+                    // make a new one of these
+                    GerberMacroVariableArray dummyArray = new GerberMacroVariableArray();
+                    // get the max dimensions from the macro. At this point the macro variable array has not been resolved so we 
+                    // can only base this on the variables that are hard coded.
+                    gMacroObj.GetMaxMinXAndYValuesForMacro(dummyArray, out ptUR, out ptLL);
+                    RecordMaxMinXYCoords(ptUR.X, ptLL.X, ptUR.Y, ptLL.Y);
+                    continue;
+                }
+
+
+                // we only process D Codes beyond this point
+                if ((gLineObj is GerberLine_DCode) == false) continue;
+
+                // set this now for convenience
+                GerberLine_DCode dCodeObj = (GerberLine_DCode)gLineObj;
+                // is it an aperture define
+                if (dCodeObj.DCode > 3)
+                {
+                    // simulate the selection of an aperture, note we are populating the workingStateMachine from the real statemachine
+                    workingStateMachine.CurrentAperture = stateMachine.ApertureCollection.GetApertureByID(dCodeObj.DCode);
+                    continue;
+                }
+
+                // record the values, the DCode object knows how best to calculate these, this is not as simple as it 
+                // seems because we also have to keep track of the aperture diameters, arcs and macros
+                bool retBool = dCodeObj.GetMaxMinXAndYValues(workingStateMachine, workingStateMachine.LastDCodeXCoord, workingStateMachine.LastDCodeYCoord, out ptUR, out ptLL);
+                if (retBool == true)
+                {
+                    RecordMaxMinXYCoords(ptUR.X, ptLL.X, ptUR.Y, ptLL.Y);
+                    //DebugMessage("SetMinMaxPlotSizes ptURX=" + ptUR.ToString() + ", ptLL=" + ptLL.ToString());
+                }
+
+                // get the pad centerpoint list. Not all flashes will be a pad. For example macros will not
+                if ((dCodeObj.DCode == 3) && (workingStateMachine.CurrentAperture.ApertureType != ApertureTypeEnum.APERTURETYPE_MACRO))
+                {
+                    // record these centerpoints to our list, note that we save to the statemachine but use the aperture from the working one
+                    stateMachine.PadCenterPointList.Add(new GerberPad(dCodeObj.DCodeCoord_X, dCodeObj.DCodeCoord_Y, (workingStateMachine.CurrentAperture.GetApertureDimension())));
+                }
+
+                // now remember the last coords 
+                workingStateMachine.LastDCodeXCoord = dCodeObj.DCodeCoord_X;
+                workingStateMachine.LastDCodeYCoord = dCodeObj.DCodeCoord_Y;
+
+            } // bottom of foreach (GerberLine gLineObj in SourceLines)
+        }
+
+        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+        /// <summary>
+        /// Revisits the gerber lines and figures out the absolute X and Y offsets
+        /// The coordinates in the file will have been much adjusted so as to make them
+        /// all positive and near the plot 0,0 origin point. The absolute offset
+        /// is how these modified points relate to the original hard coords of the
+        /// gerber file. This enables us to line up the gcode in different files
+        /// such as edgeCuts, drills and isoCuts etc.
+        /// 
+        /// NOTE: this code only works after the gerber file has been plotted. Before
+        /// then we do not have enough information
+        /// 
+        /// </summary>
+        public bool GetAbsoluteOffsets(out float absoluteOffset_X, out float absoluteOffset_Y)
+        {
+            absoluteOffset_X = 0;
+            absoluteOffset_Y = 0;
+
+            // run through all of the DCode lines
+            foreach (GerberLine gLineObj in SourceLines)
+            {
+                // we only process D Codes 
+                if ((gLineObj is GerberLine_DCode) == false) continue;
+                // set this now for convenience
+                GerberLine_DCode dCodeObj = (GerberLine_DCode)gLineObj;
+                // is it an aperture define we cannot use these
+                if (dCodeObj.DCode > 3) continue;
+
+                // we use the first nonzero plottable DCode we find. The end value is always the transformation of the original DCode
+                // coordinates into plot coordinates.
+                if ((dCodeObj.LastPlotXCoordEnd == 0) && (dCodeObj.LastPlotYCoordEnd == 0)) continue;
+
+                // ok we know we have one and we can figure out a transformation, scale the dcodeXY to plot coords
+                float scaledOriginalDCode_X = dCodeObj.DCodeCoord_X * StateMachine.IsoPlotPointsPerAppUnit;
+                float scaledOriginalDCode_Y = dCodeObj.DCodeCoord_Y * StateMachine.IsoPlotPointsPerAppUnit;
+
+                // the difference between the what we ended up as and what we started with is indicative of the absolute offset of that 
+                // point in the gerber file. These should all be the same
+                absoluteOffset_X = scaledOriginalDCode_X - (float)dCodeObj.LastPlotXCoordEnd;
+                absoluteOffset_Y = scaledOriginalDCode_Y - (float)dCodeObj.LastPlotYCoordEnd;
+
+                //DebugMessage("dCodeObj.LastPlotXCoordEnd=" + dCodeObj.LastPlotXCoordEnd.ToString() + ", dCodeObj.LastPlotYCoordEnd=" + dCodeObj.LastPlotYCoordEnd.ToString());
+                //DebugMessage("scaledOriginalDCode_X=" + scaledOriginalDCode_X.ToString() + ", scaledOriginalDCode_Y=" + scaledOriginalDCode_Y.ToString() + ", absoluteOffset_X=" +absoluteOffset_X.ToString() + ", absoluteOffset_Y="+ absoluteOffset_Y.ToString());
+                return true;
+
+            }
+
+            // if we get here we failed to find an absoluet offset
+            return false;
+        }
+
+        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+        /// <summary>
+        /// Accepts a list of contour line containers and marks all coincident lines
+        /// in the container.
+        /// </summary>
+        /// <param name="contourList">the list of GerberContourLineContainer's</param>
+        public void MarkCoincidentLinesInContourList(List<GerberContourLineContainer> contourList)
+        {
+            // do we have anything to check, if there is only one we cannot check that
+            if (contourList.Count <= 1) return;
+
+            //DebugMessage("MarkCoincidentLinesInContourList called");
+
+            for (int i = 0; i < contourList.Count; i++)
+            {
+                // coincident lines must (according to spec) be horizontal or vertical
+                if (contourList[i].IsHorizontalOrVertical() == false) continue;
+                for (int j = i + 1; j < contourList.Count; j++)
+                {
+                    // coincident lines must (according to spec) be horizontal or vertical
+                    if (contourList[j].IsHorizontalOrVertical() == false) continue;
+
+                    // we have two lines (horiz or vert) check to see if they are coincident
+                    if (contourList[i].IsCoincidentLine(contourList[j]) == true)
+                    {
+                        // we are a coincident lines. Mark both of these
+                        contourList[i].DCodeObj.IsCoincidentLineInFillRegion = true;
+                        contourList[j].DCodeObj.IsCoincidentLineInFillRegion = true;
+                        //DebugMessage("Dcode="+ contourList[j].DCodeObj.DCode.ToString()+" (" +contourList[i].XStart.ToString()+","+ contourList[i].YStart.ToString() + "), ("+ contourList[i].XEnd.ToString() + "," + contourList[i].YEnd.ToString() + ")");
+                    }
+                }
+            }
         }
 
         /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
@@ -169,13 +397,9 @@ namespace LineGrinder
         /// see if it is valid and useable
         /// </summary>
         /// <param name="errStr">we return the error string in here</param>
-        /// <param name="applicationUnits">the units (inches or mm) the app is currently
         /// configured for</param>
         /// <returns>true all ok, false a failure was detected</returns>
-        /// <history>
-        ///    09 Aug 10  Cynic - Started
-        /// </history>
-        public bool PerformOpenPostProcessingChecks(out string errStr,ApplicationUnitsEnum applicationUnits)
+        public bool PerformOpenPostProcessingChecks(out string errStr)
         {
             // check to make sure there are valid Min and Max coodinates
             if (minDCodeXCoord == float.MaxValue)
@@ -202,17 +426,17 @@ namespace LineGrinder
             // same as the UNITS currently set in this application
             if (this.GerberFileUnits == ApplicationUnitsEnum.INCHES)
             {
-                if (applicationUnits ==ApplicationUnitsEnum.MILLIMETERS)
+                if (StateMachine.GerberFileManager.FileManagerUnits == ApplicationUnitsEnum.MILLIMETERS)
                 {
-                    errStr = "Application units set to millimeters and the Gerber file uses inches. Adjust the options on the Settings tab.";
+                    errStr = "File Manager units set to millimeters and the Gerber file uses inches. This should have automatically adjusted. Please report this error.";
                     return false;
                 }
             }
             else if (this.GerberFileUnits == ApplicationUnitsEnum.MILLIMETERS)
             {
-                if (applicationUnits ==ApplicationUnitsEnum.INCHES)
+                if (StateMachine.GerberFileManager.FileManagerUnits == ApplicationUnitsEnum.INCHES)
                 {
-                    errStr = "Application units set to inches and the Gerber file uses millimeters. Adjust the options on the Settings tab.";
+                    errStr = "File Manager set to inches and the Gerber file uses millimeters. This should have automatically adjusted. Please report this error.";
                     return false;
                 }
             }
@@ -259,112 +483,25 @@ namespace LineGrinder
 
         /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
         /// <summary>
-        /// Keeps a record of the min and max XY coords. This is not as simple
-        /// as it seems because we have to also keep track of the aperture 
-        /// diameters
+        /// Keeps a record of the max and min XY coords. 
         /// </summary>
-        /// <history>
-        ///    08 Aug 10  Cynic - Moved this code in here
-        /// </history>
-        public void RecordMinMaxXYCoords(float workingXCoord, float workingYCoord)
+        public void RecordMaxMinXYCoords(float maxXCoord, float minXCoord, float maxYCoord, float minYCoord)
         {
-            /*
-            float tmpMaxX = workingXCoord + ApertureCollection.GetMaxApertureIncrementalDimension() + StateMachine.GerberFileManager.GetMaxToolWidthForEnabledOperationMode();
-            float tmpMaxY = workingYCoord + ApertureCollection.GetMaxApertureIncrementalDimension() + StateMachine.GerberFileManager.GetMaxToolWidthForEnabledOperationMode();
-            float tmpMinX = workingXCoord - ApertureCollection.GetMaxApertureIncrementalDimension() - StateMachine.GerberFileManager.GetMaxToolWidthForEnabledOperationMode();
-            float tmpMinY = workingYCoord - ApertureCollection.GetMaxApertureIncrementalDimension() - StateMachine.GerberFileManager.GetMaxToolWidthForEnabledOperationMode();
-             */
-            float tmpMaxX = workingXCoord;
-            float tmpMaxY = workingYCoord;
-            float tmpMinX = workingXCoord;
-            float tmpMinY = workingYCoord;
 
-            // we set the min and max XY here
-            if (tmpMinX < minDCodeXCoord) minDCodeXCoord = tmpMinX;
-            if (tmpMinY < minDCodeYCoord) minDCodeYCoord = tmpMinY;
-            // max valus
-            if (tmpMaxX > maxDCodeXCoord) maxDCodeXCoord = tmpMaxX;
-            if (tmpMaxY > maxDCodeYCoord) maxDCodeYCoord = tmpMaxY;
+            // min values
+            if (minXCoord < this.minDCodeXCoord) this.minDCodeXCoord = minXCoord;
+            if (minYCoord < this.minDCodeYCoord) this.minDCodeYCoord = minYCoord;
+
+            // max values
+            if (maxXCoord > this.maxDCodeXCoord) this.maxDCodeXCoord = maxXCoord;
+            if (maxYCoord > this.maxDCodeYCoord) this.maxDCodeYCoord = maxYCoord;
         }
 
         /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
         /// <summary>
-        /// Gets/Sets the value we use when flipping in the X direction
-        /// </summary>
-        /// <history>
-        ///    21 Aug 10  Cynic - Started
-        /// </history>
-        public float XFlipMax
-        {
-            get
-            {
-                return StateMachine.XFlipMax;
-            }
-            set
-            {
-                StateMachine.XFlipMax = value;
-            }
-        }
-
-        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
-        /// <summary>
-        /// Gets/Sets the value we use when flipping in the Y direction
-        /// </summary>
-        /// <history>
-        ///    21 Aug 10  Cynic - Started
-        /// </history>
-        public float YFlipMax
-        {
-            get
-            {
-                return StateMachine.YFlipMax;
-            }
-            set
-            {
-                StateMachine.YFlipMax = value;
-            }
-        }
-
-        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
-        /// <summary>
-        /// Gets/Sets the min plot X Coordinate value. There is no set accessor
+        /// Gets the max plot X Coordinate value There is no set accessor
         /// this value is derived from the max/min X coord and the origin compensation
         /// </summary>
-        /// <history>
-        ///    09 Jul 10  Cynic - Started
-        /// </history>
-        public float MinPlotXCoord
-        {
-            get
-            {
-                return minDCodeXCoord + plotXCoordOriginAdjust;
-            }
-        }
-
-        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
-        /// <summary>
-        /// Gets/Sets the min plot Y Coordinate value There is no set accessor
-        /// this value is derived from the max/min Y coord and the origin compensation
-        /// </summary>
-        /// <history>
-        ///    09 Jul 10  Cynic - Started
-        /// </history>
-        public float MinPlotYCoord
-        {
-            get
-            {
-                return minDCodeYCoord + plotYCoordOriginAdjust;
-            }
-        }
-
-        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
-        /// <summary>
-        /// Gets/Sets the max plot X Coordinate value There is no set accessor
-        /// this value is derived from the max/min X coord and the origin compensation
-        /// </summary>
-        /// <history>
-        ///    09 Jul 10  Cynic - Started
-        /// </history>
         public float MaxPlotXCoord
         {
             get
@@ -375,12 +512,9 @@ namespace LineGrinder
 
         /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
         /// <summary>
-        /// Gets/Sets the max plot Y Coordinate value There is no set accessor
+        /// Gets the max plot Y Coordinate value There is no set accessor
         /// this value is derived from the max/min Y coord and the origin compensation
         /// </summary>
-        /// <history>
-        ///    09 Jul 10  Cynic - Started
-        /// </history>
         public float MaxPlotYCoord
         {
             get
@@ -391,11 +525,60 @@ namespace LineGrinder
 
         /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
         /// <summary>
+        /// Gets the min plot X Coordinate value There is no set accessor
+        /// this value is derived from the max/min X coord and the origin compensation
+        /// </summary>
+        public float MinPlotXCoord
+        {
+            get
+            {
+                return minDCodeXCoord + plotXCoordOriginAdjust;
+            }
+        }
+
+        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+        /// <summary>
+        /// Get the min plot Y Coordinate value There is no set accessor
+        /// this value is derived from the max/min Y coord and the origin compensation
+        /// </summary>
+        public float MinPlotYCoord
+        {
+            get
+            {
+                return minDCodeYCoord + plotYCoordOriginAdjust;
+            }
+        }
+
+        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+        /// <summary>
+        /// Gets/Sets the mid plot X Coordinate value There is no set accessor
+        /// this value is derived from the mid X coord and the origin compensation
+        /// </summary>
+        public float MidPlotXCoord
+        {
+            get
+            {
+                return midDCodeXCoord + plotXCoordOriginAdjust;
+            }
+        }
+
+        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+        /// <summary>
+        /// Gets/Sets the mid plot Y Coordinate value There is no set accessor
+        /// this value is derived from the mid Y coord and the origin compensation
+        /// </summary>
+        public float MidPlotYCoord
+        {
+            get
+            {
+                return midDCodeYCoord + plotYCoordOriginAdjust;
+            }
+        }
+
+        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+        /// <summary>
         /// Gets/Sets the min X Coordinate value
         /// </summary>
-        /// <history>
-        ///    09 Jul 10  Cynic - Started
-        /// </history>
         public float MinDCodeXCoord
         {
             get
@@ -412,9 +595,6 @@ namespace LineGrinder
         /// <summary>
         /// Gets/Sets the min Y Coordinate value
         /// </summary>
-        /// <history>
-        ///    09 Jul 10  Cynic - Started
-        /// </history>
         public float MinDCodeYCoord
         {
             get
@@ -430,11 +610,8 @@ namespace LineGrinder
         /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
         /// <summary>
         /// Gets/Sets the mid X Coordinate value. These are derived from the reference
-        /// pins and may be zero if they are not set
+        /// pins or the best guess center of the plot if refPins are not set
         /// </summary>
-        /// <history>
-        ///    10 Sep 10  Cynic - Started
-        /// </history>
         public float MidDCodeXCoord
         {
             get
@@ -450,11 +627,8 @@ namespace LineGrinder
         /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
         /// <summary>
         /// Gets/Sets the mid Y Coordinate value. These are derived from the reference
-        /// pins and may be zero if they are not set
+        /// pins or the best guess center of the plot if refPins are not set
         /// </summary>
-        /// <history>
-        ///    10 Sep 10  Cynic - Started
-        /// </history>
         public float MidDCodeYCoord
         {
             get
@@ -466,13 +640,11 @@ namespace LineGrinder
                 midDCodeYCoord = value;
             }
         }
+
         /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
         /// <summary>
         /// Gets/Sets the max X Coordinate value
         /// </summary>
-        /// <history>
-        ///    09 Jul 10  Cynic - Started
-        /// </history>
         public float MaxDCodeXCoord
         {
             get
@@ -489,9 +661,6 @@ namespace LineGrinder
         /// <summary>
         /// Gets/Sets the max Y Coordinate value
         /// </summary>
-        /// <history>
-        ///    09 Jul 10  Cynic - Started
-        /// </history>
         public float MaxDCodeYCoord
         {
             get
@@ -508,9 +677,6 @@ namespace LineGrinder
         /// <summary>
         /// Gets the current X Coordinate value with origin compensation
         /// </summary>
-        /// <history>
-        ///    10 Sep 10  Cynic - Started
-        /// </history>
         public float ConvertXCoordToOriginCompensated(float x0)
         {
             return x0 + PlotXCoordOriginAdjust;
@@ -520,9 +686,6 @@ namespace LineGrinder
         /// <summary>
         /// Gets the current Y Coordinate value with origin compensation
         /// </summary>
-        /// <history>
-        ///    10 Sep 10  Cynic - Started
-        /// </history>
         public float ConvertYCoordToOriginCompensated(float y0)
         {
             return y0 + PlotYCoordOriginAdjust;
@@ -532,16 +695,9 @@ namespace LineGrinder
         /// <summary>
         /// Gets the current X Coordinate value with flipping applied (if necessary)
         /// </summary>
-        /// <history>
-        ///   10 Sep 10  Cynic - Started
-        /// </history>
         public float ConvertXCoordToOriginCompensatedFlipped(float xCoordToFlip)
         {
-            if (StateMachine.GerberFileManager.IsoFlipMode == FileManager.IsoFlipModeEnum.X_Flip)
-            {
-                return (stateMachine.XFlipMax - ConvertXCoordToOriginCompensated(xCoordToFlip));
-            }
-            // not an X flip. Just return this
+            // Just return this
             return ConvertXCoordToOriginCompensated(xCoordToFlip);
         }
 
@@ -549,31 +705,50 @@ namespace LineGrinder
         /// <summary>
         /// Gets the current Y Coordinate value with flipping applied (if necessary)
         /// </summary>
-        /// <history>
-        ///   10 Sep 10  Cynic - Started
-        /// </history>
         public float ConvertYCoordToOriginCompensatedFlipped(float yCoordToFlip)
         {
-            if (StateMachine.GerberFileManager.IsoFlipMode == FileManager.IsoFlipModeEnum.Y_Flip)
-            {
-                return (stateMachine.YFlipMax - ConvertYCoordToOriginCompensated(yCoordToFlip));
-            }
-            // not an Y flip. Just return this
+            // Just return this
             return ConvertYCoordToOriginCompensated(yCoordToFlip);
         }
 
         /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
         /// <summary>
-        /// Gets the current dimension mode. There is no set accessor
-        /// as this is derived from the header processing.
+        /// Gets the currently set flip mode. There is no set this comes out of the 
+        /// current file manager.
         /// </summary>
-        /// <history>
-        ///    12 Jul 10  Cynic - Started
-        /// </history>
+        public IsoFlipModeEnum FlipMode
+        {
+            get
+            {
+                // this is safe to do. None of these properties return null
+                return StateMachine.GerberFileManager.IsoFlipMode;
+            }
+        }
+
+        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+        /// <summary>
+        /// Gets a flag indicating the current GCode origin. There is no set this comes out of the 
+        /// current file manager.
+        /// </summary>
+        public bool GCodeOriginAtCenter
+        {
+            get
+            {
+                // this is safe to do. None of these properties return null
+                return StateMachine.GerberFileManager.GCodeOriginAtCenter;
+            }
+        }
+
+        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+        /// <summary>
+        /// Gets the currently set File Units. There is no set this comes out of the 
+        /// current gerber file.
+        /// </summary>
         public ApplicationUnitsEnum GerberFileUnits
         {
             get
             {
+                // this is safe to do. None of these properties return null
                 return StateMachine.GerberFileUnits;
             }
         }
@@ -582,9 +757,6 @@ namespace LineGrinder
         /// <summary>
         /// Gets/Sets state machine. Will never set or get a null value.
         /// </summary>
-        /// <history>
-        ///    08 Jul 10  Cynic - Started
-        /// </history>
         public GerberFileStateMachine StateMachine
         {
             get
@@ -603,9 +775,6 @@ namespace LineGrinder
         /// <summary>
         /// Gets/Sets the aperture collection. 
         /// </summary>
-        /// <history>
-        ///    07 Jul 10  Cynic - Started
-        /// </history>
         public GerberApertureCollection ApertureCollection
         {
             get
@@ -620,11 +789,24 @@ namespace LineGrinder
 
         /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
         /// <summary>
+        /// Gets/Sets the macro collection. 
+        /// </summary>
+        public GerberMacroCollection MacroCollection
+        {
+            get
+            {
+                return StateMachine.MacroCollection;
+            }
+            set
+            {
+                StateMachine.MacroCollection = value;
+            }
+        }
+
+        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+        /// <summary>
         /// Gets/Sets the Gerber file source. Will never set or get a null value.
         /// </summary>
-        /// <history>
-        ///    06 Jul 10  Cynic - Started
-        /// </history>
         [BrowsableAttribute(false)]
         public List<GerberLine> SourceLines
         {
@@ -645,9 +827,6 @@ namespace LineGrinder
         /// <summary>
         /// Returns all lines as a string array. Will never get a null value.
         /// </summary>
-        /// <history>
-        ///    06 Jul 10  Cynic - Started
-        /// </history>
         public string[] GetRawSourceLinesAsArray()
         {
             List<string> retObj = new List<string>();
@@ -667,36 +846,152 @@ namespace LineGrinder
         /// </summary>
         /// <param name="lineStr">The line to add</param>
         /// <param name="lineNumber">The line number</param>
-        /// <history>
-        ///    06 Jul 10  Cynic - Started
-        /// </history>
         public int AddLine(string lineStr, int lineNumber)
         {
-            int retInt;
-            string tmpLine1;
-            char[] paramCharsToTrim = { RS274PARAMDELIMITER_CHAR, ' ' };
-            char[] blockSplitChars= { RS274BLOCKTERMINATOR_CHAR };
             string[] blockArray = null;
+            char[] blockSplitChars = { RS274_BLOCK_TERMINATOR_CHAR };
 
-            if(lineStr==null) return 100;
+            if (lineStr == null) return 100;
 
-            // we may have multiple blocks on the same line
-            blockArray = lineStr.Trim().Split(blockSplitChars, StringSplitOptions.RemoveEmptyEntries);
+            string trimmedStr = lineStr.Trim();
+            if (trimmedStr.Length == 0) return 0;
+
+            // do we end with a RS274_BLOCK_TERMINATOR_CHAR value on this line? We always should
+            // except for macros which can sometimes do this
+            if (trimmedStr.Contains(RS274_BLOCK_TERMINATOR) == false)
+            {
+                // assume we have an odd macro continuation, bang it on the end of the last one
+                gerberCommandLineList[gerberCommandLineList.Count - 1].AppendLine(trimmedStr);
+                return 0;
+            }
+
+            // we may also have multiple command blocks on the same line
+            blockArray = trimmedStr.Split(blockSplitChars, StringSplitOptions.RemoveEmptyEntries);
             // this should never be null
             if (blockArray == null) return 200;
 
-            // for each block in the parameter (usually only one)
             foreach (string workingLine1 in blockArray)
             {
                 // we must strip off any parameter delimiters - these will either be
-                // the first or last. Is it just a trailing delim?
-                if (workingLine1 == RS274PARAMDELIMITER) continue;
+                // the first or last. 
+
+                // Is it just a trailing delim? This could mean termination 
+                // of previous command?
+                if (workingLine1 == RS274_CMD_DELIMITER) continue;
+
+                // trim off before and after
+                //tmpLine1 = workingLine1.Trim(paramCharsToTrim);
+
+                if (workingLine1.StartsWith(RS274_CMD_DELIMITER + RS274_AB_CMD) == true) gerberCommandLineList.Add(new GerberCommandSourceLines(workingLine1, lineNumber));
+                else if (workingLine1.StartsWith(RS274_CMD_DELIMITER + RS274_AD_CMD) == true) gerberCommandLineList.Add(new GerberCommandSourceLines(workingLine1, lineNumber));
+                else if (workingLine1.StartsWith(RS274_CMD_DELIMITER + RS274_AM_CMD) == true) gerberCommandLineList.Add(new GerberCommandSourceLines(workingLine1 + RS274_BLOCK_TERMINATOR, lineNumber));
+                //else if (workingLine1.StartsWith(RS274_CMD_DELIMITER + RS274_D_CMD) == true) gerberCommandLineList.Add(new GerberCommandSourceLines(workingLine1, lineNumber));
+                else if (workingLine1.StartsWith(RS274_CMD_DELIMITER + RS274_FS_CMD) == true) gerberCommandLineList.Add(new GerberCommandSourceLines(workingLine1, lineNumber));
+                else if (workingLine1.StartsWith(RS274_G01_CMD) == true) gerberCommandLineList.Add(new GerberCommandSourceLines(workingLine1, lineNumber));
+                else if (workingLine1.StartsWith(RS274_G02_CMD) == true) gerberCommandLineList.Add(new GerberCommandSourceLines(workingLine1, lineNumber));
+                else if (workingLine1.StartsWith(RS274_G03_CMD) == true) gerberCommandLineList.Add(new GerberCommandSourceLines(workingLine1, lineNumber));
+                else if (workingLine1.StartsWith(RS274_G04_CMD) == true) gerberCommandLineList.Add(new GerberCommandSourceLines(workingLine1, lineNumber));
+                else if (workingLine1.StartsWith(RS274_G36_CMD) == true) gerberCommandLineList.Add(new GerberCommandSourceLines(workingLine1, lineNumber));
+                else if (workingLine1.StartsWith(RS274_G37_CMD) == true) gerberCommandLineList.Add(new GerberCommandSourceLines(workingLine1, lineNumber));
+                else if (workingLine1.StartsWith(RS274_G54_CMD) == true) gerberCommandLineList.Add(new GerberCommandSourceLines(workingLine1, lineNumber));
+                else if (workingLine1.StartsWith(RS274_G70_CMD) == true) gerberCommandLineList.Add(new GerberCommandSourceLines(workingLine1, lineNumber));
+                else if (workingLine1.StartsWith(RS274_G71_CMD) == true) gerberCommandLineList.Add(new GerberCommandSourceLines(workingLine1, lineNumber));
+                else if (workingLine1.StartsWith(RS274_G74_CMD) == true) gerberCommandLineList.Add(new GerberCommandSourceLines(workingLine1, lineNumber));
+                else if (workingLine1.StartsWith(RS274_G75_CMD) == true) gerberCommandLineList.Add(new GerberCommandSourceLines(workingLine1, lineNumber));
+                else if (workingLine1.StartsWith(RS274_G90_CMD) == true) gerberCommandLineList.Add(new GerberCommandSourceLines(workingLine1, lineNumber));
+                else if (workingLine1.StartsWith(RS274_G91_CMD) == true) gerberCommandLineList.Add(new GerberCommandSourceLines(workingLine1, lineNumber));
+                else if (workingLine1.StartsWith(RS274_CMD_DELIMITER + RS274_IN_CMD) == true) gerberCommandLineList.Add(new GerberCommandSourceLines(workingLine1, lineNumber));
+                else if (workingLine1.StartsWith(RS274_CMD_DELIMITER + RS274_IP_CMD) == true) gerberCommandLineList.Add(new GerberCommandSourceLines(workingLine1, lineNumber));
+                else if (workingLine1.StartsWith(RS274_CMD_DELIMITER + RS274_LM_CMD) == true) gerberCommandLineList.Add(new GerberCommandSourceLines(workingLine1, lineNumber));
+                else if (workingLine1.StartsWith(RS274_CMD_DELIMITER + RS274_LN_CMD) == true) gerberCommandLineList.Add(new GerberCommandSourceLines(workingLine1, lineNumber));
+                else if (workingLine1.StartsWith(RS274_CMD_DELIMITER + RS274_LP_CMD) == true) gerberCommandLineList.Add(new GerberCommandSourceLines(workingLine1, lineNumber));
+                else if (workingLine1.StartsWith(RS274_CMD_DELIMITER + RS274_LR_CMD) == true) gerberCommandLineList.Add(new GerberCommandSourceLines(workingLine1, lineNumber));
+                else if (workingLine1.StartsWith(RS274_CMD_DELIMITER + RS274_LS_CMD) == true) gerberCommandLineList.Add(new GerberCommandSourceLines(workingLine1, lineNumber));
+                else if (workingLine1.StartsWith(RS274_CMD_DELIMITER + RS274_MO_CMD) == true) gerberCommandLineList.Add(new GerberCommandSourceLines(workingLine1, lineNumber));
+                else if (workingLine1.StartsWith(RS274_M00_CMD) == true) gerberCommandLineList.Add(new GerberCommandSourceLines(workingLine1, lineNumber));
+                else if (workingLine1.StartsWith(RS274_M01_CMD) == true) gerberCommandLineList.Add(new GerberCommandSourceLines(workingLine1, lineNumber));
+                else if (workingLine1.StartsWith(RS274_M02_CMD) == true) gerberCommandLineList.Add(new GerberCommandSourceLines(workingLine1, lineNumber));
+                else if (workingLine1.StartsWith(RS274_CMD_DELIMITER + RS274_OF_CMD) == true) gerberCommandLineList.Add(new GerberCommandSourceLines(workingLine1, lineNumber));
+                else if (workingLine1.StartsWith(RS274_CMD_DELIMITER + RS274_SF_CMD) == true) gerberCommandLineList.Add(new GerberCommandSourceLines(workingLine1, lineNumber));
+                else if (workingLine1.StartsWith(RS274_CMD_DELIMITER + RS274_SR_CMD) == true) gerberCommandLineList.Add(new GerberCommandSourceLines(workingLine1, lineNumber));
+                else if (workingLine1.StartsWith(RS274_CMD_DELIMITER + RS274_TA_CMD) == true) gerberCommandLineList.Add(new GerberCommandSourceLines(workingLine1, lineNumber));
+                else if (workingLine1.StartsWith(RS274_CMD_DELIMITER + RS274_TD_CMD) == true) gerberCommandLineList.Add(new GerberCommandSourceLines(workingLine1, lineNumber));
+                else if (workingLine1.StartsWith(RS274_CMD_DELIMITER + RS274_TF_CMD) == true) gerberCommandLineList.Add(new GerberCommandSourceLines(workingLine1, lineNumber));
+                else if (workingLine1.StartsWith(RS274_CMD_DELIMITER + RS274_TO_CMD) == true) gerberCommandLineList.Add(new GerberCommandSourceLines(workingLine1, lineNumber));
+                //else if (workingLine1.StartsWith(RS274_CMD_DELIMITER + RS274_X_CMD) == true) gerberCommandLineList.Add(new GerberCommandSourceLines(workingLine1, lineNumber));
+                //else if (workingLine1.StartsWith(RS274_CMD_DELIMITER + RS274_Y_CMD) == true) gerberCommandLineList.Add(new GerberCommandSourceLines(workingLine1, lineNumber));
+                else if (workingLine1.StartsWith(RS274_CMD_DELIMITER + RS274_SFA1B1_CMD) == true) gerberCommandLineList.Add(new GerberCommandSourceLines(workingLine1, lineNumber));
+                else if ((workingLine1.StartsWith(RS274_X_CMD) == true) || (workingLine1.StartsWith(RS274_Y_CMD) == true) || (workingLine1.StartsWith(RS274_D_CMD) == true))
+                {
+                    // special case, these are all parts one command but the order can be mixed up on same line. They do not have a delimiter in front of them either
+                    gerberCommandLineList.Add(new GerberCommandSourceLines(workingLine1, lineNumber));
+                }
+                else
+                {
+                    // if we get here, we either have a command we do not know about or we have a multiline continuation of a previous
+                    // command. True commands we do not know about will start with the RS274_CMD_DELIMITER otherwise it is a 
+                    // continuation
+                    if (workingLine1.StartsWith(RS274_CMD_DELIMITER) == true)
+                    {
+                        // if we get here we are a line of unknown type
+                        LogMessage("Unknown Gerber line type >" + lineStr + "< on line " + lineNumber.ToString());
+                        if (lineStr.Length > 20)
+                        {
+                            throw new NotImplementedException("Cannot cope with unknown Gerber code on line " + lineNumber.ToString() + " code is >" + lineStr.Substring(0, 20) + "<");
+                        }
+                        else
+                        {
+                            throw new NotImplementedException("Cannot cope with unknown Gerber code on line " + lineNumber.ToString() + " code is >" + lineStr + "<");
+                        }
+                    }
+                    // if we get here we assume we have a continuation. We just add this line to the last one we placed in the gerberCommandLineList
+                    if (gerberCommandLineList.Count == 0)
+                    {
+                        // no previous command this must be garbage
+                        if (lineStr.Length > 20)
+                        {
+                            throw new NotImplementedException("Cannot cope with unknown Gerber data on line " + lineNumber.ToString() + " line is >" + lineStr.Substring(0, 20) + "<");
+                        }
+                        else
+                        {
+                            throw new NotImplementedException("Cannot cope with unknown Gerber data on line " + lineNumber.ToString() + " line is >" + lineStr + "<");
+                        }
+                    }
+                    // just add it, with a terminator. 
+                    gerberCommandLineList[gerberCommandLineList.Count - 1].AddLine(workingLine1+ RS274_BLOCK_TERMINATOR);
+                }
+
+            }
+
+            //temp
+            return 0;
+        }
+
+        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+        /// <summary>
+        /// Processes the commands in the gerber file
+        /// </summary>
+        public int ProcessGerberCommands()
+        {
+            string tmpLine1;
+            int retInt;
+            char[] paramCharsToTrim = { RS274_CMD_DELIMITER_CHAR, ' ' };
+
+            // for each block in the command object
+            foreach (GerberCommandSourceLines cmdLineObj in gerberCommandLineList)
+            {
+                // get the line
+                string lineStr = cmdLineObj.GetFirstLine();
+                int lineNumber = cmdLineObj.LineNumber;
+
+                // we must strip off any parameter delimiters - these will either be
+                // the first or last. 
                 // trim off fore and after
-                tmpLine1 = workingLine1.Trim(paramCharsToTrim);
+                tmpLine1 = lineStr.Trim(paramCharsToTrim);
 
                 // we must detect the line type based on the first two letters
                 // Are we a FORMAT PARAMETER?
-                if (tmpLine1.StartsWith(RS274FORMATPARAM) == true)
+                if (tmpLine1.StartsWith(RS274_FS_CMD) == true)
                 {
                     // we are a FORMAT PARAMETER
                     GerberLine_FSCode fsObj = new GerberLine_FSCode(lineStr, tmpLine1, lineNumber);
@@ -704,7 +999,7 @@ namespace LineGrinder
                     if (retInt != 0)
                     {
                         LogMessage("lineStr(fs), call to ParseLine returned " + retInt.ToString() + " Error on line " + lineNumber.ToString());
-                        return 300;
+                        return 501;
                     }
                     // it is good, add it
                     sourceLines.Add(fsObj);
@@ -712,33 +1007,16 @@ namespace LineGrinder
                     StateMachine.FormatParameter = fsObj;
                     continue;
                 }
-                // Are we a MODE PARAMETER?
-                else if (tmpLine1.StartsWith(RS274MODEPARAM) == true)
+                // Are we a AD PARAMETER?
+                else if (tmpLine1.StartsWith(RS274_AD_CMD) == true)
                 {
-                    // we are a MODE PARAMETER
-                    GerberLine_MOCode moObj = new GerberLine_MOCode(lineStr, tmpLine1, lineNumber);
-                    retInt = moObj.ParseLine(tmpLine1, StateMachine);
-                    if (retInt != 0)
-                    {
-                        LogMessage("lineStr(mo), call to ParseLine returned " + retInt.ToString() + " Error on line " + lineNumber.ToString());
-                        return 400;
-                    }
-                    // it is good, add it
-                    sourceLines.Add(moObj);
-                    // record this as well
-                    StateMachine.GerberFileUnits = moObj.GerberFileUnits;
-                    continue;
-                }
-                // Are we a ADD PARAMETER?
-                else if (tmpLine1.StartsWith(RS274APDEFPARAM) == true)
-                {
-                    // we are a APDEF PARAMETER
+                    // we are a AD PARAMETER
                     GerberLine_ADCode adObj = new GerberLine_ADCode(lineStr, tmpLine1, lineNumber);
                     retInt = adObj.ParseLine(tmpLine1, StateMachine);
                     if (retInt != 0)
                     {
                         LogMessage("lineStr(ad), call to ParseLine returned " + retInt.ToString() + " Error on line " + lineNumber.ToString());
-                        return 500;
+                        return 502;
                     }
                     // it is good, add it
                     sourceLines.Add(adObj);
@@ -746,15 +1024,8 @@ namespace LineGrinder
                     (ApertureCollection as ICollection<GerberLine_ADCode>).Add(adObj);
                     continue;
                 }
-                // Are we a AM PARAMETER?
-                else if (tmpLine1.StartsWith(RS274AMPARAM) == true)
-                {
-                    // if we get here we are a line of unknown type
-                    LogMessage("Aperture Macrow (%AM) >" + lineStr + "< Specified on line " + lineNumber.ToString());
-                    throw new NotImplementedException("Unsupported Aperture Macro (%AM) code on line " + lineNumber.ToString() + ".\n\nPlease configure your software to not output aperture macros in the Gerber code - most software can do this.\nEagle users please see the \"Configuring Eagle\" help page as it is a bit tricky.");
-                }
                 // Are we a IN PARAMETER?
-                else if (tmpLine1.StartsWith(RS274INPARAM) == true)
+                else if (tmpLine1.StartsWith(RS274_IN_CMD) == true)
                 {
                     // we are a IN PARAMETER
                     GerberLine_INCode lnObj = new GerberLine_INCode(lineStr, tmpLine1, lineNumber);
@@ -762,14 +1033,14 @@ namespace LineGrinder
                     if (retInt != 0)
                     {
                         LogMessage("lineStr(IN), call to ParseLine returned " + retInt.ToString() + " Error on line " + lineNumber.ToString());
-                        return 500;
+                        return 503;
                     }
                     // it is good, add it
                     sourceLines.Add(lnObj);
                     continue;
                 }
                 // Are we a IP PARAMETER?
-                else if (tmpLine1.StartsWith(RS274IPPARAM) == true)
+                else if (tmpLine1.StartsWith(RS274_IP_CMD) == true)
                 {
                     // we are a IP PARAMETER
                     GerberLine_IPCode ipObj = new GerberLine_IPCode(lineStr, tmpLine1, lineNumber);
@@ -777,14 +1048,14 @@ namespace LineGrinder
                     if (retInt != 0)
                     {
                         LogMessage("lineStr(IP), call to ParseLine returned " + retInt.ToString() + " Error on line " + lineNumber.ToString());
-                        return 500;
+                        return 504;
                     }
                     // it is good, add it
                     sourceLines.Add(ipObj);
                     continue;
                 }
                 // Are we a LP PARAMETER?
-                else if (tmpLine1.StartsWith(RS274LPPARAM) == true)
+                else if (tmpLine1.StartsWith(RS274_LP_CMD) == true)
                 {
                     // we are a LP PARAMETER
                     GerberLine_LPCode lpObj = new GerberLine_LPCode(lineStr, tmpLine1, lineNumber);
@@ -792,14 +1063,14 @@ namespace LineGrinder
                     if (retInt != 0)
                     {
                         LogMessage("lineStr(LP), call to ParseLine returned " + retInt.ToString() + " Error on line " + lineNumber.ToString());
-                        return 500;
+                        return 505;
                     }
                     // it is good, add it
                     sourceLines.Add(lpObj);
                     continue;
                 }
                 // Are we a LN PARAMETER?
-                else if (tmpLine1.StartsWith(RS274LNPARAM) == true)
+                else if (tmpLine1.StartsWith(RS274_LN_CMD) == true)
                 {
                     // we are a LN PARAMETER
                     GerberLine_LNCode lnObj = new GerberLine_LNCode(lineStr, tmpLine1, lineNumber);
@@ -807,14 +1078,14 @@ namespace LineGrinder
                     if (retInt != 0)
                     {
                         LogMessage("lineStr(LN), call to ParseLine returned " + retInt.ToString() + " Error on line " + lineNumber.ToString());
-                        return 500;
+                        return 506;
                     }
                     // it is good, add it
                     sourceLines.Add(lnObj);
                     continue;
                 }
                 // Are we a OF PARAMETER?
-                else if (tmpLine1.StartsWith(RS274OFPARAM) == true)
+                else if (tmpLine1.StartsWith(RS274_OF_CMD) == true)
                 {
                     // we are a OF PARAMETER
                     GerberLine_OFCode ofObj = new GerberLine_OFCode(lineStr, tmpLine1, lineNumber);
@@ -822,7 +1093,7 @@ namespace LineGrinder
                     if (retInt != 0)
                     {
                         LogMessage("lineStr(OF), call to ParseLine returned " + retInt.ToString() + " Error on line " + lineNumber.ToString());
-                        return 550;
+                        return 507;
                     }
                     // it is good, add it
                     sourceLines.Add(ofObj);
@@ -830,7 +1101,7 @@ namespace LineGrinder
                 }
                 // Are we a SFA1B1 PARAMETER? This is the only type of SF parameter we support
                 // if it is an SF of any other type we generate an error
-                else if (tmpLine1.StartsWith(RS274SFPARAM) == true)
+                else if (tmpLine1.StartsWith(RS274_SF_CMD) == true)
                 {
                     // we are a SFA1B1 PARAMETER
                     GerberLine_SFCode lnObj = new GerberLine_SFCode(lineStr, tmpLine1, lineNumber);
@@ -838,14 +1109,14 @@ namespace LineGrinder
                     if (retInt != 0)
                     {
                         LogMessage("lineStr(SFA1B1), call to ParseLine returned " + retInt.ToString() + " Error on line " + lineNumber.ToString());
-                        return 560;
+                        return 508;
                     }
                     // it is good, add it
                     sourceLines.Add(lnObj);
                     continue;
                 }
                 // Are we a D Code? These can start with D, X or Y depending if the line is modal
-                else if ((tmpLine1.StartsWith("D") == true) || (tmpLine1.StartsWith("X") == true) || (tmpLine1.StartsWith("Y")== true)) 
+                else if ((tmpLine1.StartsWith(RS274_D_CMD) == true) || (tmpLine1.StartsWith(RS274_X_CMD) == true) || (tmpLine1.StartsWith(RS274_Y_CMD) == true)) 
                 {
                     // we are a D Code
                     GerberLine_DCode dObj = new GerberLine_DCode(lineStr, tmpLine1, lineNumber);
@@ -853,55 +1124,136 @@ namespace LineGrinder
                     if (retInt != 0)
                     {
                         LogMessage("lineStr(d), call to ParseLine returned " + retInt.ToString() + " Error on line " + lineNumber.ToString());
-                        return 600;
+                        return 509;
                     }
                     // it is good, add it
                     sourceLines.Add(dObj);
-                    // are we a set aperture DCode?
-                    if (dObj.CurrentDCode > 3)
-                    {
-                        // yes we are, set the aperture now
-                        stateMachine.CurrentAperture = stateMachine.ApertureCollection.GetApertureByID(dObj.CurrentDCode);
-                    }
-
-                    // if the D code is a D01 (draw line) or D03 Flash Aperture we will actually make a mark
-                    // on the plot. We need to record the max and min coordinates in this case
-                    if (dObj.CurrentDCode == 1)
-                    {
-                        // record both the start and the end points for a draw line
-                        RecordMinMaxXYCoords(StateMachine.LastDCodeXCoord, StateMachine.LastDCodeYCoord);
-                        RecordMinMaxXYCoords(dObj.DCodeXCoord, dObj.DCodeYCoord);
-                    }
-                    else if (dObj.CurrentDCode == 3)
-                    {
-                        // record just the end points for a flash aperture
-                        RecordMinMaxXYCoords(dObj.DCodeXCoord, dObj.DCodeYCoord);
-                        // also record these centerpoints to our list
-                        stateMachine.PadCenterPointList.Add(new GerberPad(dObj.DCodeXCoord, dObj.DCodeYCoord, (stateMachine.CurrentAperture.GetApertureDimension())));
-                    }
-                    // we also need to update the StateMachine with the latest X,Y coords and the implied DCode
-                    StateMachine.LastDCode = dObj.CurrentDCode;
-                    StateMachine.LastDCodeXCoord = dObj.DCodeXCoord;
-                    StateMachine.LastDCodeYCoord = dObj.DCodeYCoord;
                     continue;
                 }
-                // Are we a M Code? These can start with M, Note that MO parameters have been checked above
-                else if (tmpLine1.StartsWith("M") == true)
+                // Are we a MODE PARAMETER?
+                else if (tmpLine1.StartsWith(RS274_MO_CMD) == true)
                 {
-                    // we are a M Code
-                    GerberLine_MCode mObj = new GerberLine_MCode(lineStr, tmpLine1, lineNumber);
-                    retInt = mObj.ParseLine(tmpLine1, StateMachine);
+                    // we are a MODE PARAMETER
+                    GerberLine_MOCode moObj = new GerberLine_MOCode(lineStr, tmpLine1, lineNumber);
+                    retInt = moObj.ParseLine(tmpLine1, StateMachine);
                     if (retInt != 0)
                     {
-                        LogMessage("lineStr(m), call to ParseLine returned " + retInt.ToString() + " Error on line " + lineNumber.ToString());
-                        return 700;
+                        LogMessage("lineStr(mo), call to ParseLine returned " + retInt.ToString() + " Error on line " + lineNumber.ToString());
+                        return 510;
                     }
                     // it is good, add it
-                    sourceLines.Add(mObj);
+                    sourceLines.Add(moObj);
+                    // record this as well
+                    StateMachine.GerberFileUnits = moObj.GerberFileUnits;
+                    continue;
+                }
+                // are we a M00 code
+                else if (tmpLine1.StartsWith(RS274_M00_CMD) == true)
+                {
+                    // we are a M00 Code
+                    GerberLine_M00Code gObj = new GerberLine_M00Code(lineStr, tmpLine1, lineNumber);
+                    retInt = gObj.ParseLine(tmpLine1, StateMachine);
+                    if (retInt != 0)
+                    {
+                        LogMessage("lineStr(M00), call to ParseLine returned " + retInt.ToString() + " Error on line " + lineNumber.ToString());
+                        return 520;
+                    }
+                    // it is good, add it
+                    sourceLines.Add(gObj);
+                    continue;
+                }
+                // are we a M01 code
+                else if (tmpLine1.StartsWith(RS274_M01_CMD) == true)
+                {
+                    // we are a M01 Code
+                    GerberLine_M01Code gObj = new GerberLine_M01Code(lineStr, tmpLine1, lineNumber);
+                    retInt = gObj.ParseLine(tmpLine1, StateMachine);
+                    if (retInt != 0)
+                    {
+                        LogMessage("lineStr(M01), call to ParseLine returned " + retInt.ToString() + " Error on line " + lineNumber.ToString());
+                        return 530;
+                    }
+                    // it is good, add it
+                    sourceLines.Add(gObj);
+                    continue;
+                }
+                // are we a M02 code
+                else if (tmpLine1.StartsWith(RS274_M02_CMD) == true)
+                {
+                    // we are a M02 Code
+                    GerberLine_M02Code gObj = new GerberLine_M02Code(lineStr, tmpLine1, lineNumber);
+                    retInt = gObj.ParseLine(tmpLine1, StateMachine);
+                    if (retInt != 0)
+                    {
+                        LogMessage("lineStr(M02), call to ParseLine returned " + retInt.ToString() + " Error on line " + lineNumber.ToString());
+                        return 540;
+                    }
+                    // it is good, add it
+                    sourceLines.Add(gObj);
+                    continue;
+                }
+                // Are we a G01 Code? These can start with G01
+                else if (tmpLine1.StartsWith(RS274_G01_CMD) == true)
+                {
+                    // we are a G01 Code
+                    GerberLine_G01Code g01Obj = new GerberLine_G01Code(lineStr, tmpLine1, lineNumber);
+                    retInt = g01Obj.ParseLine(tmpLine1, StateMachine);
+                    if (retInt != 0)
+                    {
+                        LogMessage("lineStr(g01), call to ParseLine returned " + retInt.ToString() + " Error on line " + lineNumber.ToString());
+                        return 550;
+                    }
+                    // it is good, add it
+                    sourceLines.Add(g01Obj);
+                    continue;
+                }
+                // Are we a G02 Code? These can start with G02
+                else if (tmpLine1.StartsWith(RS274_G02_CMD) == true)
+                {
+                    // we are a G02 Code
+                    GerberLine_G02Code g02Obj = new GerberLine_G02Code(lineStr, tmpLine1, lineNumber);
+                    retInt = g02Obj.ParseLine(tmpLine1, StateMachine);
+                    if (retInt != 0)
+                    {
+                        LogMessage("lineStr(g02), call to ParseLine returned " + retInt.ToString() + " Error on line " + lineNumber.ToString());
+                        return 550;
+                    }
+                    // it is good, add it
+                    sourceLines.Add(g02Obj);
+                    continue;
+                }
+                // Are we a G03 Code? These can start with G03
+                else if (tmpLine1.StartsWith(RS274_G03_CMD) == true)
+                {
+                    // we are a G03 Code
+                    GerberLine_G03Code g03Obj = new GerberLine_G03Code(lineStr, tmpLine1, lineNumber);
+                    retInt = g03Obj.ParseLine(tmpLine1, StateMachine);
+                    if (retInt != 0)
+                    {
+                        LogMessage("lineStr(g03), call to ParseLine returned " + retInt.ToString() + " Error on line " + lineNumber.ToString());
+                        return 550;
+                    }
+                    // it is good, add it
+                    sourceLines.Add(g03Obj);
+                    continue;
+                }
+                // Are we a G04 Code? These can start with G04
+                else if (tmpLine1.StartsWith(RS274_G04_CMD) == true)
+                {
+                    // we are a G04 Code
+                    GerberLine_G04Code g04Obj = new GerberLine_G04Code(lineStr, tmpLine1, lineNumber);
+                    retInt = g04Obj.ParseLine(tmpLine1, StateMachine);
+                    if (retInt != 0)
+                    {
+                        LogMessage("lineStr(g04), call to ParseLine returned " + retInt.ToString() + " Error on line " + lineNumber.ToString());
+                        return 560;
+                    }
+                    // it is good, add it
+                    sourceLines.Add(g04Obj);
                     continue;
                 }
                 // Are we a G36 Code? These can start with G36
-                else if (tmpLine1.StartsWith("G36") == true)
+                else if (tmpLine1.StartsWith(RS274_G36_CMD) == true)
                 {
                     // we are a G36 Code
                     GerberLine_G36Code g36Obj = new GerberLine_G36Code(lineStr, tmpLine1, lineNumber);
@@ -909,14 +1261,14 @@ namespace LineGrinder
                     if (retInt != 0)
                     {
                         LogMessage("lineStr(g36), call to ParseLine returned " + retInt.ToString() + " Error on line " + lineNumber.ToString());
-                        return 836;
+                        return 570;
                     }
                     // it is good, add it
                     sourceLines.Add(g36Obj);
                     continue;
                 }
                 // Are we a G37 Code? These can start with G37
-                else if (tmpLine1.StartsWith("G37") == true)
+                else if (tmpLine1.StartsWith(RS274_G37_CMD) == true)
                 {
                     // we are a G37 Code
                     GerberLine_G37Code g37Obj = new GerberLine_G37Code(lineStr, tmpLine1, lineNumber);
@@ -924,14 +1276,14 @@ namespace LineGrinder
                     if (retInt != 0)
                     {
                         LogMessage("lineStr(g37), call to ParseLine returned " + retInt.ToString() + " Error on line " + lineNumber.ToString());
-                        return 837;
+                        return 580;
                     }
                     // it is good, add it
                     sourceLines.Add(g37Obj);
                     continue;
                 }
                 // Are we a G54 Code? These can start with G54
-                else if (tmpLine1.StartsWith("G54") == true)
+                else if (tmpLine1.StartsWith(RS274_G54_CMD) == true)
                 {
                     // we are a G54 Code
                     GerberLine_G54Code g54Obj = new GerberLine_G54Code(lineStr, tmpLine1, lineNumber);
@@ -939,43 +1291,209 @@ namespace LineGrinder
                     if (retInt != 0)
                     {
                         LogMessage("lineStr(g54), call to ParseLine returned " + retInt.ToString() + " Error on line " + lineNumber.ToString());
-                        return 854;
+                        return 590;
                     }
                     // it is good, add it
                     sourceLines.Add(g54Obj);
-                    // also set the aperture now
-                    stateMachine.CurrentAperture = stateMachine.ApertureCollection.GetApertureByID(g54Obj.CurrentDCode);
                     continue;
                 }
-                // Are we a G Code? These can start with G
-                else if (tmpLine1.StartsWith("G") == true)
+                // Are we a G70 Code? These can start with G70
+                else if (tmpLine1.StartsWith(RS274_G70_CMD) == true)
                 {
-                    // we are a G Code
-                    GerberLine_GCode gObj = new GerberLine_GCode(lineStr, tmpLine1, lineNumber);
+                    // we are a G70 Code
+                    GerberLine_G70Code g70Obj = new GerberLine_G70Code(lineStr, tmpLine1, lineNumber);
+                    retInt = g70Obj.ParseLine(tmpLine1, StateMachine);
+                    if (retInt != 0)
+                    {
+                        LogMessage("lineStr(g70), call to ParseLine returned " + retInt.ToString() + " Error on line " + lineNumber.ToString());
+                        return 600;
+                    }
+                    // it is good, add it
+                    sourceLines.Add(g70Obj);
+                    continue;
+                }
+                // Are we a G71 Code? These can start with G71
+                else if (tmpLine1.StartsWith(RS274_G71_CMD) == true)
+                {
+                    // we are a G71 Code
+                    GerberLine_G71Code g71Obj = new GerberLine_G71Code(lineStr, tmpLine1, lineNumber);
+                    retInt = g71Obj.ParseLine(tmpLine1, StateMachine);
+                    if (retInt != 0)
+                    {
+                        LogMessage("lineStr(g71), call to ParseLine returned " + retInt.ToString() + " Error on line " + lineNumber.ToString());
+                        return 610;
+                    }
+                    // it is good, add it
+                    sourceLines.Add(g71Obj);
+                    continue;
+                }
+                // Are we a G74 Code? These can start with G74
+                else if (tmpLine1.StartsWith(RS274_G74_CMD) == true)
+                {
+                    // we are a G74 Code
+                    GerberLine_G74Code g74Obj = new GerberLine_G74Code(lineStr, tmpLine1, lineNumber);
+                    retInt = g74Obj.ParseLine(tmpLine1, StateMachine);
+                    if (retInt != 0)
+                    {
+                        LogMessage("lineStr(g74), call to ParseLine returned " + retInt.ToString() + " Error on line " + lineNumber.ToString());
+                        return 550;
+                    }
+                    // it is good, add it
+                    sourceLines.Add(g74Obj);
+                    continue;
+                }
+                // Are we a G75 Code? These can start with G75
+                else if (tmpLine1.StartsWith(RS274_G75_CMD) == true)
+                {
+                    // we are a G75 Code
+                    GerberLine_G75Code g75Obj = new GerberLine_G75Code(lineStr, tmpLine1, lineNumber);
+                    retInt = g75Obj.ParseLine(tmpLine1, StateMachine);
+                    if (retInt != 0)
+                    {
+                        LogMessage("lineStr(g75), call to ParseLine returned " + retInt.ToString() + " Error on line " + lineNumber.ToString());
+                        return 620;
+                    }
+                    // it is good, add it
+                    sourceLines.Add(g75Obj);
+                    continue;
+                }
+                // Are we a G90 Code? These can start with G90
+                else if (tmpLine1.StartsWith(RS274_G90_CMD) == true)
+                {
+                    // we are a G90 Code
+                    GerberLine_G90Code g90Obj = new GerberLine_G90Code(lineStr, tmpLine1, lineNumber);
+                    retInt = g90Obj.ParseLine(tmpLine1, StateMachine);
+                    if (retInt != 0)
+                    {
+                        LogMessage("lineStr(g90), call to ParseLine returned " + retInt.ToString() + " Error on line " + lineNumber.ToString());
+                        return 630;
+                    }
+                    // it is good, add it
+                    sourceLines.Add(g90Obj);
+                    continue;
+                }
+                // Are we a G91 Code? These can start with G91
+                else if (tmpLine1.StartsWith(RS274_G91_CMD) == true)
+                {
+                    // we are a G91 Code
+                    GerberLine_G91Code g91Obj = new GerberLine_G91Code(lineStr, tmpLine1, lineNumber);
+                    retInt = g91Obj.ParseLine(tmpLine1, StateMachine);
+                    if (retInt != 0)
+                    {
+                        LogMessage("lineStr(g91), call to ParseLine returned " + retInt.ToString() + " Error on line " + lineNumber.ToString());
+                        return 640;
+                    }
+                    // it is good, add it
+                    sourceLines.Add(g91Obj);
+                    continue;
+                }
+                // are we a TA code
+                else if (tmpLine1.StartsWith(RS274_TA_CMD) == true)
+                {
+                    // we are a TA Code
+                    GerberLine_TACode gObj = new GerberLine_TACode(lineStr, tmpLine1, lineNumber);
                     retInt = gObj.ParseLine(tmpLine1, StateMachine);
                     if (retInt != 0)
                     {
-                        LogMessage("lineStr(g), call to ParseLine returned " + retInt.ToString() + " Error on line " + lineNumber.ToString());
-                        return 800;
+                        LogMessage("lineStr(TA), call to ParseLine returned " + retInt.ToString() + " Error on line " + lineNumber.ToString());
+                        return 650;
                     }
                     // it is good, add it
                     sourceLines.Add(gObj);
                     continue;
                 }
-                // Are we a T Code? These can start with %TG
-                else if (tmpLine1.StartsWith("T") == true)
+                // are we a TD code
+                else if (tmpLine1.StartsWith(RS274_TD_CMD) == true)
                 {
-                    // we are a T Code
-                    GerberLine_TCode gObj = new GerberLine_TCode(lineStr, tmpLine1, lineNumber);
+                    // we are a TD Code
+                    GerberLine_TDCode gObj = new GerberLine_TDCode(lineStr, tmpLine1, lineNumber);
                     retInt = gObj.ParseLine(tmpLine1, StateMachine);
                     if (retInt != 0)
                     {
-                        LogMessage("lineStr(T), call to ParseLine returned " + retInt.ToString() + " Error on line " + lineNumber.ToString());
-                        return 800;
+                        LogMessage("lineStr(TD), call to ParseLine returned " + retInt.ToString() + " Error on line " + lineNumber.ToString());
+                        return 660;
                     }
                     // it is good, add it
                     sourceLines.Add(gObj);
                     continue;
+                }
+                // are we a TF code
+                else if (tmpLine1.StartsWith(RS274_TF_CMD) == true)
+                {
+                    // we are a TF Code
+                    GerberLine_TFCode gObj = new GerberLine_TFCode(lineStr, tmpLine1, lineNumber);
+                    retInt = gObj.ParseLine(tmpLine1, StateMachine);
+                    if (retInt != 0)
+                    {
+                        LogMessage("lineStr(TF), call to ParseLine returned " + retInt.ToString() + " Error on line " + lineNumber.ToString());
+                        return 670;
+                    }
+                    // it is good, add it
+                    sourceLines.Add(gObj);
+                    continue;
+                }
+                // are we a TO code
+                else if (tmpLine1.StartsWith(RS274_TO_CMD) == true)
+                {
+                    // we are a TO Code
+                    GerberLine_TOCode gObj = new GerberLine_TOCode(lineStr, tmpLine1, lineNumber);
+                    retInt = gObj.ParseLine(tmpLine1, StateMachine);
+                    if (retInt != 0)
+                    {
+                        LogMessage("lineStr(TO), call to ParseLine returned " + retInt.ToString() + " Error on line " + lineNumber.ToString());
+                        return 680;
+                    }
+                    // it is good, add it
+                    sourceLines.Add(gObj);
+                    continue;
+                }
+                // Are we a LM PARAMETER?
+                else if (tmpLine1.StartsWith(RS274_LM_CMD) == true)
+                {
+                    LogMessage("Load Mirroring (%LM) >" + lineStr + "< Specified on line " + lineNumber.ToString());
+                    throw new NotImplementedException("Unsupported Load Mirroring (%LM) code on line " + lineNumber.ToString() + ".\n\nPlease configure your software to not output aperture macros in the Gerber code - most software can do this.\nEagle users please see the \"Configuring Eagle\" help page as it is a bit tricky.");
+                }
+                // Are we a LR PARAMETER?
+                else if (tmpLine1.StartsWith(RS274_LR_CMD) == true)
+                {
+                    LogMessage("Load Rotation (%LR) >" + lineStr + "< Specified on line " + lineNumber.ToString());
+                    throw new NotImplementedException("Unsupported Load Rotation (%LR) code on line " + lineNumber.ToString() + ".\n\nPlease configure your software to not output aperture macros in the Gerber code - most software can do this.\nEagle users please see the \"Configuring Eagle\" help page as it is a bit tricky.");
+                }
+                // Are we a LS PARAMETER?
+                else if (tmpLine1.StartsWith(RS274_LS_CMD) == true)
+                {
+                    LogMessage("Load Scaling (%LS) >" + lineStr + "< Specified on line " + lineNumber.ToString());
+                    throw new NotImplementedException("Unsupported Load Scaling (%LS) code on line " + lineNumber.ToString() + ".\n\nPlease configure your software to not output aperture macros in the Gerber code - most software can do this.\nEagle users please see the \"Configuring Eagle\" help page as it is a bit tricky.");
+                }
+                // Are we a SR PARAMETER?
+                else if (tmpLine1.StartsWith(RS274_SR_CMD) == true)
+                {
+                    LogMessage("Step and Repeat (%SR) >" + lineStr + "< Specified on line " + lineNumber.ToString());
+                    throw new NotImplementedException("Unsupported Step and Repeat (%SR) code on line " + lineNumber.ToString() + ".\n\nPlease configure your software to not output aperture macros in the Gerber code - most software can do this.\nEagle users please see the \"Configuring Eagle\" help page as it is a bit tricky.");
+                }
+                // Are we a AB PARAMETER?
+                else if (tmpLine1.StartsWith(RS274_AB_CMD) == true)
+                {
+                    // if we get here we are an block aperture
+                    LogMessage("Block Apertures (%AB) >" + lineStr + "< Specified on line " + lineNumber.ToString());
+                    throw new NotImplementedException("Unsupported Block Aperture (%AB) code on line " + lineNumber.ToString() + ".\n\nPlease configure your software to not output aperture macros in the Gerber code - most software can do this.\nEagle users please see the \"Configuring Eagle\" help page as it is a bit tricky.");
+                }
+                // Are we a AM PARAMETER?
+                else if (tmpLine1.StartsWith(RS274_AM_CMD) == true)
+                {
+                    // if we get here we are an aperture macro
+                    LogMessage("Aperture Macro (%AM) >" + lineStr + "< Specified on line " + lineNumber.ToString());
+                    GerberLine_AMCode gObj = new GerberLine_AMCode(cmdLineObj);
+                    retInt = gObj.ProcessCommand();
+                    if (retInt != 0)
+                    {
+                        LogMessage("lineStr(AM), call to ProcessCommand returned " + retInt.ToString() + " Error on line " + lineNumber.ToString());
+                        return 690;
+                    }
+                    // it is good, add it
+                    sourceLines.Add(gObj);
+                    // add this macro object to the collection
+                    (MacroCollection as ICollection<GerberLine_AMCode>).Add(gObj);
                 }
                 else
                 {
@@ -1003,9 +1521,6 @@ namespace LineGrinder
         /// <param name="errStr">an error string</param>
         /// 
         /// <returns>z success, -ve err not reported, +ve err reported</returns>
-        /// <history>
-        ///    10 Sep 10  Cynic - Started
-        /// </history>
         public int GetMidPointFromReferencePins(out float midX, out float midY, ref string errStr)
         {
             int refPinCount = 0;
@@ -1052,9 +1567,6 @@ namespace LineGrinder
         /// </summary>
         /// <param name="errStr">an error string</param>
         /// <returns>z success, -ve err not reported, +ve err reported</returns>
-        /// <history>
-        ///    10 Sep 10  Cynic - Started
-        /// </history>
         public int SetReferencePins(ref string errStr)
         {
             errStr = "";
@@ -1075,8 +1587,8 @@ namespace LineGrinder
                 //DebugMessage("padObj.PadDiameter = " + padObj.PadDiameter.ToString());
                 // reset it 
                 padObj.IsRefPin = false;
-                // test it
-                if (padObj.PadDiameter != StateMachine.GerberFileManager.ReferencePinPadDiameter) continue;
+                // test it, round to 2 decimals that should be sufficent
+                if (Math.Round(padObj.PadDiameter,2) != Math.Round(StateMachine.GerberFileManager.ReferencePinPadDiameter,2)) continue;
                 // mark it
                 padObj.IsRefPin = true;
                 // add it
@@ -1109,14 +1621,7 @@ namespace LineGrinder
                 {
                     // is it the same point? do not test
                     if ((gcPadObj.X0 == testObj.X0) && (gcPadObj.Y0 == testObj.Y0)) continue;
-                    // do only the XCoords match
-                    if (gcPadObj.X0 == testObj.X0)
-                    {
-                        // flag it
-                        axiallyCoLinear = true;
-                        continue;
-                    }
-                    // do only the YCoords match
+                    // do the YCoords match
                     if (gcPadObj.Y0 == testObj.Y0)
                     {
                         // flag it
@@ -1129,7 +1634,7 @@ namespace LineGrinder
                 if (axiallyCoLinear == false)
                 {
                     // no, we could not find any other objects. This is an error
-                    errStr = "The Reference Pin pad at postion (" + gcPadObj.X0.ToString() + "," + gcPadObj.Y0.ToString() + ") is not axially co-linear with any other Reference Pin pad.\n\nAll Reference Pin Pads on the PCB schematic must be on a rectangle or line parallel to the X or Y axis.";
+                    errStr = "The Reference Pin pad at postion (" + gcPadObj.X0.ToString() + "," + gcPadObj.Y0.ToString() + ") is not horizontally co-linear (has the same Y value) with any other Reference Pin pad.\n\nAll Reference Pin Pads on the PCB schematic must be in one or more lines parallel to the X axis.";
                     LogMessage("SetReferencePins: " + errStr);
                     return -206;
 
@@ -1141,7 +1646,6 @@ namespace LineGrinder
 
         }
 
-
         /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
         /// <summary>
         /// Gets/Sets the current X Coord Origin Adjust value. These are compensating
@@ -1149,9 +1653,6 @@ namespace LineGrinder
         /// smallest X coordinate specified in the plot approximately zero but 
         /// definitely non-negative (which totally complicates the isoPlotSegments);
         /// </summary>
-        /// <history>
-        ///    08 Aug 10  Cynic - Started
-        /// </history>
         public float PlotXCoordOriginAdjust
         {
             get
@@ -1171,9 +1672,6 @@ namespace LineGrinder
         /// smallest Y coordinate specified in the plot approximately zero but 
         /// definitely non-negative (which totally complicates the isoPlotSegments);
         /// </summary>
-        /// <history>
-        ///    08 Aug 10  Cynic - Started
-        /// </history>
         public float PlotYCoordOriginAdjust
         {
             get
@@ -1195,10 +1693,7 @@ namespace LineGrinder
         /// </summary>
         /// <param name="xCoordAdjust">x origin adjuster</param>
         /// <param name="yCoordAdjust">y origin adjuster</param>
-        /// <history>
-        ///    08 Aug 10  Cynic - Started
-        /// </history>
-        public void SetPlotOriginCoordinateAdjustments(float xCoordAdjust, float yCoordAdjust)
+        public void SetGerberPlotOriginCoordinateAdjustments(float xCoordAdjust, float yCoordAdjust)
         {
             LogMessage("Gerber Origin coord adjustments: xCoordAdjust=" + xCoordAdjust.ToString() + " yCoordAdjust=" + yCoordAdjust.ToString());
             // just run through and apply it to each GerberLine whether it uses it or not
@@ -1215,9 +1710,6 @@ namespace LineGrinder
         /// <summary>
         /// Gets/Sets the gerber file options to use. Never gets/sets a null value
         /// </summary>
-        /// <history>
-        ///    10 Aug 10  Cynic - Started
-        /// </history>
         public FileManager GerberFileManager
         {
             get
@@ -1229,33 +1721,13 @@ namespace LineGrinder
                 StateMachine.GerberFileManager = value;
             }
         }
-
-        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
-        /// <summary>
-        /// Applies the some adjustments to the max X and Y so that the plot is
-        /// slightly larger than the outside of the furthest object + isolation
-        /// distance
-        /// </summary>
-        /// <param name="xMaxAdjust">new X Max value</param>
-        /// <param name="yMaxAdjust">new Y Max value</param>
-        /// <history>
-        ///    09 Aug 10  Cynic - Started
-        /// </history>
-        public void SetMaxPlotCoordinateAdjustments(float xMaxAdjust, float yMaxAdjust)
-        {
-            MaxDCodeXCoord = xMaxAdjust;
-            MaxDCodeYCoord = yMaxAdjust;
-        }
  
         /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
         /// <summary>
         /// Plots the Gerber file contents on the designated graphics object
         /// </summary>
         /// <param name="graphicsObj">a graphics object to draw on</param>
-        /// <history>
-        ///    07 Jul 10  Cynic - Started
-        /// </history>
-        public void PlotGerberFile(Graphics graphicsObj, float isoPlotPointsPerAppUnit)
+        public void PlotGerberFile(Graphics graphicsObj)
         {
             int errInt=0;
             string errStr="";
@@ -1263,10 +1735,10 @@ namespace LineGrinder
 
             // set the StateMachine
             StateMachine.ResetForPlot();
-            StateMachine.IsoPlotPointsPerAppUnit = isoPlotPointsPerAppUnit;
 
             foreach (GerberLine lineObj in SourceLines)
             {
+                lineObj.ResetForPlot();
                 errAction = lineObj.PerformPlotGerberAction(graphicsObj, StateMachine, ref errInt, ref errStr);
                 if (errAction == GerberLine.PlotActionEnum.PlotAction_Continue)
                 {
@@ -1293,30 +1765,27 @@ namespace LineGrinder
         /// </summary>
         /// <param name="errStr">we return error messages here</param>
         /// <param name="plotSize">the size of the plot we create our GCode templates on. This is
-        /// <param name="builderObjOut">the GCodeBuilder object we create in this step</param>
+        /// <param name="isoPlotObjOut">the IsoPlotBuilder object we create in this step</param>
         /// the graphical object we use to figure out our isolation paths. These size should be
         /// able to take the max gerberCoord*virtualCoordPerPlotUnit listed in the Gerber file</param>
         /// <param name="virtualCoordPerPlotUnit">the number of coordinates in the GerberFile per plot unit. For example
         /// if the GerberFile says X=1.456 and this is 1000 then we would goto X=1456 in the plot</param>
         /// <remarks>
         /// NOTE: this is Step1 in the Graphical Stigmergy (GS) process. After this function completes
-        ///       we will have an GCodeBuilder object which contains an array of ints (the isolation plot)
+        ///       we will have an IsoPlotBuilder object which contains an array of ints (the isolation plot)
         ///       and the values in that array (called pixels) will be annotated with values which indicate
         ///       which Gerber Objects use them, how they use them (edge or background). If other
         ///       Gerber Objects share the same pixel the pixel contains the ID of an overlay object
         ///       which then contains the above information for one or more Gerber objects.
         /// </remarks>
-        /// <history>
-        ///    22 Jul 10  Cynic - Started
-        /// </history>
-        public int PerformGerberToGCodeStep1(out GCodeBuilder builderObjOut, Size plotSize, float virtualCoordPerPlotUnit, ref string errStr)
+        public int PerformGerberToGCodeStep1(out IsoPlotBuilder isoPlotObjOut, Size plotSize, float virtualCoordPerPlotUnit, ref string errStr)
         {
             int errInt = 0;
             int lineCount = 0;
             GerberLine.PlotActionEnum errAction = GerberLine.PlotActionEnum.PlotAction_End;
 
             // init this
-            builderObjOut = null;
+            isoPlotObjOut = null;
 
             // set the StateMachine
             StateMachine.ResetForPlot();
@@ -1348,19 +1817,19 @@ namespace LineGrinder
                 return 103;
             }
 
-            // create GCodeBuilder with a 2D array equivalent to the plotsize
-            builderObjOut = new GCodeBuilder(plotSize.Width, plotSize.Height);
-            StateMachine.ResetForPlot();
+            // create IsoPlotBuilder with a 2D array equivalent to the plotsize
+            isoPlotObjOut = new IsoPlotBuilder(plotSize.Width, plotSize.Height);
             // give the manager to the builder object now
-            builderObjOut.GCodeBuilderFileManager = GerberFileManager;
+            isoPlotObjOut.CurrentFileManager = GerberFileManager;
 
             // now we carefully draw each item on the array using our custom
             // drawing tools. See the alogrythm document for what is going on here
             foreach (GerberLine lineObj in this.SourceLines)
             {
                 lineCount++;
+                lineObj.ResetForPlot();
               //  DebugMessage("Processing Line" + lineCount.ToString());
-                errAction = lineObj.PerformPlotIsoStep1Action(builderObjOut, StateMachine, ref errInt, ref errStr);
+                errAction = lineObj.PerformPlotIsoStep1Action(isoPlotObjOut, StateMachine, ref errInt, ref errStr);
                 if (errAction == GerberLine.PlotActionEnum.PlotAction_Continue)
                 {
                     // all is well
@@ -1379,8 +1848,12 @@ namespace LineGrinder
                     return 201;
                 }
             }
+
+            //isoPlotObjOut.DumpIsoPlotArrayToLog();
+
             return 0;
         }
 
     }
 }
+

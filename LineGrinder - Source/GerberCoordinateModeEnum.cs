@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
@@ -25,12 +25,10 @@ namespace LineGrinder
     /// <summary>
     /// A enum to codify the gerber file coordinate mode setting
     /// </summary>
-    /// <history>
-    ///    23 Sep 10  Cynic - Started
-    /// </history>
     public enum GerberCoordinateModeEnum
     {
         COORDINATE_ABSOLUTE,
         COORDINATE_INCREMENTAL
     };
 }
+

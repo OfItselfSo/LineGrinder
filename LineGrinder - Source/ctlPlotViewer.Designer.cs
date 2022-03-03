@@ -1,4 +1,4 @@
-﻿namespace LineGrinder
+namespace LineGrinder
 {
     partial class ctlPlotViewer
     {
@@ -91,3 +91,4 @@
         private System.Windows.Forms.HScrollBar hScrollBar1;
     }
 }
+

@@ -3,19 +3,19 @@ using System.Collections.Generic;
 using System.Text;
 
 /// +------------------------------------------------------------------------------------------------------------------------------+
-/// ¦                                                   TERMS OF USE: MIT License                                                  ¦
-/// +------------------------------------------------------------------------------------------------------------------------------¦
-/// ¦Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation    ¦
-/// ¦files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy,    ¦
-/// ¦modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software¦
-/// ¦is furnished to do so, subject to the following conditions:                                                                   ¦
-/// ¦                                                                                                                              ¦
-/// ¦The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.¦
-/// ¦                                                                                                                              ¦
-/// ¦THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE          ¦
-/// ¦WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR         ¦
-/// ¦COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,   ¦
-/// ¦ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                         ¦
+/// ï¿½                                                   TERMS OF USE: MIT License                                                  ï¿½
+/// +------------------------------------------------------------------------------------------------------------------------------ï¿½
+/// ï¿½Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation    ï¿½
+/// ï¿½files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy,    ï¿½
+/// ï¿½modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Softwareï¿½
+/// ï¿½is furnished to do so, subject to the following conditions:                                                                   ï¿½
+/// ï¿½                                                                                                                              ï¿½
+/// ï¿½The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.ï¿½
+/// ï¿½                                                                                                                              ï¿½
+/// ï¿½THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE          ï¿½
+/// ï¿½WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR         ï¿½
+/// ï¿½COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,   ï¿½
+/// ï¿½ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                         ï¿½
 /// +------------------------------------------------------------------------------------------------------------------------------+
 
 /// #########
@@ -29,9 +29,6 @@ namespace OISCommon
     /// <summary>
     /// Misc. Useful Utility code, only static stuff in here
     /// </summary>
-    /// <history>
-    ///    03 Nov 09  Cynic - Started
-    /// </history>
     public static class OISUtils
     {
         /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
@@ -40,9 +37,6 @@ namespace OISCommon
         /// </summary>
         /// <param name="strIn">the string to convert</param>
         /// <returns>converted string</returns>
-        /// <history>
-        ///    03 Nov 09  Cynic - Started
-        /// </history>
         public static string ConvertToConsistentCRLF(string strIn)
         {
             return ConvertToConsistentCRLF(strIn, false);
@@ -56,9 +50,6 @@ namespace OISCommon
         /// <param name="strIn">the string to convert</param>
         /// <param name="wantConsecutiveLineRemoval">if true we remove consecutive new lines</param>
         /// <returns>converted string</returns>
-        /// <history>
-        ///    03 Nov 09  Cynic - Started
-        /// </history>
         public static string ConvertToConsistentCRLF(string strIn, bool wantConsecutiveLineRemoval)
         {
             if (strIn == null) return null;
@@ -82,9 +73,6 @@ namespace OISCommon
         /// </summary>
         /// <param name="seconds">the number of seconds</param>
         /// <returns>time interval string</returns>
-        /// <history>
-        ///    03 Nov 09  Cynic - Started
-        /// </history>
         public static string ConvertSecondsToHumanReadableTimeInterval(int seconds)
         {
             TimeSpan runTime = new TimeSpan(TimeSpan.TicksPerSecond * seconds);
@@ -98,9 +86,6 @@ namespace OISCommon
         /// </summary>
         /// <param name="runTime">the runtime as a TimeSpan value</param>
         /// <returns>time interval string</returns>
-        /// <history>
-        ///    03 Nov 09  Cynic - Started
-        /// </history>
         public static string ConvertTimeSpanToHumanReadableTimeInterval(TimeSpan runTime)
         {
             int days;
@@ -129,3 +114,4 @@ namespace OISCommon
         }
     }
 }
+

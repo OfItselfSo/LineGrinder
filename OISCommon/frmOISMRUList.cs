@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
@@ -33,9 +33,6 @@ namespace OISCommon
     /// <summary>
     /// Provides Most Recently Used File (MRU) List functionality
     /// </summary>
-    /// <history>
-    ///    08 Aug 10  Cynic - Started
-    /// </history>
     public partial class frmOISMRUList : frmOISBase
     {
         // this is the most we keep
@@ -48,9 +45,6 @@ namespace OISCommon
         /// <summary>
         /// Constructor
         /// </summary>
-        /// <history>
-        ///    08 Aug 10  Cynic - Started
-        /// </history>
         public frmOISMRUList()
         {
             InitializeComponent();
@@ -65,9 +59,6 @@ namespace OISCommon
         /// Gets/Sets the Max number of MRU values we accept. Will never accept
         /// a negative number.
         /// </summary>
-        /// <history>
-        ///    08 Aug 10  Cynic - Started
-        /// </history>
         public int MaxMRUValues
         {
             get
@@ -87,9 +78,6 @@ namespace OISCommon
         /// We are only permitted to keep maxMRUValues here. So we trim it as 
         /// necessary
         /// </summary>
-        /// <history>
-        ///    08 Aug 10  Cynic - Started
-        /// </history>
         private void TrimFileListToMRUMaxValues()
         {
             // first some checks
@@ -113,9 +101,6 @@ namespace OISCommon
         /// <summary>
         /// Gets/Sets the filelist as a generic list of strings
         /// </summary>
-        /// <history>
-        ///    08 Aug 10  Cynic - Started
-        /// </history>
         public List<string> FileList
         {
             set
@@ -141,9 +126,6 @@ namespace OISCommon
         /// <summary>
         /// Adds a filename to the top of the list
         /// </summary>
-        /// <history>
-        ///    08 Aug 10  Cynic - Started
-        /// </history>
         public void AddFileNameToTop(string fileName)
         {
             int existingIndex;
@@ -181,9 +163,6 @@ namespace OISCommon
         /// <summary>
         /// Removes a file from the list
         /// </summary>
-        /// <history>
-        ///    08 Aug 10  Cynic - Started
-        /// </history>
         public void RemoveFileName(string fileName)
         {
             // sanity check
@@ -215,9 +194,6 @@ namespace OISCommon
         /// <summary>
         /// Handles a click on the OK button.
         /// </summary>
-        /// <history>
-        ///    08 Aug 10  Cynic - Started
-        /// </history>
         private void buttonOk_Click(object sender, EventArgs e)
         {
             if ((SelectedFileName == null) || (SelectedFileName.Length == 0))
@@ -232,9 +208,6 @@ namespace OISCommon
         /// <summary>
         /// Handles a click on the Cancel button.
         /// </summary>
-        /// <history>
-        ///    08 Aug 10  Cynic - Started
-        /// </history>
         private void buttonCancel_Click(object sender, EventArgs e)
         {
             DialogResult = DialogResult.Cancel;
@@ -244,9 +217,6 @@ namespace OISCommon
         /// <summary>
         /// handles changes to the selected file
         /// </summary>
-        /// <history>
-        ///    08 Aug 10  Cynic - Started
-        /// </history>
         private void listBoxFileList_SelectedIndexChanged(object sender, EventArgs e)
         {
             SyncSelectedFileName();
@@ -256,9 +226,6 @@ namespace OISCommon
         /// <summary>
         /// Synchronized the selected filename
         /// </summary>
-        /// <history>
-        ///    08 Aug 10  Cynic - Started
-        /// </history>
         private void SyncSelectedFileName()
         {
             if (listBoxFileList.SelectedItem == null)
@@ -283,9 +250,6 @@ namespace OISCommon
         /// <summary>
         /// Returns the selected file name. Will never return null
         /// </summary>
-        /// <history>
-        ///    08 Aug 10  Cynic - Started
-        /// </history>
         public string SelectedFileName
         {
             get
@@ -299,9 +263,6 @@ namespace OISCommon
         /// <summary>
         /// handles the form shown event
         /// </summary>
-        /// <history>
-        ///    08 Aug 10  Cynic - Started
-        /// </history>
         private void frmOISMRUList_Shown(object sender, EventArgs e)
         {
             SyncSelectedFileName();
@@ -311,9 +272,6 @@ namespace OISCommon
         /// <summary>
         /// handles a double click on a filename
         /// </summary>
-        /// <history>
-        ///    31 Aug 10  Cynic - Started
-        /// </history>
         void listBoxFileList_MouseDoubleClick(object sender, MouseEventArgs e)
         {
             // did we click on an item
@@ -330,3 +288,4 @@ namespace OISCommon
         }
     }
 }
+

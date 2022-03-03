@@ -1,4 +1,4 @@
-﻿namespace LineGrinder
+namespace LineGrinder
 {
     partial class frmAbout
     {
@@ -195,3 +195,4 @@
         private System.Windows.Forms.RichTextBox richTextBoxLicense;
     }
 }
+

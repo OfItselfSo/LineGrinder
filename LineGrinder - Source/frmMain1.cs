@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
@@ -10,6 +10,7 @@ using System.IO;
 using System.Threading;
 using System.Xml;
 using System.Runtime.Serialization;
+using System.Diagnostics;
 using OISCommon;
 
 using System.Drawing.Imaging;
@@ -37,11 +38,6 @@ namespace LineGrinder
     /// <summary>
     /// The main form for the LineGrinder application
     /// </summary>
-    /// <history>
-    ///    06 Jul 10  Cynic - Started
-    ///    15 Sep 20  Cynic - Converted to .Net Framework 4.6 and VS 2019 Solution
-    ///    13 Dec 21  Cynic - Back under active development
-    /// </history>
     public partial class frmMain1 : frmOISBase
     {
         // misc constants
@@ -61,7 +57,7 @@ namespace LineGrinder
 
         // app constants
         private const string APPLICATION_NAME = "Line Grinder";
-        private const string APPLICATION_VERSION = "02.01";
+        private const string APPLICATION_VERSION = "03.00";
         private const string APPLICATION_HOME = @"http://www.OfItselfSo.com/LineGrinder/LineGrinder.php";
 
         private const string WARN01="The Line Grinder software is released under the MIT License. There";
@@ -83,11 +79,11 @@ namespace LineGrinder
         private GerberFile currentGerberFile = new GerberFile();
         // this is the current excellon file we read from the disk
         private ExcellonFile currentExcellonFile = new ExcellonFile();
-        // this is the current gcode builder we built from the currentGerberFile
-        private GCodeBuilder currentGCodeBuilder = null;
-        // this is the current gcode file we built from the currentGCodeBuilder
+        // this is the current isoplot builder we built from the currentGerberFile
+        private IsoPlotBuilder currentIsoPlotBuilder = null;
+        // this is the current gcode file we built from the currentIsoPlotBuilder
         private GCodeFile currentIsolationGCodeFile = new GCodeFile();
-        // this is the current gcode file we built from the currentGCodeBuilder
+        // this is the current gcode file we built from the currentIsoPlotBuilder
         private GCodeFile currentEdgeMillGCodeFile = new GCodeFile();
         // this is the current bed flattening file we built
         private GCodeFile currentBedFlatteningGCodeFile = new GCodeFile();
@@ -111,17 +107,16 @@ namespace LineGrinder
         private bool gerberToGCodeStep2Successful = false;
         private bool gerberToGCodeStep3Successful = false;
 
-        private bool suppressUserActivatedEvents = false;
         // there are 25.4 mm to the inch
         private const int INCHTOMMSCALERx10 = 254;
+        // This is the margin we add on to isoplots in order to ensure we do not have any 
+        // isoCell coordinates go negative when drawing in GS
+        private const float ISOPLOT_MARGIN_PERCENT = 0.10F;
 
         /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
         /// <summary>
         /// Constructor
         /// </summary>
-        /// <history>
-        ///    06 Jul 10  Cynic - Started
-        /// </history>
         public frmMain1()
         {
             bool retBOOL = false;
@@ -190,6 +185,8 @@ namespace LineGrinder
 
             // set the screen display now
             InitScreenDisplay();
+            // set this so the plot viewer can use it
+            ctlPlotViewer1.MouseCursorDisplayControl = textBoxMouseCursorDisplay;
 
             // now recover the last configuration settings - if saved, we only do this if 
             // the control key is not pressed. This allows the user to start with the
@@ -203,7 +200,7 @@ namespace LineGrinder
                     {
                         // we do not want to trigger user activated events when setting things
                         // up on startup
-                        suppressUserActivatedEvents = true;
+                        //suppressUserActivatedEvents = true;
                         // if we got here the above lines did not fail
                         MoveImplicitUserSettingsToScreen();
                         ReadExplictUserSettings(true);
@@ -211,7 +208,7 @@ namespace LineGrinder
                     }
                     finally
                     {
-                        suppressUserActivatedEvents = false;
+                        //suppressUserActivatedEvents = false;
                     }
                 }
                 catch (Exception ex)
@@ -227,14 +224,12 @@ namespace LineGrinder
         /// <summary>
         /// Initializes the screen display to defaults
         /// </summary>
-        /// <history>
-        ///    21 Aug 10  Cynic - Started
-        /// </history>
         private void InitScreenDisplay()
         {
             LoadPlotMagnificationComboBox();
-            IsoPlotPointsPerAppUnit = ApplicationImplicitSettings.DEFAULT_ISOPLOTPOINTS_PER_APPUNIT;
-            ApplicationUnits = ApplicationImplicitSettings.DEFAULT_APPLICATION_UNITS;
+            IsoPlotPointsPerAppUnitIN = ApplicationImplicitSettings.DEFAULT_ISOPLOTPOINTS_PER_APPUNIT_IN;
+            IsoPlotPointsPerAppUnitMM = ApplicationImplicitSettings.DEFAULT_ISOPLOTPOINTS_PER_APPUNIT_MM;
+            DefaultApplicationUnits = ApplicationImplicitSettings.DEFAULT_APPLICATION_UNITS;
             // this creates is if not present
             ctlFileManagersDisplay1.GetDefaultFileManagerObject();
 
@@ -244,9 +239,6 @@ namespace LineGrinder
         /// <summary>
         /// Gets/Sets the Gerber file. Will never set or get a null value.
         /// </summary>
-        /// <history>
-        ///    06 Jul 10  Cynic - Started
-        /// </history>
         [BrowsableAttribute(false)]
         [DefaultValue(null)]
         [ReadOnlyAttribute(true)]
@@ -268,9 +260,6 @@ namespace LineGrinder
         /// <summary>
         /// Gets/Sets the Excellon file. Will never set or get a null value.
         /// </summary>
-        /// <history>
-        ///    01 Sep 10  Cynic - Started
-        /// </history>
         [BrowsableAttribute(false)]
         [DefaultValue(null)]
         [ReadOnlyAttribute(true)]
@@ -292,9 +281,6 @@ namespace LineGrinder
         /// <summary>
         /// Gets/Sets the GCode file. Will never set or get a null value.
         /// </summary>
-        /// <history>
-        ///    06 Aug 10  Cynic - Started
-        /// </history>
         [BrowsableAttribute(false)]
         [DefaultValue(null)]
         [ReadOnlyAttribute(true)]
@@ -316,9 +302,6 @@ namespace LineGrinder
         /// <summary>
         /// Gets/Sets the Bed Flattening GCode file. Will never set or get a null value.
         /// </summary>
-        /// <history>
-        ///    24 Aug 10  Cynic - Started
-        /// </history>
         [BrowsableAttribute(false)]
         [DefaultValue(null)]
         [ReadOnlyAttribute(true)]
@@ -340,9 +323,6 @@ namespace LineGrinder
         /// <summary>
         /// Gets/Sets the Edge Mill GCode file. Will never set or get a null value.
         /// </summary>
-        /// <history>
-        ///    25 Aug 10  Cynic - Started
-        /// </history>
         [BrowsableAttribute(false)]
         [DefaultValue(null)]
         [ReadOnlyAttribute(true)]
@@ -364,9 +344,6 @@ namespace LineGrinder
         /// <summary>
         /// Gets/Sets the Reference Pin GCode file. Will never set or get a null value.
         /// </summary>
-        /// <history>
-        ///    25 Aug 10  Cynic - Started
-        /// </history>
         [BrowsableAttribute(false)]
         [DefaultValue(null)]
         [ReadOnlyAttribute(true)]
@@ -388,9 +365,6 @@ namespace LineGrinder
         /// <summary>
         /// Gets/Sets the Drill GCode file. Will never set or get a null value.
         /// </summary>
-        /// <history>
-        ///    02 Sep 10  Cynic - Started
-        /// </history>
         [BrowsableAttribute(false)]
         [DefaultValue(null)]
         [ReadOnlyAttribute(true)]
@@ -412,9 +386,6 @@ namespace LineGrinder
         /// <summary>
         /// Gets/Sets the currently operational file manager. Will never set or get a null value.
         /// </summary>
-        /// <history>
-        ///    02 Sep 10  Cynic - Started
-        /// </history>
         [BrowsableAttribute(false)]
         [DefaultValue(null)]
         [ReadOnlyAttribute(true)]
@@ -436,23 +407,20 @@ namespace LineGrinder
         /// <summary>
         /// Gets/Sets the GCode Builder. Will never set or get a null value.
         /// </summary>
-        /// <history>
-        ///    09 Aug 10  Cynic - Started
-        /// </history>
         [BrowsableAttribute(false)]
         [DefaultValue(null)]
         [ReadOnlyAttribute(true)]
-        public GCodeBuilder CurrentGCodeBuilder
+        public IsoPlotBuilder CurrentIsoPlotBuilder
         {
             get
             {
-                if (currentGCodeBuilder == null) currentGCodeBuilder = new GCodeBuilder(ctlPlotViewer.DEFAULT_PLOT_WIDTH, ctlPlotViewer.DEFAULT_PLOT_HEIGHT);
-                return currentGCodeBuilder;
+                if (currentIsoPlotBuilder == null) currentIsoPlotBuilder = new IsoPlotBuilder(ctlPlotViewer.DEFAULT_PLOT_WIDTH, ctlPlotViewer.DEFAULT_PLOT_HEIGHT);
+                return currentIsoPlotBuilder;
             }
             set
             {
-                currentGCodeBuilder = value;
-                if (currentGCodeBuilder == null) currentGCodeBuilder = new GCodeBuilder(ctlPlotViewer.DEFAULT_PLOT_WIDTH, ctlPlotViewer.DEFAULT_PLOT_HEIGHT);
+                currentIsoPlotBuilder = value;
+                if (currentIsoPlotBuilder == null) currentIsoPlotBuilder = new IsoPlotBuilder(ctlPlotViewer.DEFAULT_PLOT_WIDTH, ctlPlotViewer.DEFAULT_PLOT_HEIGHT);
             }
         }
 
@@ -461,13 +429,12 @@ namespace LineGrinder
         /// Does everything necessary to clear the current files and reset the 
         /// application for a new file.
         /// </summary>
-        /// <history>
-        ///    06 Jul 10  Cynic - Started
-        /// </history>
         private void ResetApplicationForNewFile()
         {
+            SyncSettingsEnabledStateToReality();
+
             // always update this with whatever we are currently using
-            ctlFileManagersDisplay1.ApplicationUnits = ApplicationUnits;
+            ctlFileManagersDisplay1.DefaultApplicationUnits = DefaultApplicationUnits;
 
             // reset some flags
             gerberToGCodeStep1Successful = false;
@@ -481,9 +448,9 @@ namespace LineGrinder
             CurrentEdgeMillGCodeFile = new GCodeFile();
             CurrentReferencePinGCodeFile = new GCodeFile();
             CurrentDrillGCodeFile = new GCodeFile();
-            CurrentGCodeBuilder = new GCodeBuilder(ctlPlotViewer.DEFAULT_PLOT_WIDTH, ctlPlotViewer.DEFAULT_PLOT_HEIGHT);
-            currentGCodeBuilder = null;
-            this.ctlPlotViewer1.GCodeBuilderToDisplay = null;
+            CurrentIsoPlotBuilder = new IsoPlotBuilder(ctlPlotViewer.DEFAULT_PLOT_WIDTH, ctlPlotViewer.DEFAULT_PLOT_HEIGHT);
+            currentIsoPlotBuilder = null;
+            this.ctlPlotViewer1.IsoPlotBuilderToDisplay = null;
 
             // I know its deprecated, In this case this really, really needs to be here
             GC.Collect();
@@ -503,7 +470,8 @@ namespace LineGrinder
 
             // reset our plot
             ctlPlotViewer1.Reset();
-            ctlPlotViewer1.GerberFileToDisplay = CurrentGerberFile;
+            ctlPlotViewer1.GerberFileToDisplay = new GerberFile();
+            ctlPlotViewer1.ExcellonFileToDisplay = new ExcellonFile();
             SetStatusLine("");
             ResetMagnificationComboBox();
             SyncPlotViewerToMagnificationOnScreen((string)comboBoxMagnification.SelectedItem);
@@ -522,9 +490,6 @@ namespace LineGrinder
         /// Does everything necessary to reset everything for a new convert to gcode
         /// event
         /// </summary>
-        /// <history>
-        ///    16 Jan 11  Cynic - Started
-        /// </history>
         private void ResetApplicationForNewConvertToGCode()
         {
             // reset some flags
@@ -537,12 +502,12 @@ namespace LineGrinder
             CurrentEdgeMillGCodeFile = new GCodeFile();
             CurrentReferencePinGCodeFile = new GCodeFile();
             CurrentDrillGCodeFile = new GCodeFile();
-            currentGCodeBuilder = null;
-            this.ctlPlotViewer1.GCodeBuilderToDisplay = null;
+            currentIsoPlotBuilder = null;
+            this.ctlPlotViewer1.IsoPlotBuilderToDisplay = null;
 
             // I know its deprecated, In this case this really, really needs to be here
             GC.Collect();
-            CurrentGCodeBuilder = new GCodeBuilder(ctlPlotViewer.DEFAULT_PLOT_WIDTH, ctlPlotViewer.DEFAULT_PLOT_HEIGHT);
+            CurrentIsoPlotBuilder = new IsoPlotBuilder(ctlPlotViewer.DEFAULT_PLOT_WIDTH, ctlPlotViewer.DEFAULT_PLOT_HEIGHT);
             ClearPlotViewBitmap();
             radioButtonMainViewGerberPlot.Checked = true;
             tabControl1.SelectedTab = tabPagePlot;
@@ -560,9 +525,6 @@ namespace LineGrinder
         /// <summary>
         /// Syncs the SyncGoToFileManagerButton to screen reality
         /// </summary>
-        /// <history>
-        ///    23 Aug 10  Cynic - Started
-        /// </history>
         private void SyncGoToFileManagerButton()
         {
             if ((textBoxActiveFileManager.Text == null) || (textBoxActiveFileManager.Text.Length == 0))
@@ -579,9 +541,6 @@ namespace LineGrinder
         /// <summary>
         /// Handle a click on the goto file manager button
         /// </summary>
-        /// <history>
-        ///    23 Aug 10  Cynic - Started
-        /// </history>
         private void buttonGoToFileManager_Click(object sender, EventArgs e)
         {
             ctlFileManagersDisplay1.SelectFileManagersObjectByFilenamePattern(textBoxActiveFileManager.Text);
@@ -593,9 +552,6 @@ namespace LineGrinder
         /// <summary>
         /// Handle an Selection Change Committed event on the magnification combo box
         /// </summary>
-        /// <history>
-        ///    21 Aug 10  Cynic - Started
-        /// </history>
         private void comboBoxMagnification_SelectionChangeCommitted(object sender, EventArgs e)
         {
             SyncPlotViewerToMagnificationOnScreen((string)comboBoxMagnification.SelectedItem);
@@ -607,9 +563,6 @@ namespace LineGrinder
         /// Handle a key down event on the magnification combo box. We get these
         /// when the user types in a value instead of choosing one of the options
         /// </summary>
-        /// <history>
-        ///    21 Aug 10  Cynic - Started
-        /// </history>
         private void comboBoxMagnification_KeyDown(object sender, KeyEventArgs e)
         {
             // look for the enter key and send it
@@ -625,9 +578,6 @@ namespace LineGrinder
         /// <summary>
         /// Handle a click on the set plot magnification to 100% button
         /// </summary>
-        /// <history>
-        ///    23 Aug 10  Cynic - Started
-        /// </history>
         private void buttonMagnification100_Click(object sender, EventArgs e)
         {
             ctlPlotViewer1.MagnificationLevel = ctlPlotViewer.DEFAULT_MAGNIFICATION_LEVEL;
@@ -640,9 +590,6 @@ namespace LineGrinder
         /// <summary>
         /// Loads the plot scale combo box
         /// </summary>
-        /// <history>
-        ///    21 Aug 10  Cynic - Started
-        /// </history>
         private void LoadPlotMagnificationComboBox()
         {
             comboBoxMagnification.Items.Clear();
@@ -657,9 +604,6 @@ namespace LineGrinder
         /// <summary>
         /// Resets the plot scale combo box to defaults
         /// </summary>
-        /// <history>
-        ///    21 Aug 10  Cynic - Started
-        /// </history>
         private void ResetMagnificationComboBox()
         {
             comboBoxMagnification.SelectedItem = ConvertFloatMagnificationValueToDisplayString(ctlPlotViewer.DEFAULT_MAGNIFICATION_LEVEL);
@@ -671,9 +615,6 @@ namespace LineGrinder
         /// </summary>
         /// <param name="comboboxText">the text from the combobox indicating the new
         /// value of the magnification</param>
-        /// <history>
-        ///    21 Aug 10  Cynic - Started
-        /// </history>
         private void SyncPlotViewerToMagnificationOnScreen(string comboboxText)
         {
             float currentManification = ConvertDisplayStringMagnificationToFloat(comboboxText);
@@ -686,9 +627,6 @@ namespace LineGrinder
         /// <summary>
         /// Syncs the plotViewer control to the currently set magnification on screen
         /// </summary>
-        /// <history>
-        ///    21 Aug 10  Cynic - Started
-        /// </history>
         private void SyncMagnificationOnScreenToPlotViewer()
         {
             comboBoxMagnification.SelectedItem = ConvertFloatMagnificationValueToDisplayString(ctlPlotViewer1.MagnificationLevel);
@@ -699,9 +637,6 @@ namespace LineGrinder
         /// Converts a magnification level to a user acceptable display value
         /// </summary>
         /// <returns>The mag level as a string</returns>
-        /// <history>
-        ///    21 Aug 10  Cynic - Started
-        /// </history>
         private string ConvertFloatMagnificationValueToDisplayString(float magnificationLevel)
         {
             return (magnificationLevel * 100).ToString() + "%";
@@ -712,9 +647,6 @@ namespace LineGrinder
         /// Converts a a user acceptable magnification level to a float value
         /// </summary>
         /// <returns>the converted value or -1 for fail</returns>
-        /// <history>
-        ///    21 Aug 10  Cynic - Started
-        /// </history>
         private float ConvertDisplayStringMagnificationToFloat(string magLevel)
         {
             if ((magLevel == null) || (magLevel.Length == 0)) return -1;
@@ -732,9 +664,6 @@ namespace LineGrinder
         /// <summary>
         /// Handles a plot view radio button click
         /// </summary>
-        /// <history>
-        ///    29 Jul 10  Cynic - Started
-        /// </history>
         private void radioButtonMainViewGerberPlot_CheckedChanged(object sender, EventArgs e)
         {
             SyncGCodePlotToRadioButtons();
@@ -745,9 +674,6 @@ namespace LineGrinder
         /// <summary>
         /// Handles a IsoStep1 plot view radio button click
         /// </summary>
-        /// <history>
-        ///    29 Jul 10  Cynic - Started
-        /// </history>
         private void radioButtonIsoPlotStep1_CheckedChanged(object sender, EventArgs e)
         {
             SyncGCodePlotToRadioButtons();
@@ -758,9 +684,6 @@ namespace LineGrinder
         /// <summary>
         /// Handles a step 2 plot view radio button click
         /// </summary>
-        /// <history>
-        ///    29 Jul 10  Cynic - Started
-        /// </history>
         private void radioButtonIsoPlotStep2_CheckedChanged(object sender, EventArgs e)
         {
             SyncGCodePlotToRadioButtons();
@@ -771,9 +694,6 @@ namespace LineGrinder
         /// <summary>
         /// Handles a step 3 plot view radio button click
         /// </summary>
-        /// <history>
-        ///    29 Jul 10  Cynic - Started
-        /// </history>
         private void radioButtonIsoPlotStep3_CheckedChanged(object sender, EventArgs e)
         {
             SyncGCodePlotToRadioButtons();
@@ -784,9 +704,6 @@ namespace LineGrinder
         /// <summary>
         /// Handles a view GCode only plot view radio button click
         /// </summary>
-        /// <history>
-        ///    29 Jul 10  Cynic - Started
-        /// </history>
         private void radioButtonMainViewIsoGCodePlot_CheckedChanged(object sender, EventArgs e)
         {
             SyncGCodePlotToRadioButtons();
@@ -797,9 +714,6 @@ namespace LineGrinder
         /// <summary>
         /// Handles a view Edge Mill plot view radio button click
         /// </summary>
-        /// <history>
-        ///    29 Jul 10  Cynic - Started
-        /// </history>
         private void radioButtonMainViewEdgeMillGCode_CheckedChanged(object sender, EventArgs e)
         {
             SyncGCodePlotToRadioButtons();
@@ -810,9 +724,6 @@ namespace LineGrinder
         /// <summary>
         /// Handles a view Bed Flatten plot view radio button click
         /// </summary>
-        /// <history>
-        ///    26 Aug 10  Cynic - Started
-        /// </history>
         private void radioButtonMainViewBedFlattenGCode_CheckedChanged(object sender, EventArgs e)
         {
             SyncGCodePlotToRadioButtons();
@@ -823,9 +734,6 @@ namespace LineGrinder
         /// <summary>
         /// Handles a view Reference Pins plot view radio button click
         /// </summary>
-        /// <history>
-        ///    26 Aug 10  Cynic - Started
-        /// </history>
         private void radioButtonMainViewReferencePinsGCode_CheckedChanged(object sender, EventArgs e)
         {
             SyncGCodePlotToRadioButtons();
@@ -836,9 +744,6 @@ namespace LineGrinder
         /// <summary>
         /// Handles a view No Plot plot view radio button click
         /// </summary>
-        /// <history>
-        ///    02 Sep 10  Cynic - Started
-        /// </history>
         private void radioButtonNoPlot_CheckedChanged(object sender, EventArgs e)
         {
             SyncGCodePlotToRadioButtons();
@@ -849,9 +754,6 @@ namespace LineGrinder
         /// <summary>
         /// Handles a view Drill GCode plot view radio button click
         /// </summary>
-        /// <history>
-        ///    02 Sep 10  Cynic - Started
-        /// </history>
         private void radioButtonMainViewDrillGCode_CheckedChanged(object sender, EventArgs e)
         {
             SyncGCodePlotToRadioButtons();
@@ -862,9 +764,6 @@ namespace LineGrinder
         /// <summary>
         /// Handles a click on the ShowGerberCenterLines checkbox
         /// </summary>
-        /// <history>
-        ///    11 Aug 10  Cynic - Started
-        /// </history>
         private void checkBoxShowGerberCenterLines_CheckedChanged(object sender, EventArgs e)
         {
             SyncGCodePlotToRadioButtons();
@@ -875,10 +774,27 @@ namespace LineGrinder
         /// <summary>
         /// Handles a click on the ShowOrigin checkbox
         /// </summary>
-        /// <history>
-        ///    26 Feb 11  Cynic - Started
-        /// </history>
         private void checkBoxShowOrigin_CheckedChanged(object sender, EventArgs e)
+        {
+            SyncGCodePlotToRadioButtons();
+            ctlPlotViewer1.Invalidate();
+        }
+
+        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+        /// <summary>
+        /// Handles a click on the FlipAxis checkbox
+        /// </summary>
+        private void checkBoxShowFlipAxis_CheckedChanged(object sender, EventArgs e)
+        {
+            SyncGCodePlotToRadioButtons();
+            ctlPlotViewer1.Invalidate();
+        }
+
+        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+        /// <summary>
+        /// Handles a click on the FlipAxis checkbox
+        /// </summary>
+        private void checkBoxShowGCodeOrigin_CheckedChanged(object sender, EventArgs e)
         {
             SyncGCodePlotToRadioButtons();
             ctlPlotViewer1.Invalidate();
@@ -888,9 +804,6 @@ namespace LineGrinder
         /// <summary>
         /// Handles a click on the ShowGerberApertures checkbox
         /// </summary>
-        /// <history>
-        ///    11 Aug 10  Cynic - Started
-        /// </history>
         private void checkBoxShowGerberApertures_CheckedChanged(object sender, EventArgs e)
         {
             SyncGCodePlotToRadioButtons();
@@ -901,9 +814,6 @@ namespace LineGrinder
         /// <summary>
         /// handles a click on the show gerber plot on isolation plots
         /// </summary>
-        /// <history>
-        ///    26 Aug 10  Cynic - Started
-        /// </history>
         private void checkBoxIsoPlotShowGerber_CheckedChanged(object sender, EventArgs e)
         {
             SyncGCodePlotToRadioButtons();
@@ -914,9 +824,6 @@ namespace LineGrinder
         /// <summary>
         /// handles a click on the show gerber plot on tmp iso plots
         /// </summary>
-        /// <history>
-        ///    26 Aug 10  Cynic - Started
-        /// </history>
         private void checkBoxOnGCodePlotShowGerber_CheckedChanged(object sender, EventArgs e)
         {
             SyncGCodePlotToRadioButtons();
@@ -928,10 +835,6 @@ namespace LineGrinder
         /// does the work of setting the plot display control to display the proper
         /// mode
         /// </summary>
-        /// <history>
-        ///    29 Jul 10  Cynic - Started
-        ///    25 Aug 10  Cynic - reworked
-        /// </history>
         private void SyncGCodePlotToRadioButtons()
         {
             // always set these now
@@ -940,121 +843,164 @@ namespace LineGrinder
 
             if ((radioButtonIsoPlotStep1.Enabled == true) && (radioButtonIsoPlotStep1.Checked == true))
             {
-                ctlPlotViewer1.DisplayMode = ctlPlotViewer.DisplayModeEnum.DisplayMode_ISOSTEP1;
+                ctlPlotViewer1.DisplayMode = DisplayModeEnum.DisplayMode_ISOSTEP1;
                 ctlPlotViewer1.GerberFileToDisplay = CurrentGerberFile;
                 if (checkBoxOnGCodePlotShowGerber.Checked == true) ctlPlotViewer1.ShowGerberOnGCode = true;
                 else ctlPlotViewer1.ShowGerberOnGCode = false;
                 if (checkBoxShowOrigin.Checked == true) ctlPlotViewer1.ShowOrigin = true;
                 else ctlPlotViewer1.ShowOrigin = false;
+                if (checkBoxShowGCodeOrigin.Checked == true) ctlPlotViewer1.ShowGCodeOrigin = true;
+                else ctlPlotViewer1.ShowGCodeOrigin = false;
+                if (checkBoxShowFlipAxis.Checked == true) ctlPlotViewer1.ShowFlipAxis = true;
+                else ctlPlotViewer1.ShowFlipAxis = false;
                 SetIsolationArrayBitmapAppropriateToDisplayMode();
                 // send the builder and GCode objects to the plot viewer
-                ctlPlotViewer1.GCodeBuilderToDisplay = CurrentGCodeBuilder;
+                ctlPlotViewer1.IsoPlotBuilderToDisplay = CurrentIsoPlotBuilder;
                 ctlPlotViewer1.GCodeFileToDisplay = CurrentIsolationGCodeFile;
             }
             else if ((radioButtonIsoPlotStep2.Enabled == true) && (radioButtonIsoPlotStep2.Checked == true))
             {
-                ctlPlotViewer1.DisplayMode = ctlPlotViewer.DisplayModeEnum.DisplayMode_ISOSTEP2;
+                ctlPlotViewer1.DisplayMode = DisplayModeEnum.DisplayMode_ISOSTEP2;
                 ctlPlotViewer1.GerberFileToDisplay = CurrentGerberFile;
                 if (checkBoxOnGCodePlotShowGerber.Checked == true) ctlPlotViewer1.ShowGerberOnGCode = true;
                 else ctlPlotViewer1.ShowGerberOnGCode = false;
                 if (checkBoxShowOrigin.Checked == true) ctlPlotViewer1.ShowOrigin = true;
                 else ctlPlotViewer1.ShowOrigin = false;
+                if (checkBoxShowGCodeOrigin.Checked == true) ctlPlotViewer1.ShowGCodeOrigin = true;
+                else ctlPlotViewer1.ShowGCodeOrigin = false;
+                if (checkBoxShowFlipAxis.Checked == true) ctlPlotViewer1.ShowFlipAxis = true;
+                else ctlPlotViewer1.ShowFlipAxis = false;
                 SetIsolationArrayBitmapAppropriateToDisplayMode();
                 // send the builder and GCode objects to the plot viewer
-                ctlPlotViewer1.GCodeBuilderToDisplay = CurrentGCodeBuilder;
+                ctlPlotViewer1.IsoPlotBuilderToDisplay = CurrentIsoPlotBuilder;
                 ctlPlotViewer1.GCodeFileToDisplay = CurrentIsolationGCodeFile;
             }
             else if ((radioButtonIsoPlotStep3.Enabled == true) && (radioButtonIsoPlotStep3.Checked == true))
             {
-                ctlPlotViewer1.DisplayMode = ctlPlotViewer.DisplayModeEnum.DisplayMode_ISOSTEP3;
+                ctlPlotViewer1.DisplayMode = DisplayModeEnum.DisplayMode_ISOSTEP3;
                 ctlPlotViewer1.GerberFileToDisplay = CurrentGerberFile;
                 if (checkBoxOnGCodePlotShowGerber.Checked == true) ctlPlotViewer1.ShowGerberOnGCode = true;
                 else ctlPlotViewer1.ShowGerberOnGCode = false;
                 if (checkBoxShowOrigin.Checked == true) ctlPlotViewer1.ShowOrigin = true;
                 else ctlPlotViewer1.ShowOrigin = false;
+                if (checkBoxShowGCodeOrigin.Checked == true) ctlPlotViewer1.ShowGCodeOrigin = true;
+                else ctlPlotViewer1.ShowGCodeOrigin = false;
+                if (checkBoxShowFlipAxis.Checked == true) ctlPlotViewer1.ShowFlipAxis = true;
+                else ctlPlotViewer1.ShowFlipAxis = false;
                 SetIsolationArrayBitmapAppropriateToDisplayMode();
                 // send the builder and GCode objects to the plot viewer
-                ctlPlotViewer1.GCodeBuilderToDisplay = CurrentGCodeBuilder;
+                ctlPlotViewer1.IsoPlotBuilderToDisplay = CurrentIsoPlotBuilder;
                 ctlPlotViewer1.GCodeFileToDisplay = CurrentIsolationGCodeFile;
             }
             else if ((radioButtonMainViewIsoGCodePlot.Enabled == true) && (radioButtonMainViewIsoGCodePlot.Checked == true))
             {
-                ctlPlotViewer1.DisplayMode = ctlPlotViewer.DisplayModeEnum.DisplayMode_GCODEONLY;
+                ctlPlotViewer1.DisplayMode = DisplayModeEnum.DisplayMode_GCODEONLY;
                 ctlPlotViewer1.GerberFileToDisplay = CurrentGerberFile;
                 if (checkBoxOnGCodePlotShowGerber.Checked == true) ctlPlotViewer1.ShowGerberOnGCode = true;
                 else ctlPlotViewer1.ShowGerberOnGCode = false;
                 if (checkBoxShowOrigin.Checked == true) ctlPlotViewer1.ShowOrigin = true;
                 else ctlPlotViewer1.ShowOrigin = false;
+                if (checkBoxShowGCodeOrigin.Checked == true) ctlPlotViewer1.ShowGCodeOrigin = true;
+                else ctlPlotViewer1.ShowGCodeOrigin = false;
+                if (checkBoxShowFlipAxis.Checked == true) ctlPlotViewer1.ShowFlipAxis = true;
+                else ctlPlotViewer1.ShowFlipAxis = false;
                 // send the builder and GCode objects to the plot viewer
-                ctlPlotViewer1.GCodeBuilderToDisplay = CurrentGCodeBuilder;
+                ctlPlotViewer1.IsoPlotBuilderToDisplay = CurrentIsoPlotBuilder;
                 ctlPlotViewer1.GCodeFileToDisplay = CurrentIsolationGCodeFile;
             }
             else if ((radioButtonMainViewEdgeMillGCode.Enabled == true) && (radioButtonMainViewEdgeMillGCode.Checked==true))
             {
-                ctlPlotViewer1.DisplayMode = ctlPlotViewer.DisplayModeEnum.DisplayMode_GCODEONLY;
+                ctlPlotViewer1.DisplayMode = DisplayModeEnum.DisplayMode_GCODEONLY;
                 ctlPlotViewer1.GerberFileToDisplay = CurrentGerberFile;
                 if (checkBoxOnGCodePlotShowGerber.Checked == true) ctlPlotViewer1.ShowGerberOnGCode = true;
                 else ctlPlotViewer1.ShowGerberOnGCode = false;
                 if (checkBoxShowOrigin.Checked == true) ctlPlotViewer1.ShowOrigin = true;
                 else ctlPlotViewer1.ShowOrigin = false;
+                if (checkBoxShowGCodeOrigin.Checked == true) ctlPlotViewer1.ShowGCodeOrigin = true;
+                else ctlPlotViewer1.ShowGCodeOrigin = false;
+                if (checkBoxShowFlipAxis.Checked == true) ctlPlotViewer1.ShowFlipAxis = true;
+                else ctlPlotViewer1.ShowFlipAxis = false;
                 // send the builder and GCode objects to the plot viewer
-                ctlPlotViewer1.GCodeBuilderToDisplay = CurrentGCodeBuilder;
+                ctlPlotViewer1.IsoPlotBuilderToDisplay = CurrentIsoPlotBuilder;
                 ctlPlotViewer1.GCodeFileToDisplay = CurrentEdgeMillGCodeFile;
             }
             else if ((radioButtonMainViewBedFlattenGCode.Enabled == true) && (radioButtonMainViewBedFlattenGCode.Checked == true))
             {
-                ctlPlotViewer1.DisplayMode = ctlPlotViewer.DisplayModeEnum.DisplayMode_GCODEONLY;
+                ctlPlotViewer1.DisplayMode = DisplayModeEnum.DisplayMode_GCODEONLY;
                 ctlPlotViewer1.GerberFileToDisplay = CurrentGerberFile;
                 if (checkBoxOnGCodePlotShowGerber.Checked == true) ctlPlotViewer1.ShowGerberOnGCode = true;
                 else ctlPlotViewer1.ShowGerberOnGCode = false;
                 if (checkBoxShowOrigin.Checked == true) ctlPlotViewer1.ShowOrigin = true;
                 else ctlPlotViewer1.ShowOrigin = false;
+                if (checkBoxShowGCodeOrigin.Checked == true) ctlPlotViewer1.ShowGCodeOrigin = true;
+                else ctlPlotViewer1.ShowGCodeOrigin = false;
+                if (checkBoxShowFlipAxis.Checked == true) ctlPlotViewer1.ShowFlipAxis = true;
+                else ctlPlotViewer1.ShowFlipAxis = false;
                 // send the builder and GCode objects to the plot viewer
-                ctlPlotViewer1.GCodeBuilderToDisplay = CurrentGCodeBuilder;
+                ctlPlotViewer1.IsoPlotBuilderToDisplay = CurrentIsoPlotBuilder;
                 ctlPlotViewer1.GCodeFileToDisplay = CurrentBedFlatteningGCodeFile;
             }
             else if ((radioButtonMainViewReferencePinsGCode.Enabled == true) && (radioButtonMainViewReferencePinsGCode.Checked == true))
             {
-                ctlPlotViewer1.DisplayMode = ctlPlotViewer.DisplayModeEnum.DisplayMode_GCODEONLY;
+                ctlPlotViewer1.DisplayMode = DisplayModeEnum.DisplayMode_GCODEONLY;
                 ctlPlotViewer1.GerberFileToDisplay = CurrentGerberFile;
                 if (checkBoxOnGCodePlotShowGerber.Checked == true) ctlPlotViewer1.ShowGerberOnGCode = true;
                 else ctlPlotViewer1.ShowGerberOnGCode = false;
                 if (checkBoxShowOrigin.Checked == true) ctlPlotViewer1.ShowOrigin = true;
                 else ctlPlotViewer1.ShowOrigin = false;
+                if (checkBoxShowGCodeOrigin.Checked == true) ctlPlotViewer1.ShowGCodeOrigin = true;
+                else ctlPlotViewer1.ShowGCodeOrigin = false;
+                if (checkBoxShowFlipAxis.Checked == true) ctlPlotViewer1.ShowFlipAxis = true;
+                else ctlPlotViewer1.ShowFlipAxis = false;
                 // send the builder and GCode objects to the plot viewer
-                ctlPlotViewer1.GCodeBuilderToDisplay = CurrentGCodeBuilder;
+                ctlPlotViewer1.IsoPlotBuilderToDisplay = CurrentIsoPlotBuilder;
                 ctlPlotViewer1.GCodeFileToDisplay = CurrentReferencePinGCodeFile;
             }
             else if ((radioButtonMainViewDrillGCode.Enabled == true) && (radioButtonMainViewDrillGCode.Checked == true))
             {
-                ctlPlotViewer1.DisplayMode = ctlPlotViewer.DisplayModeEnum.DisplayMode_GCODEONLY;
+                ctlPlotViewer1.DisplayMode = DisplayModeEnum.DisplayMode_GCODEONLY;
                 ctlPlotViewer1.GerberFileToDisplay = null;
+                ctlPlotViewer1.ExcellonFileToDisplay = CurrentExcellonFile;
                 if (checkBoxOnGCodePlotShowGerber.Checked == true) ctlPlotViewer1.ShowGerberOnGCode = true;
                 else ctlPlotViewer1.ShowGerberOnGCode = false;
                 if (checkBoxShowOrigin.Checked == true) ctlPlotViewer1.ShowOrigin = true;
                 else ctlPlotViewer1.ShowOrigin = false;
+                if (checkBoxShowGCodeOrigin.Checked == true) ctlPlotViewer1.ShowGCodeOrigin = true;
+                else ctlPlotViewer1.ShowGCodeOrigin = false;
+                if (checkBoxShowFlipAxis.Checked == true) ctlPlotViewer1.ShowFlipAxis = true;
+                else ctlPlotViewer1.ShowFlipAxis = false;
                 // send the builder and GCode objects to the plot viewer
-                ctlPlotViewer1.GCodeBuilderToDisplay = null;
+                ctlPlotViewer1.IsoPlotBuilderToDisplay = null;
                 ctlPlotViewer1.GCodeFileToDisplay = CurrentDrillGCodeFile;
             }
             else if ((radioButtonMainViewGerberPlot.Enabled == true) && (radioButtonMainViewGerberPlot.Checked == true))
             {
-                ctlPlotViewer1.DisplayMode = ctlPlotViewer.DisplayModeEnum.DisplayMode_GERBERONLY;
+                ctlPlotViewer1.DisplayMode = DisplayModeEnum.DisplayMode_GERBERONLY;
                 ctlPlotViewer1.GerberFileToDisplay = CurrentGerberFile;
+                ctlPlotViewer1.ExcellonFileToDisplay = CurrentExcellonFile;
                 ctlPlotViewer1.ShowGerberOnGCode = false;
-                ctlPlotViewer1.GCodeBuilderToDisplay = null;
+                ctlPlotViewer1.IsoPlotBuilderToDisplay = null;
                 ctlPlotViewer1.GCodeFileToDisplay = null;
                 if (checkBoxShowOrigin.Checked == true) ctlPlotViewer1.ShowOrigin = true;
                 else ctlPlotViewer1.ShowOrigin = false;
+                if (checkBoxShowGCodeOrigin.Checked == true) ctlPlotViewer1.ShowGCodeOrigin = true;
+                else ctlPlotViewer1.ShowGCodeOrigin = false;
+                if (checkBoxShowFlipAxis.Checked == true) ctlPlotViewer1.ShowFlipAxis = true;
+                else ctlPlotViewer1.ShowFlipAxis = false;
             }
             else 
             {
                 if (checkBoxShowOrigin.Checked == true) ctlPlotViewer1.ShowOrigin = true;
                 else ctlPlotViewer1.ShowOrigin = false;
-                ctlPlotViewer1.DisplayMode = ctlPlotViewer.DisplayModeEnum.DisplayMode_NONE;
+                if (checkBoxShowGCodeOrigin.Checked == true) ctlPlotViewer1.ShowGCodeOrigin = true;
+                else ctlPlotViewer1.ShowGCodeOrigin = false;
+                if (checkBoxShowFlipAxis.Checked == true) ctlPlotViewer1.ShowFlipAxis = true;
+                else ctlPlotViewer1.ShowFlipAxis = false;
+                ctlPlotViewer1.DisplayMode = DisplayModeEnum.DisplayMode_NONE;
                 ctlPlotViewer1.ShowGerberOnGCode = false;
                 ctlPlotViewer1.GerberFileToDisplay = null;
-                ctlPlotViewer1.GCodeBuilderToDisplay = null;
+                ctlPlotViewer1.ExcellonFileToDisplay = null;
+                ctlPlotViewer1.IsoPlotBuilderToDisplay = null;
                 ctlPlotViewer1.GCodeFileToDisplay = null;
             }
         }
@@ -1063,9 +1009,6 @@ namespace LineGrinder
         /// <summary>
         /// Syncs the visible tabs to the current state
         /// </summary>
-        /// <history>
-        ///    25 Aug 10  Cynic - Started
-        /// </history>
         private void SyncVisibleTabs()
         {
             if (this.IsValidGerberFileOpen() == true)
@@ -1158,9 +1101,6 @@ namespace LineGrinder
         /// <summary>
         /// Syncs the save buttons enabled state to the current state
         /// </summary>
-        /// <history>
-        ///    25 Aug 10  Cynic - Started
-        /// </history>
         private void SyncSaveButtonEnabledState()
         {
             // turn everything off - re-enable what we need below
@@ -1219,12 +1159,9 @@ namespace LineGrinder
         /// Sets up the form visuals so that the permitted actions reflect the
         /// current state of the Gerber file open and GCode
         /// </summary>
-        /// <history>
-        ///    29 Jul 10  Cynic - Started
-        ///    26 Aug 10  Cynic - Rewritten
-        /// </history>
         private void SyncFormVisualsToGerberExcellonAndGCodeState()
         {
+            SyncSettingsEnabledStateToReality();
             SyncGoToFileManagerButton();
             SyncVisibleTabs();
             SyncSaveButtonEnabledState();
@@ -1239,9 +1176,6 @@ namespace LineGrinder
         /// If any of the disabled plot radio buttons are selected this will reset
         /// it to the gerber display option so that it is sensible
         /// </summary>
-        /// <history>
-        ///    26 Aug 10  Cynic - Started
-        /// </history>
         private void EnsureNoDisabledPlotOptionsAreSelected()
         {
             if ((radioButtonIsoPlotStep1.Enabled == false) && (radioButtonIsoPlotStep1.Checked == true))
@@ -1291,9 +1225,6 @@ namespace LineGrinder
         /// Syncs the radio buttons and checkboxes on the plot to the current
         /// Gerber and GCode processsing state
         /// </summary>
-        /// <history>
-        ///    26 Aug 10  Cynic - Started
-        /// </history>
         private void SyncPlotVisualsToGerberAndGCodeState()
         {
             // always disable all available options. We will re-enable
@@ -1314,6 +1245,8 @@ namespace LineGrinder
             checkBoxShowGerberCenterLines.Enabled = false;
             checkBoxShowGerberApertures.Enabled = false;
             checkBoxShowOrigin.Enabled = false;
+            checkBoxShowGCodeOrigin.Enabled = false;
+            checkBoxShowFlipAxis.Enabled = false;
             labelOnGCodePlots.Enabled = false;
             checkBoxOnGCodePlotShowGerber.Enabled = false;
             // disable this button
@@ -1328,11 +1261,16 @@ namespace LineGrinder
                 labelOnGerberPlots.Enabled = true;
                 checkBoxShowGerberCenterLines.Enabled = true;
                 checkBoxShowOrigin.Enabled = true;
+                checkBoxShowGCodeOrigin.Enabled = true;
+                checkBoxShowFlipAxis.Enabled = true;
+                checkBoxShowGCodeOrigin.Enabled = true;
+                checkBoxShowFlipAxis.Enabled = true;
                 checkBoxShowGerberApertures.Enabled = true;
             }
             else if (this.IsValidExcellonFileOpen() == true)
             {
                 // enable these
+                radioButtonMainViewGerberPlot.Enabled = true;
                 buttonConvertToGCode.Enabled = true;
                 labelOnGerberPlots.Enabled = true;
             }
@@ -1386,7 +1324,89 @@ namespace LineGrinder
                 labelOnGCodePlots.Enabled = true;
                 checkBoxOnGCodePlotShowGerber.Enabled = true;
             }
+        }
 
+        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+        /// <summary>
+        /// Syncs the enabled state of all settings to to reality
+        /// </summary>
+        public void SyncSettingsEnabledStateToReality()
+        {
+            bool settingsEnabledState = true;
+            if (IsAnyFileOpen() == true)
+            {
+                settingsEnabledState = false;
+            }
+            // this goes in reverse
+            labelConfigChangesDisabled.Visible = !settingsEnabledState;
+
+            buttonAddNewFileManager.Enabled = settingsEnabledState;
+            buttonRemoveSelectedFileManager.Enabled = settingsEnabledState;
+            buttonRemoveAllFileManagers.Enabled = settingsEnabledState;
+
+            groupBoxQuickFileManagerSetup.Enabled = settingsEnabledState;
+            ctlFileManagersDisplay1.SyncEnabledState(settingsEnabledState);
+            SyncIsoPlotUnitsEnabledStateToReality();
+        }
+
+        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+        /// <summary>
+        /// Syncs the state of the isoplot units box to reality
+        /// </summary>
+        public void SyncIsoPlotUnitsEnabledStateToReality()
+        {
+            bool inchEnabledState = true;
+            bool mmEnabledState = false;
+            bool groupEnabledState = true;
+
+            // if any file is open everything is disabled we cannot change this
+            if (IsAnyFileOpen()==true)
+            {
+                inchEnabledState = false;
+                mmEnabledState = false;
+                groupEnabledState = false;
+            }
+            else if(radioButtonDefaultUnitsAreMM.Checked==true)
+            {
+                inchEnabledState = false;
+                mmEnabledState = true;
+                groupEnabledState = true;
+            }
+            else
+            {
+                // assume radioButtonDefaultUnitsAreIN.Checked==true
+                inchEnabledState = true;
+                mmEnabledState = false;
+                groupEnabledState = true;
+            }
+
+            // now set everything
+            groupBoxDefaultApplicationUnits.Enabled = groupEnabledState;
+            radioButtonDefaultUnitsAreIN.Enabled = groupEnabledState;
+            radioButtonDefaultUnitsAreMM.Enabled = groupEnabledState;
+            labelIsoPlotPointsIN.Enabled = inchEnabledState;
+            labelIsoPlotPointsMM.Enabled = mmEnabledState;
+            textBoxIsoPlotPointsPerIN.Enabled = inchEnabledState;
+            textBoxIsoPlotPointsPerMM.Enabled = mmEnabledState;
+            buttonDefaultIsoPtsPerIN.Enabled = inchEnabledState;
+            buttonDefaultIsoPtsPerMM.Enabled = mmEnabledState;
+        }
+
+        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+        /// <summary>
+        /// Detects if any file is open
+        /// </summary>
+        /// <returns>true at least one file is open, false none are</returns>
+        public bool IsAnyFileOpen()
+        {
+            if (this.IsValidGerberFileOpen() == true) return true;
+            if (this.IsValidExcellonFileOpen() == true) return true;
+            if (this.IsValidIsolationGCodeFileOpen() == true) return true;
+            if (this.IsValidEdgeMillGCodeFileOpen() == true) return true;
+            if (this.IsValidBedFlatteningGCodeFileOpen() == true) return true;
+            if (this.IsValidRefPinGCodeFileOpen() == true) return true;
+            if (this.IsValidDrillGCodeFileOpen() == true) return true;
+            return false;
         }
 
         /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
@@ -1396,17 +1416,14 @@ namespace LineGrinder
         /// various stages and debug things
         /// </summary>
         /// <returns>z success, nz fail</returns>
-        /// <history>
-        ///    29 Jul 10  Cynic - Started
-        /// </history>
         private int SetIsolationArrayBitmapAppropriateToDisplayMode()
         {
             Cursor tmpCursor = Cursor.Current;
 
             // do we need a bitmap
-            if ((ctlPlotViewer1.DisplayMode == ctlPlotViewer.DisplayModeEnum.DisplayMode_ISOSTEP1) ||
-               (ctlPlotViewer1.DisplayMode == ctlPlotViewer.DisplayModeEnum.DisplayMode_ISOSTEP2) ||
-               (ctlPlotViewer1.DisplayMode == ctlPlotViewer.DisplayModeEnum.DisplayMode_ISOSTEP3))
+            if ((ctlPlotViewer1.DisplayMode == DisplayModeEnum.DisplayMode_ISOSTEP1) ||
+               (ctlPlotViewer1.DisplayMode == DisplayModeEnum.DisplayMode_ISOSTEP2) ||
+               (ctlPlotViewer1.DisplayMode == DisplayModeEnum.DisplayMode_ISOSTEP3))
             {
                 // we do in these modes, but is an appropriate bitmap already set?
                 if (ctlPlotViewer1.BitmapMode == ctlPlotViewer1.DisplayMode)
@@ -1420,7 +1437,7 @@ namespace LineGrinder
                 try
                 {
                     // get the bitmap
-                    Bitmap testBmp = CurrentGCodeBuilder.GetIsolationArrayAsBitmap(ctlPlotViewer1.DisplayMode);
+                    Bitmap testBmp = CurrentIsoPlotBuilder.GetIsolationArrayAsBitmap(ctlPlotViewer1.DisplayMode);
                     if (testBmp == null)
                     {
                         LogMessage("SetIsolationArrayBitmapAppropriateToDisplayMode testBmp == null");
@@ -1448,13 +1465,10 @@ namespace LineGrinder
         /// Clears the bitmap out of the plot viewer and disposes of it properly
         /// </summary>
         /// <returns>z success, nz fail</returns>
-        /// <history>
-        ///    31 Aug 10  Cynic - Started
-        /// </history>
         private void ClearPlotViewBitmap()
         {
             Bitmap existingBitmap = ctlPlotViewer1.BackgroundBitmap;
-            ctlPlotViewer1.SetBackgroundBitmap(null, ctlPlotViewer.DisplayModeEnum.DisplayMode_GERBERONLY);
+            ctlPlotViewer1.SetBackgroundBitmap(null, DisplayModeEnum.DisplayMode_GERBERONLY);
             // dispose of the existing bitmap
             if (existingBitmap != null)
             {
@@ -1468,9 +1482,6 @@ namespace LineGrinder
         /// Sets the status line text
         /// </summary>
         /// <param name="statusTextIn">text to write in the status bar</param>
-        /// <history>
-        ///    29 Jul 10  Cynic - Started
-        /// </history>
         private void SetStatusLine(string statusTextIn)
         {
             if (statusTextIn == null) this.textBoxStatusLine.Text = "";
@@ -1486,157 +1497,142 @@ namespace LineGrinder
 
         /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
         /// <summary>
-        /// Gets/Sets the currently set Application Units as an enum
+        /// Gets/Sets the currently set Default Application Units as an enum
         /// </summary>
-        /// <history>
-        ///    09 Aug 10  Cynic - Started
-        /// </history>
-        private ApplicationUnitsEnum ApplicationUnits
+        private ApplicationUnitsEnum DefaultApplicationUnits
         {
             get
             {
-                return (ApplicationUnitsEnum)Enum.Parse(typeof(ApplicationUnitsEnum), comboBoxApplicationUnits.SelectedItem.ToString());
+                if (radioButtonDefaultUnitsAreMM.Checked == true) return ApplicationUnitsEnum.MILLIMETERS;
+                else return ApplicationUnitsEnum.INCHES;
             }
             set
             {
-                comboBoxApplicationUnits.SelectedItem = value.ToString();
+                if (value == ApplicationUnitsEnum.MILLIMETERS) radioButtonDefaultUnitsAreMM.Checked = true;
+                else radioButtonDefaultUnitsAreIN.Checked = true;
             }
         }
 
         /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
         /// <summary>
-        /// Gets/Sets the currently set IsoPlotPointsPerAppUnit
+        /// Gets the currently set IsoPlotPointsPerAppUnit. This depends on the 
+        /// current application unit setting
         /// </summary>
-        /// <history>
-        ///    09 Aug 10  Cynic - Started
-        /// </history>
-        private int IsoPlotPointsPerAppUnit
+        /// <param name="currentUnits">the current application units</param>
+        private int GetIsoPlotPointsPerAppUnit(ApplicationUnitsEnum currentUnits)
+        {
+            // are we inches or mm?
+            if (currentUnits == ApplicationUnitsEnum.MILLIMETERS) return IsoPlotPointsPerAppUnitMM;
+            else return IsoPlotPointsPerAppUnitIN; // assume inches
+        }
+
+        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+        /// <summary>
+        /// Gets/Sets the currently set IsoPlotPointsPerAppUnit. This is for MM
+        /// </summary>
+        private int IsoPlotPointsPerAppUnitMM
         {
             get
             {
-                int retInt =0;
+                int retInt;
+                // we are millimeters
                 try
                 {
-                    retInt = Convert.ToInt32(textBoxIsoPlotPointsPerAppUnit.Text);
+                    retInt = Convert.ToInt32(textBoxIsoPlotPointsPerMM.Text);
                 }
                 catch
                 {
-                    retInt = ApplicationImplicitSettings.DEFAULT_ISOPLOTPOINTS_PER_APPUNIT;
+                    retInt = ApplicationImplicitSettings.DEFAULT_ISOPLOTPOINTS_PER_APPUNIT_MM;
                 }
-                if (retInt <= 0) return ApplicationImplicitSettings.DEFAULT_ISOPLOTPOINTS_PER_APPUNIT;
+                if (retInt <= 0) return ApplicationImplicitSettings.DEFAULT_ISOPLOTPOINTS_PER_APPUNIT_MM;
                 return retInt;
             }
             set
             {
-                if (value <= 0) textBoxIsoPlotPointsPerAppUnit.Text = ApplicationImplicitSettings.DEFAULT_ISOPLOTPOINTS_PER_APPUNIT.ToString();
-                textBoxIsoPlotPointsPerAppUnit.Text = value.ToString(); ;
+                // we are millimeters
+                if (value <= 0) textBoxIsoPlotPointsPerMM.Text = ApplicationImplicitSettings.DEFAULT_ISOPLOTPOINTS_PER_APPUNIT_MM.ToString();
+                textBoxIsoPlotPointsPerMM.Text = value.ToString(); ;
             }
         }
 
         /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
         /// <summary>
-        /// Handle an application units changed event
+        /// Gets/Sets the currently set IsoPlotPointsPerAppUnit. This is for INCHES
         /// </summary>
-        /// <history>
-        ///    08 Aug 10  Cynic - Started
-        ///    20 Nov 10  Cynic - Added code to convert the settings to equivalent values
-        /// </history>
-        private void comboBoxApplicationUnits_SelectedIndexChanged(object sender, EventArgs e)
+        private int IsoPlotPointsPerAppUnitIN
         {
-            DialogResult dlgRes;
-            bool prevSuppressUserActivatedEvents=false;
-
-            // are we supposed to notice this?
-            if (suppressUserActivatedEvents == true) return;
-            prevSuppressUserActivatedEvents = suppressUserActivatedEvents;
-            try
+            get
             {
-                // we do now want our actions here to trigger other events
-                suppressUserActivatedEvents = true;
-
-                // Are the new application units the same as the ones in the GerberFile?
-                if ((IsValidGerberFileOpen() == true) || (IsValidExcellonFileOpen() == true))
+                // assume inches
+                int retInt;
+                try
                 {
-                    dlgRes = OISMessageBox_YesNo("Changing this option will close the current Gerber, Excellon and GCode files. Do you wish to proceed?");
-                    if (dlgRes != DialogResult.Yes)
-                    {
-                        // the user does not want to clear the gerber file, just put the units back
-                        // the way they should be
-                        if (ApplicationUnits == ApplicationUnitsEnum.INCHES)
-                        {
-                            ApplicationUnits = ApplicationUnitsEnum.MILLIMETERS;
-                        }
-                        else
-                        {
-                            ApplicationUnits = ApplicationUnitsEnum.INCHES;
-                        }
-                        return;
-                    }
-                    else
-                    {
-                        ResetApplicationForNewFile();
-                    }
+                    retInt = Convert.ToInt32(textBoxIsoPlotPointsPerIN.Text);
                 }
-
-                // if we get here there is no file open and the user wants to change the units
-
-                // should we offer to convert all settings to the new units
-                dlgRes = OISMessageBox_YesNoCancel("Would you like to adjust all of the other settings, including the file managers, to equivalent values in these new units?");
-                if (dlgRes == DialogResult.Cancel)
+                catch
                 {
-                    // the user does not want to clear the gerber file, just put the units back
-                    // the way they should be
-                    if (ApplicationUnits == ApplicationUnitsEnum.INCHES)
-                    {
-                        ApplicationUnits = ApplicationUnitsEnum.MILLIMETERS;
-                    }
-                    else
-                    {
-                        ApplicationUnits = ApplicationUnitsEnum.INCHES;
-                    }
-                    return;
+                    retInt = ApplicationImplicitSettings.DEFAULT_ISOPLOTPOINTS_PER_APPUNIT_IN;
                 }
-                else if (dlgRes != DialogResult.Yes)
-                {
-                    return;
-                }
-
-                // perform the adjustment
-                if (ApplicationUnits == ApplicationUnitsEnum.INCHES)
-                {
-                    ctlFileManagersDisplay1.ApplicationUnits = ApplicationUnits;
-                    // convert all from mm to inches
-                    IsoPlotPointsPerAppUnit = (IsoPlotPointsPerAppUnit * INCHTOMMSCALERx10)/10;
-                    ctlFileManagersDisplay1.ConvertAllFileManagersToInches();
-                }
-                else
-                {
-                    ctlFileManagersDisplay1.ApplicationUnits = ApplicationUnits;
-                    // convert all from inches to mm
-                    IsoPlotPointsPerAppUnit = (IsoPlotPointsPerAppUnit * 10) /INCHTOMMSCALERx10;
-                    ctlFileManagersDisplay1.ConvertAllFileManagersToMM();
-                }
+                if (retInt <= 0) return ApplicationImplicitSettings.DEFAULT_ISOPLOTPOINTS_PER_APPUNIT_IN;
+                return retInt;
             }
-            finally
+            set
             {
-                // put back this original value
-                suppressUserActivatedEvents = prevSuppressUserActivatedEvents;
-                // always update this with whatever we are currently using
-                ctlFileManagersDisplay1.ApplicationUnits = ApplicationUnits;
+                // assume inches
+                if (value <= 0) textBoxIsoPlotPointsPerIN.Text = ApplicationImplicitSettings.DEFAULT_ISOPLOTPOINTS_PER_APPUNIT_IN.ToString();
+                textBoxIsoPlotPointsPerIN.Text = value.ToString(); ;
             }
+        }
 
+        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+        /// <summary>
+        /// Handle click on the radioButtonDefaultUnitsAreIN radio button
+        /// </summary>
+        private void radioButtonDefaultUnitsAreIN_CheckedChanged(object sender, EventArgs e)
+        {
+            // always update this with whatever we are currently using
+            ctlFileManagersDisplay1.DefaultApplicationUnits = DefaultApplicationUnits;
+            SyncIsoPlotUnitsEnabledStateToReality();
+        }
+
+        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+        /// <summary>
+        /// Handle click on the radioButtonDefaultUnitsAreMM radio button
+        /// </summary>
+        private void radioButtonDefaultUnitsAreMM_CheckedChanged(object sender, EventArgs e)
+        {
+            // always update this with whatever we are currently using
+            ctlFileManagersDisplay1.DefaultApplicationUnits = DefaultApplicationUnits;
+            SyncIsoPlotUnitsEnabledStateToReality();
+        }
+
+        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+        /// <summary>
+        /// Handle click on the buttonDefaultIsoPtsPerIN_Click button
+        /// </summary>
+        private void buttonDefaultIsoPtsPerIN_Click(object sender, EventArgs e)
+        {
+            // just set the default
+            textBoxIsoPlotPointsPerIN.Text = ApplicationImplicitSettings.DEFAULT_ISOPLOTPOINTS_PER_APPUNIT_IN.ToString();
+        }
+
+        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+        /// <summary>
+        /// Handle click on the buttonDefaultIsoPtsPerMM_Click button
+        /// </summary>
+        private void buttonDefaultIsoPtsPerMM_Click(object sender, EventArgs e)
+        {
+            // just set the default
+            textBoxIsoPlotPointsPerMM.Text = ApplicationImplicitSettings.DEFAULT_ISOPLOTPOINTS_PER_APPUNIT_MM.ToString();
         }
 
         /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
         /// <summary>
         /// Handle click on the buttonDefaultIsoPtsPerAppUnit
         /// </summary>
-        /// <history>
-        ///    20 Nov 10  Cynic - Started
-        /// </history>
         private void buttonDefaultIsoPtsPerAppUnit_Click(object sender, EventArgs e)
         {
-            // if a file is open warn the usert his way
+            // if a file is open warn the user his way
             if ((IsValidGerberFileOpen() == true) || (IsValidExcellonFileOpen() == true))
             {
                 DialogResult dlgRes = OISMessageBox_YesNo("Changing this option will close the current Gerber, Excellon and GCode files.\n\nDo you wish to proceed and set this value to its default level?");
@@ -1654,25 +1650,12 @@ namespace LineGrinder
             // user wants to do it
             ResetApplicationForNewFile();
 
-            if (ApplicationUnits == ApplicationUnitsEnum.INCHES)
-            {
-                // convert all from mm to inches
-                IsoPlotPointsPerAppUnit = ApplicationImplicitSettings.DEFAULT_VIRTURALCOORD_PER_INCH;
-            }
-            else
-            {
-                IsoPlotPointsPerAppUnit = (ApplicationImplicitSettings.DEFAULT_VIRTURALCOORD_PER_INCH * 10) / INCHTOMMSCALERx10;
-            }
-
         }
 
         /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
         /// <summary>
         /// Ensures the isoplot points per app unit box only accepts integers
         /// </summary>
-        /// <history>
-        ///    09 Aug 10  Cynic - Started
-        /// </history>
         private void textBoxIsoPlotPointsPerAppUnit_KeyPress(object sender, KeyPressEventArgs e)
         {
             // test for backspace, delete etc
@@ -1711,9 +1694,6 @@ namespace LineGrinder
         /// </summary>
         /// <param name="bSilent">if true we do not tell the user on error</param>
         /// <returns>z success, nz fail</returns>
-        /// <history>
-        ///    07 Sep 10  Cynic - Started
-        /// </history>
         private int ReadExplictUserSettings(bool bSilent)
         {
             string appPath="";
@@ -1756,9 +1736,6 @@ namespace LineGrinder
         /// </summary>
         /// <param name="bSilent">if true we do not tell the user on error</param>
         /// <returns>z success, nz fail</returns>
-        /// <history>
-        ///    07 Sep 10  Cynic - Started
-        /// </history>
         private int WriteExplicitUserSettings(bool bSilent)
         {
             string appPath="";
@@ -1801,22 +1778,21 @@ namespace LineGrinder
         /// <summary>
         /// Moves the implicit configuration settings from settings file to the screen
         /// </summary>
-        /// <history>
-        ///    08 Aug 10  Cynic - Started
-        /// </history>
         private void MoveImplicitUserSettingsToScreen()
         {
             // implicit settings
             this.Size = ImplicitUserSettings.FormSize;
             MRUList.FileList = ImplicitUserSettings.MRUFileList;
             // populate the application units combobox contents
-            comboBoxApplicationUnits.DataSource = Enum.GetNames(typeof(ApplicationUnitsEnum));
-            ApplicationUnits = ImplicitUserSettings.ApplicationUnits;
-            IsoPlotPointsPerAppUnit = ImplicitUserSettings.IsoPlotPointsPerAppUnit;
+            DefaultApplicationUnits = ImplicitUserSettings.DefaultApplicationUnits;
+            IsoPlotPointsPerAppUnitIN = ImplicitUserSettings.IsoPlotPointsPerAppUnitIN;
+            IsoPlotPointsPerAppUnitMM = ImplicitUserSettings.IsoPlotPointsPerAppUnitMM;
 
             checkBoxShowGerberApertures.Checked = ImplicitUserSettings.ShowGerberApertures;
             checkBoxShowGerberCenterLines.Checked = ImplicitUserSettings.ShowGerberCenterLines;
             checkBoxShowOrigin.Checked = ImplicitUserSettings.ShowOrigin;
+            checkBoxShowGCodeOrigin.Checked = ImplicitUserSettings.ShowGCodeOrigin;
+            checkBoxShowFlipAxis.Checked = ImplicitUserSettings.ShowFlipAxis;
             checkBoxOnGCodePlotShowGerber.Checked = ImplicitUserSettings.ShowGerberOnGCodePlots;
         }
 
@@ -1824,9 +1800,6 @@ namespace LineGrinder
         /// <summary>
         /// Moves the explicit configuration settings from settings file to the screen
         /// </summary>
-        /// <history>
-        ///    07 Sep 10  Cynic - Started
-        /// </history>
         private void MoveExplicitUserSettingsToScreen()
         {
             // load the File Manager, first get the list
@@ -1836,37 +1809,16 @@ namespace LineGrinder
 
         /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
         /// <summary>
-        /// deep clones the file manager list
-        /// </summary>
-        /// <history>
-        ///    26 Aug 10  Cynic - Started
-        /// </history>
-        private BindingList<FileManager> DeepCloneFileManagerList(BindingList<FileManager> fmList)
-        {
-            if (fmList == null) return null;
-            // clone it,
-            BindingList<FileManager> newfileManagerList = new BindingList<FileManager>();
-            foreach (FileManager mgrObj in fmList)
-            {
-                newfileManagerList.Add(FileManager.DeepClone(mgrObj));
-            }
-            return newfileManagerList;
-        }
-
-        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
-        /// <summary>
         /// Detects if the configuration settings the user explicitly specifies have
         /// changed. The contents here need to be synced with the actions in
         /// SetUserImplicitUserSettings()
         /// </summary>
-        /// <history>
-        ///    08 Aug 10  Cynic - Started
-        /// </history>
         private bool DoWeNeedToSaveExplicitUserSettings()
         {
             // test the Explicit User Configuration items
-            if (ImplicitUserSettings.ApplicationUnits != (ApplicationUnitsEnum)Enum.Parse(typeof(ApplicationUnitsEnum), comboBoxApplicationUnits.SelectedItem.ToString())) return true;
-            if (ImplicitUserSettings.IsoPlotPointsPerAppUnit != IsoPlotPointsPerAppUnit) return true;
+            if (ImplicitUserSettings.DefaultApplicationUnits != DefaultApplicationUnits) return true;
+            if (ImplicitUserSettings.IsoPlotPointsPerAppUnitIN != IsoPlotPointsPerAppUnitIN) return true;
+            if (ImplicitUserSettings.IsoPlotPointsPerAppUnitMM != IsoPlotPointsPerAppUnitMM) return true;
             if (ctlFileManagersDisplay1.OptionsChanged == true) return true;
             return false;
         }
@@ -1876,18 +1828,18 @@ namespace LineGrinder
         /// Sets the form settings which the user does not really specify. These
         /// are things like form size etc.
         /// </summary>
-        /// <history>
-        ///    08 Aug 10  Cynic - Started
-        /// </history>
         private void SetImplicitUserSettings()
         {
             ImplicitUserSettings.FormSize = this.Size;
             ImplicitUserSettings.MRUFileList = MRUList.FileList;
-            ImplicitUserSettings.ApplicationUnits = ApplicationUnits;
-            ImplicitUserSettings.IsoPlotPointsPerAppUnit = IsoPlotPointsPerAppUnit;
+            ImplicitUserSettings.DefaultApplicationUnits = DefaultApplicationUnits;
+            ImplicitUserSettings.IsoPlotPointsPerAppUnitIN = IsoPlotPointsPerAppUnitIN;
+            ImplicitUserSettings.IsoPlotPointsPerAppUnitMM = IsoPlotPointsPerAppUnitMM;
             ImplicitUserSettings.ShowGerberApertures = checkBoxShowGerberApertures.Checked;
             ImplicitUserSettings.ShowGerberCenterLines = checkBoxShowGerberCenterLines.Checked;
             ImplicitUserSettings.ShowOrigin = checkBoxShowOrigin.Checked;
+            ImplicitUserSettings.ShowGCodeOrigin = checkBoxShowGCodeOrigin.Checked;
+            ImplicitUserSettings.ShowFlipAxis = checkBoxShowFlipAxis.Checked;
             ImplicitUserSettings.ShowGerberOnGCodePlots = this.checkBoxOnGCodePlotShowGerber.Checked;
         }
 
@@ -1895,9 +1847,6 @@ namespace LineGrinder
         /// <summary>
         /// Returns the implicit user config settings object. Will never get or set null
         /// </summary>
-        /// <history>
-        ///    08 Aug 10  Cynic - Started
-        /// </history>
         public ApplicationImplicitSettings ImplicitUserSettings
         {
             get
@@ -1916,9 +1865,6 @@ namespace LineGrinder
         /// <summary>
         /// Returns the explicit user config settings object. Will never get or set null
         /// </summary>
-        /// <history>
-        ///    07 Sep 10  Cynic - Started
-        /// </history>
         public ApplicationExplicitSettings ExplicitUserSettings
         {
             get
@@ -1944,9 +1890,6 @@ namespace LineGrinder
         /// <summary>
         /// Handles a press on the View Logfile button
         /// </summary>
-        /// <history>
-        ///    13 Sep 10  Cynic - Started
-        /// </history>
         private void buttonViewLogfile_Click(object sender, EventArgs e)
         {
             try
@@ -1982,9 +1925,6 @@ namespace LineGrinder
         /// <summary>
         /// Handles a press on the Save Configuration button
         /// </summary>
-        /// <history>
-        ///    10 Aug 10  Cynic - Started
-        /// </history>
         private void buttonSaveConfiguration_Click(object sender, EventArgs e)
         {
             SetImplicitUserSettings();
@@ -2003,9 +1943,6 @@ namespace LineGrinder
         /// <summary>
         /// Handles a press on the Save Isolation GCode button
         /// </summary>
-        /// <history>
-        ///    10 Aug 10  Cynic - Started
-        /// </history>
         private void buttonSaveIsolationGCode_Click(object sender, EventArgs e)
         {
             Cursor tmpCursor = Cursor.Current;
@@ -2079,16 +2016,15 @@ namespace LineGrinder
             CurrentIsolationGCodeFile.HasBeenSaved = true;
             textBoxIsolationGCodeFileName.Text = fileNameAndPath;
 
+#if !DEBUG
             OISMessageBox("The Isolation GCode file has been saved under the name\n\n" + fileNameAndPath);
+#endif
         }
 
         /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
         /// <summary>
         /// Handles a press on the Save Isolation GCode As button
         /// </summary>
-        /// <history>
-        ///    10 Aug 10  Cynic - Started
-        /// </history>
         private void buttonSaveIsolationGCodeAs_Click(object sender, EventArgs e)
         {
             Cursor tmpCursor = Cursor.Current;
@@ -2184,16 +2120,15 @@ namespace LineGrinder
             CurrentIsolationGCodeFile.HasBeenSaved = true;
             textBoxIsolationGCodeFileName.Text = fileNameAndPath;
 
+#if !DEBUG
             OISMessageBox("The Isolation GCode file has been saved under the name\n\n" + fileNameAndPath);
+#endif
         }
 
         /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
         /// <summary>
         /// Handles a press on the Save Edge Mill GCode button
         /// </summary>
-        /// <history>
-        ///    25 Aug 10  Cynic - Started
-        /// </history>
         private void buttonSaveEdgeMillGCode_Click(object sender, EventArgs e)
         {
             Cursor tmpCursor = Cursor.Current;
@@ -2267,16 +2202,15 @@ namespace LineGrinder
             CurrentEdgeMillGCodeFile.HasBeenSaved = true;
             textBoxEdgeMillGCodeFileName.Text = fileNameAndPath;
 
+#if !DEBUG
             OISMessageBox("The Edge Mill GCode file has been saved under the name\n\n" + fileNameAndPath);
+#endif
         }
 
         /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
         /// <summary>
         /// Handles a press on the Save Edge Mill GCode As button
         /// </summary>
-        /// <history>
-        ///    25 Aug 10  Cynic - Started
-        /// </history>
         private void buttonSaveEdgeMillGCodeAs_Click(object sender, EventArgs e)
         {
             Cursor tmpCursor = Cursor.Current;
@@ -2372,16 +2306,15 @@ namespace LineGrinder
             CurrentEdgeMillGCodeFile.HasBeenSaved = true;
             textBoxEdgeMillGCodeFileName.Text = fileNameAndPath;
 
+#if !DEBUG
             OISMessageBox("The Edge Mill GCode file has been saved under the name\n\n" + fileNameAndPath);
+#endif
         }
 
         /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
         /// <summary>
         /// Handles a press on the Save Reference Pins GCode button
         /// </summary>
-        /// <history>
-        ///    26 Aug 10  Cynic - Started
-        /// </history>
         private void buttonSaveRefPinGCode_Click(object sender, EventArgs e)
         {
             Cursor tmpCursor = Cursor.Current;
@@ -2455,16 +2388,15 @@ namespace LineGrinder
             CurrentReferencePinGCodeFile.HasBeenSaved = true;
             textBoxRefPinGCodeFileName.Text = fileNameAndPath;
 
+#if !DEBUG
             OISMessageBox("The Reference Pins GCode file has been saved under the name\n\n" + fileNameAndPath);
+#endif
         }
 
         /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
         /// <summary>
         /// Handles a press on the Save Reference Pins GCode As button
         /// </summary>
-        /// <history>
-        ///    26 Aug 10  Cynic - Started
-        /// </history>
         private void buttonSaveRefPinGCodeAs_Click(object sender, EventArgs e)
         {
             Cursor tmpCursor = Cursor.Current;
@@ -2560,7 +2492,9 @@ namespace LineGrinder
             CurrentReferencePinGCodeFile.HasBeenSaved = true;
             textBoxRefPinGCodeFileName.Text = fileNameAndPath;
 
+#if !DEBUG
             OISMessageBox("The Reference Pins GCode file has been saved under the name\n\n" + fileNameAndPath);
+#endif
         }
 
 
@@ -2568,9 +2502,6 @@ namespace LineGrinder
         /// <summary>
         /// Handles a press on the Save Bed Flattening GCode button
         /// </summary>
-        /// <history>
-        ///    25 Aug 10  Cynic - Started
-        /// </history>
         private void buttonSaveBedFlatteningGCode_Click(object sender, EventArgs e)
         {
             Cursor tmpCursor = Cursor.Current;
@@ -2644,16 +2575,15 @@ namespace LineGrinder
             CurrentBedFlatteningGCodeFile.HasBeenSaved = true;
             textBoxBedFlatteningGCodeFileName.Text = fileNameAndPath;
 
+#if !DEBUG
             OISMessageBox("The Bed Flattening GCode file has been saved under the name\n\n" + fileNameAndPath);
+#endif
         }
 
         /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
         /// <summary>
         /// Handles a press on the Save Bed Flattening GCode As button
         /// </summary>
-        /// <history>
-        ///    25 Aug 10  Cynic - Started
-        /// </history>
         private void buttonSaveBedFlatteningGCodeAs_Click(object sender, EventArgs e)
         {
             Cursor tmpCursor = Cursor.Current;
@@ -2749,16 +2679,15 @@ namespace LineGrinder
             CurrentBedFlatteningGCodeFile.HasBeenSaved = true;
             textBoxBedFlatteningGCodeFileName.Text = fileNameAndPath;
 
+#if !DEBUG
             OISMessageBox("The Bed Flattening GCode file has been saved under the name\n\n" + fileNameAndPath);
+#endif
         }
 
         /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
         /// <summary>
         /// Handles a press on the Save Drill GCode button
         /// </summary>
-        /// <history>
-        ///    03 Sep 10  Cynic - Started
-        /// </history>
         private void buttonSaveDrillGCode_Click(object sender, EventArgs e)
         {
             Cursor tmpCursor = Cursor.Current;
@@ -2832,16 +2761,15 @@ namespace LineGrinder
             CurrentDrillGCodeFile.HasBeenSaved = true;
             textBoxDrillGCodeFileName.Text = fileNameAndPath;
 
+#if !DEBUG
             OISMessageBox("The Drilling GCode file has been saved under the name\n\n" + fileNameAndPath);
+#endif
         }
 
         /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
         /// <summary>
         /// Handles a press on the Save Drill GCode As button
         /// </summary>
-        /// <history>
-        ///    03 Sep 10  Cynic - Started
-        /// </history>
         private void buttonSaveDrillGCodeAs_Click(object sender, EventArgs e)
         {
             Cursor tmpCursor = Cursor.Current;
@@ -2937,16 +2865,15 @@ namespace LineGrinder
             CurrentDrillGCodeFile.HasBeenSaved = true;
             textBoxDrillGCodeFileName.Text = fileNameAndPath;
 
+#if !DEBUG
             OISMessageBox("The Drilling GCode file has been saved under the name\n\n" + fileNameAndPath);
+#endif
         }
 
         /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
         /// <summary>
         /// Handles a press on the open file button
         /// </summary>
-        /// <history>
-        ///    08 Aug 10  Cynic - Started
-        /// </history>
         private void buttonOpenFile_Click(object sender, EventArgs e)
         {
             int retInt;
@@ -2980,8 +2907,10 @@ namespace LineGrinder
             bool retBool = AreAnyGCodeFilesUnsaved();
             if (retBool == true)
             {
+#if !DEBUG
                 dlgRes = OISMessageBox_YesNo("Some of the generated GCode files is unsaved. Opening a new file will close those files.\n\nDo you wish to continue?");
                 if (dlgRes != DialogResult.Yes) return;
+#endif
             }
 
             string filePathAndName="";
@@ -3018,8 +2947,8 @@ namespace LineGrinder
             ImplicitUserSettings.LastOpenFileDirectory = Path.GetDirectoryName(filePathAndName);
             ImplicitUserSettings.LastOpenFileName = Path.GetFileName(filePathAndName);
 
-            // now get the FileManagers object for the specified File
-            fileManagerObj = ctlFileManagersDisplay1.GetMatchingFileManagersObject(filePathAndName);
+            // now get the FileManager object for the specified File
+            fileManagerObj = ctlFileManagersDisplay1.GetMatchingFileManager(filePathAndName, true);
             if ((fileManagerObj == null) || (fileManagerObj.OperationMode == FileManager.OperationModeEnum.Default))
             {
                 // lets check to see if we can guess the design tool that output this
@@ -3052,8 +2981,8 @@ namespace LineGrinder
                 }
             }
 
-            // try again. now get the FileManagers object for the specified File
-            fileManagerObj = ctlFileManagersDisplay1.GetMatchingFileManagersObject(filePathAndName);
+            // try again. now get the FileManager object for the specified File
+            fileManagerObj = ctlFileManagersDisplay1.GetMatchingFileManager(filePathAndName, true);
             if ((fileManagerObj == null) || (fileManagerObj.OperationMode == FileManager.OperationModeEnum.Default))
             {
                 dlgRes = OISMessageBox_YesNo("No File Manager could be found for this file. File Managers contain the configuration options for the file.\n\nWould you like to create a new File Manager now?");
@@ -3092,6 +3021,9 @@ namespace LineGrinder
             }
             // set this now
             CurrentFileManager = fileManagerObj;
+            // set the properties panel on the settings so the user sees this file manager open
+            ctlFileManagersDisplay1.SetSelectedManagerByName(fileManagerObj.FilenamePattern);
+            // note it down here too
             textBoxActiveFileManager.Text = fileManagerObj.FilenamePattern;
             LogMessage("OpenFile, found matching manager:" + CurrentFileManager.FilenamePattern);
 
@@ -3124,7 +3056,7 @@ namespace LineGrinder
                 if (retInt != 0)
                 {
                     // log this
-                    LogMessage("buttonOpenFile_Click call to OpenGerberorExcellonFile returned" + retInt.ToString());
+                    LogMessage("buttonOpenFile_Click call to OpenGerberorExcellonFile returned " + retInt.ToString());
                     // yes it did, was it reported?
                     if (retInt < 0)
                     {
@@ -3166,16 +3098,18 @@ namespace LineGrinder
                 // set the plot origin at zero, and compensate the maxX, maxY by our Origin adjustments
                 ClearPlotViewBitmap();
                 ctlPlotViewer1.GerberFileToDisplay = null;
+                ctlPlotViewer1.ExcellonFileToDisplay = CurrentExcellonFile;
                 ctlPlotViewer1.MagnificationLevel = ctlPlotViewer.DEFAULT_MAGNIFICATION_LEVEL;
-                ctlPlotViewer1.ApplicationUnits = ApplicationUnits;
-                ctlPlotViewer1.IsoPlotPointsPerAppUnit = IsoPlotPointsPerAppUnit;
-                ctlPlotViewer1.SetPlotObjectLimits(0, 0, CurrentExcellonFile.MaxPlotXCoord, CurrentExcellonFile.MaxPlotYCoord);
+                ctlPlotViewer1.ScreenUnits = CurrentExcellonFile.ExcellonFileUnits;
+                ctlPlotViewer1.IsoPlotPointsPerAppUnit = GetIsoPlotPointsPerAppUnit(CurrentExcellonFile.ExcellonFileUnits);
+                ctlPlotViewer1.GcodeOriginAtCenter = CurrentExcellonFile.GCodeOriginAtCenter;
+                ctlPlotViewer1.SetPlotObjectLimits(0, 0, CurrentExcellonFile.MaxPlotXCoord, CurrentExcellonFile.MaxPlotYCoord, CurrentExcellonFile.MidPlotXCoord, CurrentExcellonFile.MidPlotYCoord);
                 ctlPlotViewer1.MagnificationLevel = ctlPlotViewer.DEFAULT_MAGNIFICATION_LEVEL;
                 ctlPlotViewer1.SetScrollBarMaxMinLimits();
                 ctlPlotViewer1.ShowPlot();
 
                 // now set screen display
-                radioButtonNoPlot.Checked = true;
+                radioButtonMainViewGerberPlot.Checked = true;
                 tabControl1.SelectedTab = tabPagePlot;
                 richTextBoxExcellonCode.Lines = CurrentExcellonFile.GetRawSourceLinesAsArray();
                 textBoxOpenExcellonFileName.Text = filePathAndName;
@@ -3185,7 +3119,7 @@ namespace LineGrinder
                 if (CurrentExcellonFile.ExcellonFileManager.AutoGenerateGCode == false)
                 {
                     // we are done, say all is well
-                    OISMessageBox("The Excellon file opened successfully.");
+                    //OISMessageBox("The Excellon file opened successfully.");
                 }
                 else
                 {
@@ -3214,9 +3148,10 @@ namespace LineGrinder
                 ClearPlotViewBitmap();
                 ctlPlotViewer1.MagnificationLevel = ctlPlotViewer.DEFAULT_MAGNIFICATION_LEVEL;
                 ctlPlotViewer1.GerberFileToDisplay = outputGerberFile;
-                ctlPlotViewer1.ApplicationUnits = ApplicationUnits;
-                ctlPlotViewer1.IsoPlotPointsPerAppUnit = IsoPlotPointsPerAppUnit;
-                ctlPlotViewer1.SetPlotObjectLimits(0, 0, outputGerberFile.MaxPlotXCoord, outputGerberFile.MaxPlotYCoord);
+                ctlPlotViewer1.ScreenUnits = CurrentGerberFile.GerberFileUnits;
+                ctlPlotViewer1.IsoPlotPointsPerAppUnit = GetIsoPlotPointsPerAppUnit(CurrentGerberFile.GerberFileUnits);
+                ctlPlotViewer1.GcodeOriginAtCenter = outputGerberFile.GCodeOriginAtCenter;
+                ctlPlotViewer1.SetPlotObjectLimits(0, 0, outputGerberFile.MaxPlotXCoord, outputGerberFile.MaxPlotYCoord, outputGerberFile.MidPlotXCoord, outputGerberFile.MidPlotYCoord);                
                 ctlPlotViewer1.SetScrollBarMaxMinLimits();
                 ctlPlotViewer1.ShowPlot();
 
@@ -3229,10 +3164,15 @@ namespace LineGrinder
                 SyncFormVisualsToGerberExcellonAndGCodeState();
                 ctlPlotViewer1.SetScrollBarMaxMinLimits();
 
+                // set the settings enabled state
+                SyncSettingsEnabledStateToReality(); 
+
                 if (CurrentGerberFile.GerberFileManager.AutoGenerateGCode == false)
                 {
+#if !DEBUG
                     // we are done, say all is well
-                    OISMessageBox("The Gerber file opened successfully.");
+                    //OISMessageBox("The Gerber file opened successfully.");
+#endif
                 }
                 else
                 {
@@ -3246,9 +3186,6 @@ namespace LineGrinder
         /// <summary>
         /// Handles a press on the open recent file button
         /// </summary>
-        /// <history>
-        ///    08 Aug 10  Cynic - Started
-        /// </history>
         private void buttonRecentFiles_Click(object sender, EventArgs e)
         {
             string errStr = "";
@@ -3302,8 +3239,8 @@ namespace LineGrinder
             ImplicitUserSettings.LastOpenFileDirectory = Path.GetDirectoryName(filePathAndName);
             ImplicitUserSettings.LastOpenFileName = Path.GetFileName(filePathAndName);
 
-            // now get the FileManagers object for the specified File
-            fileManagerObj = ctlFileManagersDisplay1.GetMatchingFileManagersObject(filePathAndName);
+            // now get the FileManager object for the specified File
+            fileManagerObj = ctlFileManagersDisplay1.GetMatchingFileManager(filePathAndName, true);
             if ((fileManagerObj == null) || (fileManagerObj.OperationMode == FileManager.OperationModeEnum.Default))
             {
                 dlgRes = OISMessageBox_YesNo("No File Manager could be found for this file. File Managers contain the configuration options for the file.\n\nWould you like to create a new File Manager now?");
@@ -3364,7 +3301,7 @@ namespace LineGrinder
                 if (retInt != 0)
                 {
                     // log this
-                    LogMessage("buttonOpenFile_Click call to OpenGerberorExcellonFile returned" + retInt.ToString());
+                    LogMessage("buttonOpenFile_Click call to OpenGerberorExcellonFile returned " + retInt.ToString());
                     // yes it did, was it reported?
                     if (retInt < 0)
                     {
@@ -3407,9 +3344,10 @@ namespace LineGrinder
                 ClearPlotViewBitmap();
                 ctlPlotViewer1.MagnificationLevel = ctlPlotViewer.DEFAULT_MAGNIFICATION_LEVEL;
                 ctlPlotViewer1.GerberFileToDisplay = null;
-                ctlPlotViewer1.ApplicationUnits = ApplicationUnits;
-                ctlPlotViewer1.IsoPlotPointsPerAppUnit = IsoPlotPointsPerAppUnit;
-                ctlPlotViewer1.SetPlotObjectLimits(0, 0, CurrentExcellonFile.MaxPlotXCoord, CurrentExcellonFile.MaxPlotYCoord);
+                ctlPlotViewer1.ScreenUnits = CurrentExcellonFile.ExcellonFileUnits; ;
+                ctlPlotViewer1.IsoPlotPointsPerAppUnit = GetIsoPlotPointsPerAppUnit(CurrentExcellonFile.ExcellonFileUnits);
+                ctlPlotViewer1.GcodeOriginAtCenter = CurrentExcellonFile.GCodeOriginAtCenter;
+                ctlPlotViewer1.SetPlotObjectLimits(0, 0, CurrentExcellonFile.MaxPlotXCoord, CurrentExcellonFile.MaxPlotYCoord, CurrentExcellonFile.MidPlotXCoord, CurrentExcellonFile.MidPlotYCoord);
                 ctlPlotViewer1.SetScrollBarMaxMinLimits();
                 ctlPlotViewer1.ShowPlot();
 
@@ -3422,7 +3360,7 @@ namespace LineGrinder
                 SyncFormVisualsToGerberExcellonAndGCodeState();
 
                 // say all is well
-                OISMessageBox("The Excellon file opened successfully.");
+                //OISMessageBox("The Excellon file opened successfully.");
 
             }
             else
@@ -3447,12 +3385,10 @@ namespace LineGrinder
                 ClearPlotViewBitmap();
                 ctlPlotViewer1.MagnificationLevel = ctlPlotViewer.DEFAULT_MAGNIFICATION_LEVEL;
                 ctlPlotViewer1.GerberFileToDisplay = outputGerberFile;
-                ctlPlotViewer1.ApplicationUnits = ApplicationUnits;
-                ctlPlotViewer1.IsoPlotPointsPerAppUnit = IsoPlotPointsPerAppUnit;
-
-                //DebugMessage("working in here for the absolute origin stuff. Do not ship till this is sorted");
- //need to feed in the exact origin offset
-                ctlPlotViewer1.SetPlotObjectLimits(0, 0, outputGerberFile.MaxPlotXCoord, outputGerberFile.MaxPlotYCoord);
+                ctlPlotViewer1.ScreenUnits = CurrentGerberFile.GerberFileUnits;
+                ctlPlotViewer1.IsoPlotPointsPerAppUnit = GetIsoPlotPointsPerAppUnit(CurrentGerberFile.GerberFileUnits);
+                ctlPlotViewer1.GcodeOriginAtCenter = outputGerberFile.GCodeOriginAtCenter;
+                ctlPlotViewer1.SetPlotObjectLimits(0, 0, outputGerberFile.MaxPlotXCoord, outputGerberFile.MaxPlotYCoord, outputGerberFile.MidPlotXCoord, outputGerberFile.MidPlotYCoord);
                 ctlPlotViewer1.SetScrollBarMaxMinLimits();
                 ctlPlotViewer1.ShowPlot();
 
@@ -3466,7 +3402,9 @@ namespace LineGrinder
                 ctlPlotViewer1.SetScrollBarMaxMinLimits();
 
                 // say all is well
-                OISMessageBox("The Gerber file opened successfully.");
+#if !DEBUG
+                //OISMessageBox("The Gerber file opened successfully.");
+#endif
             }
         }
 
@@ -3474,19 +3412,20 @@ namespace LineGrinder
         /// <summary>
         /// Handles a press on the convert Gerber to GCode button
         /// </summary>
-        /// <history>
-        ///    08 Aug 10  Cynic - Started
-        /// </history>
         private void buttonConvertToGCode_Click(object sender, EventArgs e)
         {
+            TimeSpan timeTaken;
             int retInt;
             string errStr="";
             Cursor tmpCursor = Cursor.Current;
             GCodeFile outGCodeFileObj = null;
-            ToolHeadParameters toolHeadSetup = null;
-            GCodeBuilder outGCodeBuilderObj = null;
+            IsoPlotBuilder outIsoPlotBuilderObj = null;
 
             LogMessage("buttonConvertToGCode_Click called");
+
+            // start timer
+            Stopwatch timer = new Stopwatch();
+            timer.Start();
 
             // reset things
             ResetApplicationForNewConvertToGCode();
@@ -3516,10 +3455,8 @@ namespace LineGrinder
                     try
                     {
                         // now create GCodes we need to set our toolhead parameters here
-                        toolHeadSetup = new ToolHeadParameters();
-                        toolHeadSetup.SetToolHeadParametersFromMode(CurrentFileManager, ToolHeadParameters.ToolHeadSetupModeEnum.IsoCut);
-                        CurrentGerberFile.StateMachine.ToolHeadSetup = toolHeadSetup;
-                        retInt = CreateIsolationCutGCode(CurrentFileManager, CurrentGerberFile, out outGCodeFileObj, out outGCodeBuilderObj, ref errStr);
+                        CurrentGerberFile.StateMachine.ToolHeadSetup = new ToolHeadParameters(4, CurrentFileManager, ToolHeadParametersModeEnum.ISOCUT);
+                        retInt = CreateIsolationCutGCode(CurrentFileManager, CurrentGerberFile, out outGCodeFileObj, out outIsoPlotBuilderObj, ref errStr);
                     }
                     finally
                     {
@@ -3543,24 +3480,31 @@ namespace LineGrinder
                         LogMessage("buttonConvertToGCode_Click:  isostage outGCodeFileObj == null");
                         return;
                     }
-                    if (outGCodeBuilderObj == null)
+                    if (outIsoPlotBuilderObj == null)
                     {
-                        LogMessage("buttonConvertToGCode_Click: outGCodeBuilderObj == null");
+                        LogMessage("buttonConvertToGCode_Click: outIsoPlotBuilderObj == null");
                         return;
                     }
                     // set it now
                     CurrentIsolationGCodeFile = outGCodeFileObj;
-                    CurrentGCodeBuilder = outGCodeBuilderObj;
+                    CurrentIsoPlotBuilder = outIsoPlotBuilderObj;
                     CurrentIsolationGCodeFile.HasBeenSaved = false;
                     // we need to set our toolhead parameters here
-                    toolHeadSetup = new ToolHeadParameters();
-                    toolHeadSetup.SetToolHeadParametersFromMode(CurrentFileManager, ToolHeadParameters.ToolHeadSetupModeEnum.IsoCut);
-                    CurrentIsolationGCodeFile.StateMachine.ToolHeadSetup = toolHeadSetup;
-                    richTextBoxIsolationGCode.Text = CurrentIsolationGCodeFile.GetGCodeLinesAsText(toolHeadSetup).ToString();
-                }
+                    CurrentIsolationGCodeFile.StateMachine.ToolHeadSetup = new ToolHeadParameters(5, CurrentFileManager, ToolHeadParametersModeEnum.ISOCUT);
+                    richTextBoxIsolationGCode.Text = CurrentIsolationGCodeFile.GetGCodeCmdsAsText().ToString();
+                } // bottom of if (CurrentFileManager.IsoCutGCodeEnabled == true)
 
-                // test to see if we should also build a Reference Pin GCode file
-                if (CurrentFileManager.ReferencePinGCodeEnabled == true)
+                // stop the clock
+                timer.Stop();
+                timeTaken = timer.Elapsed;
+                string isoCutElapsedTime = timeTaken.ToString(@"m\:ss\.fff");
+                LogMessage("GCode Conversion: isoCut elapsed time is " + isoCutElapsedTime);
+
+                timer = Stopwatch.StartNew();
+
+                // test to see if we should also build a Reference Pin GCode file, if we did not find reference pins we ignore this
+                // the user will already have been warned and and accepted that they cannot generate this
+                if ((CurrentFileManager.ReferencePinGCodeEnabled == true) && (CurrentGerberFile.StateMachine.ReferencePinsFound==true))
                 {
                     // set the cursor, this can take some time
                     tmpCursor = Cursor.Current;
@@ -3568,9 +3512,7 @@ namespace LineGrinder
                     try
                     {
                         // now create GCodes we need to set our toolhead parameters here
-                        toolHeadSetup = new ToolHeadParameters();
-                        toolHeadSetup.SetToolHeadParametersFromMode(CurrentFileManager, ToolHeadParameters.ToolHeadSetupModeEnum.RefPins);
-                        CurrentGerberFile.StateMachine.ToolHeadSetup = toolHeadSetup;
+                        CurrentGerberFile.StateMachine.ToolHeadSetup = new ToolHeadParameters(6, CurrentFileManager, ToolHeadParametersModeEnum.REFPINS);
                         // now create GCodes
                         retInt = CreateReferencePinGCode(CurrentFileManager, CurrentGerberFile, out outGCodeFileObj, ref errStr);
                     }
@@ -3601,14 +3543,20 @@ namespace LineGrinder
                     CurrentReferencePinGCodeFile = outGCodeFileObj;
                     CurrentReferencePinGCodeFile.HasBeenSaved = false;
                     // we need to set our toolhead parameters here
-                    toolHeadSetup = new ToolHeadParameters();
-                    toolHeadSetup.SetToolHeadParametersFromMode(CurrentFileManager, ToolHeadParameters.ToolHeadSetupModeEnum.RefPins);
-                    CurrentReferencePinGCodeFile.StateMachine.ToolHeadSetup = toolHeadSetup;
-                    richTextBoxRefPinGCode.Text = CurrentReferencePinGCodeFile.GetGCodeLinesAsText(toolHeadSetup).ToString();
+                    CurrentReferencePinGCodeFile.StateMachine.ToolHeadSetup = new ToolHeadParameters(10, CurrentFileManager, ToolHeadParametersModeEnum.REFPINS);
+                    richTextBoxRefPinGCode.Text = CurrentReferencePinGCodeFile.GetGCodeCmdsAsText().ToString();
 
-                }
-            }
-            if (CurrentFileManager.OperationMode == FileManager.OperationModeEnum.BoardEdgeMill)
+                    // stop the clock
+                    timer.Stop();
+                    timeTaken = timer.Elapsed;
+                    string refPinElapsedTime = timeTaken.ToString(@"m\:ss\.fff");
+                    LogMessage("GCode Conversion: refPin elapsed time is " + refPinElapsedTime);
+
+                    timer = Stopwatch.StartNew();
+
+                } // if (CurrentFileManager.ReferencePinGCodeEnabled == true)
+            } // bottom of if (CurrentFileManager.OperationMode == FileManager.OperationModeEnum.IsolationCut)
+            else if (CurrentFileManager.OperationMode == FileManager.OperationModeEnum.BoardEdgeMill)
             {
                 // we require this here
                 if (IsValidGerberFileOpen() == false)
@@ -3637,10 +3585,8 @@ namespace LineGrinder
                     try
                     {
                         // now create GCodes, we need to set our toolhead parameters here
-                        toolHeadSetup = new ToolHeadParameters();
-                        toolHeadSetup.SetToolHeadParametersFromMode(CurrentFileManager, ToolHeadParameters.ToolHeadSetupModeEnum.EdgeMill);
-                        CurrentGerberFile.StateMachine.ToolHeadSetup = toolHeadSetup;
-                        retInt = CreateIsolationCutGCode(CurrentFileManager, CurrentGerberFile, out outGCodeFileObj, out outGCodeBuilderObj, ref errStr);
+                        CurrentGerberFile.StateMachine.ToolHeadSetup = new ToolHeadParameters(11, CurrentFileManager, ToolHeadParametersModeEnum.EDGEMILL);
+                        retInt = CreateIsolationCutGCode(CurrentFileManager, CurrentGerberFile, out outGCodeFileObj, out outIsoPlotBuilderObj, ref errStr);
                     }
                     finally
                     {
@@ -3665,22 +3611,28 @@ namespace LineGrinder
                         OISMessageBox("Error converting Gerber file.\n\nPlease see the logs");
                         return;
                     }
-                    if (outGCodeBuilderObj == null)
+                    if (outIsoPlotBuilderObj == null)
                     {
-                        LogMessage("buttonConvertToGCode_Click: outGCodeBuilderObj == null");
+                        LogMessage("buttonConvertToGCode_Click: outIsoPlotBuilderObj == null");
                         OISMessageBox("Error converting Gerber file.\n\nPlease see the logs");
                         return;
                     }
                     // set it now
                     CurrentEdgeMillGCodeFile = outGCodeFileObj;
-                    CurrentGCodeBuilder = outGCodeBuilderObj;
+                    CurrentIsoPlotBuilder = outIsoPlotBuilderObj;
                     CurrentEdgeMillGCodeFile.HasBeenSaved = false;
                     // we need to set our toolhead parameters here
-                    toolHeadSetup = new ToolHeadParameters();
-                    toolHeadSetup.SetToolHeadParametersFromMode(CurrentFileManager, ToolHeadParameters.ToolHeadSetupModeEnum.EdgeMill);
-                    CurrentEdgeMillGCodeFile.StateMachine.ToolHeadSetup = toolHeadSetup;
-                    richTextBoxEdgeMillGCode.Text = CurrentEdgeMillGCodeFile.GetGCodeLinesAsText(toolHeadSetup).ToString();
+                    CurrentEdgeMillGCodeFile.StateMachine.ToolHeadSetup = new ToolHeadParameters(12, CurrentFileManager, ToolHeadParametersModeEnum.EDGEMILL);
+                    richTextBoxEdgeMillGCode.Text = CurrentEdgeMillGCodeFile.GetGCodeCmdsAsText().ToString();
                 }
+
+                // stop the clock
+                timer.Stop();
+                timeTaken = timer.Elapsed;
+                string edgeMillElapsedTime = timeTaken.ToString(@"m\:ss\.fff");
+                LogMessage("GCode Conversion: edgeMill elapsed time is " + edgeMillElapsedTime);
+
+                timer = Stopwatch.StartNew();
 
                 // test to see if we should also build a Bed Flattening GCode file
                 if (CurrentFileManager.BedFlatteningGCodeEnabled == true)
@@ -3691,9 +3643,7 @@ namespace LineGrinder
                     try
                     {
                         // now create GCodes, we need to set our toolhead parameters here
-                        toolHeadSetup = new ToolHeadParameters();
-                        toolHeadSetup.SetToolHeadParametersFromMode(CurrentFileManager, ToolHeadParameters.ToolHeadSetupModeEnum.BedFlattening);
-                        CurrentGerberFile.StateMachine.ToolHeadSetup = toolHeadSetup;
+                        CurrentGerberFile.StateMachine.ToolHeadSetup = new ToolHeadParameters(13, CurrentFileManager, ToolHeadParametersModeEnum.BEDFLATTENING);
                         retInt = CreateBedFlatteningGCode(CurrentFileManager, CurrentGerberFile, CurrentEdgeMillGCodeFile, out outGCodeFileObj, ref errStr);
                     }
                     finally
@@ -3717,11 +3667,16 @@ namespace LineGrinder
                     CurrentBedFlatteningGCodeFile = outGCodeFileObj;
                     CurrentBedFlatteningGCodeFile.HasBeenSaved = false;
                     // we need to set our toolhead parameters here
-                    toolHeadSetup = new ToolHeadParameters();
-                    toolHeadSetup.SetToolHeadParametersFromMode(CurrentFileManager, ToolHeadParameters.ToolHeadSetupModeEnum.BedFlattening);
-                    CurrentBedFlatteningGCodeFile.StateMachine.ToolHeadSetup = toolHeadSetup;
-                    richTextBoxBedFlatteningGCode.Text = CurrentBedFlatteningGCodeFile.GetGCodeLinesAsText(toolHeadSetup).ToString();
+                    CurrentBedFlatteningGCodeFile.StateMachine.ToolHeadSetup = new ToolHeadParameters(38, CurrentFileManager, ToolHeadParametersModeEnum.BEDFLATTENING);
+                    richTextBoxBedFlatteningGCode.Text = CurrentBedFlatteningGCodeFile.GetGCodeCmdsAsText().ToString();
                 }
+
+                // stop the clock
+                timer.Stop();
+                timeTaken = timer.Elapsed;
+                string bedFlatElapsedTime = timeTaken.ToString(@"m\:ss\.fff");
+                LogMessage("GCode Conversion: bedFlat elapsed time is " + bedFlatElapsedTime);
+
             }
             else if (CurrentFileManager.OperationMode == FileManager.OperationModeEnum.Excellon)
             {
@@ -3744,9 +3699,7 @@ namespace LineGrinder
                 try
                 {
                     // now create the GCodes, we need to set our toolhead parameters here
-                    toolHeadSetup = new ToolHeadParameters();
-                    toolHeadSetup.SetToolHeadParametersFromMode(CurrentFileManager, ToolHeadParameters.ToolHeadSetupModeEnum.ExcellonDrill);
-                    CurrentExcellonFile.StateMachine.ToolHeadSetup = toolHeadSetup;
+                    CurrentExcellonFile.StateMachine.ToolHeadSetup = new ToolHeadParameters(14, CurrentFileManager, ToolHeadParametersModeEnum.EXCELLONDRILL);
                     retInt = CreateDrillGCode(CurrentFileManager, CurrentExcellonFile, out outGCodeFileObj, ref errStr);
                 }
                 finally
@@ -3776,10 +3729,15 @@ namespace LineGrinder
                 CurrentDrillGCodeFile = outGCodeFileObj;
                 CurrentDrillGCodeFile.HasBeenSaved = false;
                 // we need to set our toolhead parameters here
-                toolHeadSetup = new ToolHeadParameters();
-                toolHeadSetup.SetToolHeadParametersFromMode(CurrentFileManager, ToolHeadParameters.ToolHeadSetupModeEnum.ExcellonDrill);
-                CurrentDrillGCodeFile.StateMachine.ToolHeadSetup = toolHeadSetup;
-                richTextBoxDrillGCode.Text = CurrentDrillGCodeFile.GetGCodeLinesAsText(toolHeadSetup).ToString();
+                CurrentDrillGCodeFile.StateMachine.ToolHeadSetup = new ToolHeadParameters(15, CurrentFileManager, ToolHeadParametersModeEnum.EXCELLONDRILL);
+                richTextBoxDrillGCode.Text = CurrentDrillGCodeFile.GetGCodeCmdsAsText().ToString();
+
+                // stop the clock
+                timer.Stop();
+                timeTaken = timer.Elapsed;
+                string drillElapsedTime = timeTaken.ToString(@"m\:ss\.fff");
+                LogMessage("GCode Conversion: drill elapsed time is " + drillElapsedTime);
+
             }
             else if (CurrentFileManager.OperationMode == FileManager.OperationModeEnum.TextAndLabels)
             {
@@ -3789,10 +3747,22 @@ namespace LineGrinder
                 // this means the File Manager was at the defaults. This should not happen
             }
 
+            timer = Stopwatch.StartNew();
+
             // set this
             ClearPlotViewBitmap();
 
+            // stop the clock
+            timer.Stop();
+            timeTaken = timer.Elapsed;
+            string clearPlotElapsedTime = timeTaken.ToString(@"m\:ss\.fff");
+            LogMessage("GCode Conversion:  clearPlot elapsed time is " + clearPlotElapsedTime);
+
+            timer = Stopwatch.StartNew();
+
+#if !DEBUG
             PostSucessfulConversionMessage();
+#endif
 
             SyncFormVisualsToGerberExcellonAndGCodeState();
             // now display the converted file
@@ -3818,15 +3788,18 @@ namespace LineGrinder
             }
 
             SyncFormVisualsToGerberExcellonAndGCodeState();
+
+            // stop the clock
+            timer.Stop();
+            timeTaken = timer.Elapsed;
+            string syncElapsedTime = timeTaken.ToString(@"m\:ss\.fff");
+            LogMessage("GCode Conversion: sync elapsed time is " + syncElapsedTime);
         }
 
         /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
         /// <summary>
         /// Posts a message indicating which files have been converted
         /// </summary>
-        /// <history>
-        ///    26 Aug 10  Cynic - Started
-        /// </history>
         private void DisplayConvertedFile()
         {
             StringBuilder sb = new StringBuilder();
@@ -3853,9 +3826,6 @@ namespace LineGrinder
         /// <summary>
         /// Posts a message indicating which files have been converted
         /// </summary>
-        /// <history>
-        ///    26 Aug 10  Cynic - Started
-        /// </history>
         private void PostSucessfulConversionMessage()
         {
             StringBuilder sb = new StringBuilder();
@@ -3892,9 +3862,6 @@ namespace LineGrinder
         /// <summary>
         /// Handles a press on the Clear all button
         /// </summary>
-        /// <history>
-        ///    10 Aug 10  Cynic - Started
-        /// </history>
         private void buttonClearAll_Click(object sender, EventArgs e)
         {
             DialogResult dlgRes = OISMessageBox_YesNo("This option will clear all Gerber and GCode file information.\n\nDo you wish to proceed?");
@@ -3910,9 +3877,6 @@ namespace LineGrinder
         /// <summary>
         /// Handles a press on the help button
         /// </summary>
-        /// <history>
-        ///    10 Aug 10  Cynic - Started
-        /// </history>
         private void buttonHelp_Click(object sender, EventArgs e)
         {
 #if DEBUG
@@ -3930,9 +3894,6 @@ namespace LineGrinder
         /// <summary>
         /// Handles a press on the close button
         /// </summary>
-        /// <history>
-        ///    10 Aug 10  Cynic - Started
-        /// </history>
         private void buttonExit_Click(object sender, EventArgs e)
         {
             // the form_closing handler performs all of the 
@@ -3944,9 +3905,6 @@ namespace LineGrinder
         /// <summary>
         /// Handles a press on the about button
         /// </summary>
-        /// <history>
-        ///    10 Aug 10  Cynic - Started
-        /// </history>
         private void buttonAbout_Click(object sender, EventArgs e)
         {
             frmAbout aboutForm = new frmAbout(APPLICATION_VERSION);
@@ -3958,9 +3916,6 @@ namespace LineGrinder
         /// Tests if any of the generated GCode files need to be saved. And prompts if they do.
         /// </summary>
         /// <returns>user wants to save, false user does not want to save</returns>
-        /// <history>
-        ///    25 Aug 10  Cynic - Started
-        /// </history>
         private bool TestIfGCodeFilesHaveBeenSavedAndPromptIfNot()
         {
             bool mustPromptFlag = false;
@@ -3997,10 +3952,12 @@ namespace LineGrinder
 
             if (mustPromptFlag == true)
             {
+#if !DEBUG
                 sb.Append("\nDo you still wish to close this application?");
                 DialogResult dlgRes = OISMessageBox_YesNo(sb.ToString());
                 if (dlgRes != DialogResult.Yes) return true;
                 return false;
+#endif
             }
             return false;
         }
@@ -4010,9 +3967,6 @@ namespace LineGrinder
         /// Tests if any of the generated GCode files need to be saved.
         /// </summary>
         /// <returns>true files are unsaved, false no files are unsaved</returns>
-        /// <history>
-        ///    25 Aug 10  Cynic - Started
-        /// </history>
         private bool AreAnyGCodeFilesUnsaved()
         {
             if (CurrentIsolationGCodeFile.HasBeenSaved == false) return true;
@@ -4027,9 +3981,6 @@ namespace LineGrinder
         /// <summary>
         /// The form closing handler
         /// </summary>
-        /// <history>
-        ///    08 Aug 10  Cynic - Started
-        /// </history>
         private void frmMain1_FormClosing(object sender, FormClosingEventArgs e)
         {
             LogMessage("frmMain1_FormClosing called");
@@ -4064,9 +4015,6 @@ namespace LineGrinder
         /// <summary>
         /// Handles a mouse wheel event
         /// </summary>
-        /// <history>
-        ///    11 Jul 10  Cynic - Started
-        /// </history>
         private void frmMain_MouseWheel(object sender, System.Windows.Forms.MouseEventArgs e)
         {
             // which tab is current
@@ -4086,9 +4034,6 @@ namespace LineGrinder
         /// <summary>
         /// Handles a press on the Quick Setup (DesignSpark) button
         /// </summary>
-        /// <history>
-        ///    24 Aug 10  Cynic - Started
-        /// </history>
         private void buttonQuickSetupDesignSpark_Click(object sender, EventArgs e)
         {
             FileManager mgrObj;
@@ -4100,7 +4045,7 @@ namespace LineGrinder
             // now create the bottom copper
             mgrObj = FileManager.DeepClone(defMgrObj);
             mgrObj.OperationMode = FileManager.OperationModeEnum.IsolationCut;
-            mgrObj.IsoFlipMode = FileManager.IsoFlipModeEnum.X_Flip;
+            mgrObj.IsoFlipMode = IsoFlipModeEnum.X_Flip;
             mgrObj.ReferencePinGCodeEnabled = false;
             mgrObj.FilenamePattern = FileManager.KNOWN_EXT_BOTCOPPER_DSPARK;
             mgrObj.Description = "DesignSpark Bottom Layer";
@@ -4109,7 +4054,7 @@ namespace LineGrinder
             // now create the top copper
             mgrObj = FileManager.DeepClone(defMgrObj);
             mgrObj.OperationMode = FileManager.OperationModeEnum.IsolationCut;
-            mgrObj.IsoFlipMode = FileManager.IsoFlipModeEnum.No_Flip;
+            mgrObj.IsoFlipMode = IsoFlipModeEnum.No_Flip;
             mgrObj.FilenamePattern = FileManager.KNOWN_EXT_TOPCOPPER_DSPARK;
             mgrObj.Description = "DesignSpark Top Layer";
             ctlFileManagersDisplay1.AddFileManager(mgrObj);
@@ -4117,7 +4062,7 @@ namespace LineGrinder
             // now create the board outline
             mgrObj = FileManager.DeepClone(defMgrObj);
             mgrObj.OperationMode = FileManager.OperationModeEnum.BoardEdgeMill;
-            mgrObj.IsoFlipMode = FileManager.IsoFlipModeEnum.No_Flip;
+            mgrObj.IsoFlipMode = IsoFlipModeEnum.No_Flip;
             mgrObj.FilenamePattern = FileManager.KNOWN_EXT_EDGECUT_DSPARK;
             mgrObj.Description = "DesignSpark Board Outline: This plot must be manually added in DesignSpark";
             ctlFileManagersDisplay1.AddFileManager(mgrObj);
@@ -4125,7 +4070,7 @@ namespace LineGrinder
             // now create the excellon
             mgrObj = FileManager.DeepClone(defMgrObj);
             mgrObj.OperationMode = FileManager.OperationModeEnum.Excellon;
-            mgrObj.IsoFlipMode = FileManager.IsoFlipModeEnum.No_Flip;
+            mgrObj.IsoFlipMode = IsoFlipModeEnum.No_Flip;
             mgrObj.FilenamePattern = FileManager.KNOWN_EXT_EXEL_DRILL_DSPARK;
             mgrObj.DrillingNumberOfDecimalPlaces = 0;
             mgrObj.Description = "DesignSpark Excellon Drill file.";
@@ -4139,9 +4084,6 @@ namespace LineGrinder
         /// <summary>
         /// Handles a press on the Quick Setup (Eagle) button
         /// </summary>
-        /// <history>
-        ///    26 Sep 10  Cynic - Started
-        /// </history>
         private void buttonQuickSetupEagle_Click(object sender, EventArgs e)
         {
             FileManager mgrObj;
@@ -4153,7 +4095,7 @@ namespace LineGrinder
             // now create the bottom copper
             mgrObj = FileManager.DeepClone(defMgrObj);
             mgrObj.OperationMode = FileManager.OperationModeEnum.IsolationCut;
-            mgrObj.IsoFlipMode = FileManager.IsoFlipModeEnum.X_Flip;
+            mgrObj.IsoFlipMode = IsoFlipModeEnum.X_Flip;
             mgrObj.ReferencePinGCodeEnabled = false;
             mgrObj.FilenamePattern = "copper_bottom.gbr";
             mgrObj.Description = "Eagle Bottom Layer";
@@ -4162,7 +4104,7 @@ namespace LineGrinder
             // now create the top copper
             mgrObj = FileManager.DeepClone(defMgrObj);
             mgrObj.OperationMode = FileManager.OperationModeEnum.IsolationCut;
-            mgrObj.IsoFlipMode = FileManager.IsoFlipModeEnum.No_Flip;
+            mgrObj.IsoFlipMode = IsoFlipModeEnum.No_Flip;
             mgrObj.FilenamePattern = "copper_top.gbr";
             mgrObj.Description = "Eagle Top Layer";
             ctlFileManagersDisplay1.AddFileManager(mgrObj);
@@ -4170,7 +4112,7 @@ namespace LineGrinder
             // now create the board outline
             mgrObj = FileManager.DeepClone(defMgrObj);
             mgrObj.OperationMode = FileManager.OperationModeEnum.BoardEdgeMill;
-            mgrObj.IsoFlipMode = FileManager.IsoFlipModeEnum.No_Flip;
+            mgrObj.IsoFlipMode = IsoFlipModeEnum.No_Flip;
             mgrObj.FilenamePattern = "profile.gbr";
             mgrObj.Description = "Eagle Board Outline";
             ctlFileManagersDisplay1.AddFileManager(mgrObj);
@@ -4178,10 +4120,11 @@ namespace LineGrinder
             // now create the excellon
             mgrObj = FileManager.DeepClone(defMgrObj);
             mgrObj.OperationMode = FileManager.OperationModeEnum.Excellon;
-            mgrObj.IsoFlipMode = FileManager.IsoFlipModeEnum.No_Flip;
+            mgrObj.IsoFlipMode = IsoFlipModeEnum.No_Flip;
             mgrObj.FilenamePattern = ".xln";
             mgrObj.Description = "Eagle Excellon Drill file.";
-            mgrObj.DrillingNumberOfDecimalPlaces = 4;
+            mgrObj.DrillingCoordinateZerosMode = FileManager.ExcellonDrillingCoordinateZerosModeEnum.FixedDecimalPoint;
+            mgrObj.DrillingNumberOfDecimalPlaces = 3;
             ctlFileManagersDisplay1.AddFileManager(mgrObj);
 
             OISMessageBox("Template File Managers suitable for Eagle  have been added.\n\nThe parameters will be at their default settings. You should check them to be sure they are set appropriate to your requirements.");
@@ -4191,10 +4134,6 @@ namespace LineGrinder
         /// <summary>
         /// Handles a press on the Quick Setup (KiCad) button
         /// </summary>
-        /// <history>
-        ///    26 Sep 10  Cynic - Started
-        ///    07 Dec 21  Cynic - Updated Kicad
-        /// </history>
         private void buttonQuickSetupKiCad_Click(object sender, EventArgs e)
         {
             FileManager mgrObj;
@@ -4206,7 +4145,7 @@ namespace LineGrinder
             // now create the bottom copper
             mgrObj = FileManager.DeepClone(defMgrObj);
             mgrObj.OperationMode = FileManager.OperationModeEnum.IsolationCut;
-            mgrObj.IsoFlipMode = FileManager.IsoFlipModeEnum.X_Flip;
+            mgrObj.IsoFlipMode = IsoFlipModeEnum.X_Flip;
             mgrObj.ReferencePinGCodeEnabled = false;
             mgrObj.FilenamePattern = FileManager.KNOWN_EXT_BOTCOPPER_KICAD;
             mgrObj.Description = "KiCad Bottom Layer";
@@ -4215,7 +4154,7 @@ namespace LineGrinder
             // now create the top copper
             mgrObj = FileManager.DeepClone(defMgrObj);
             mgrObj.OperationMode = FileManager.OperationModeEnum.IsolationCut;
-            mgrObj.IsoFlipMode = FileManager.IsoFlipModeEnum.No_Flip;
+            mgrObj.IsoFlipMode = IsoFlipModeEnum.No_Flip;
             mgrObj.ReferencePinGCodeEnabled = false;
             mgrObj.FilenamePattern = FileManager.KNOWN_EXT_TOPCOPPER_KICAD;
             mgrObj.Description = "KiCad Top Layer";
@@ -4224,7 +4163,7 @@ namespace LineGrinder
             // now create the board outline
             mgrObj = FileManager.DeepClone(defMgrObj);
             mgrObj.OperationMode = FileManager.OperationModeEnum.BoardEdgeMill;
-            mgrObj.IsoFlipMode = FileManager.IsoFlipModeEnum.No_Flip;
+            mgrObj.IsoFlipMode = IsoFlipModeEnum.No_Flip;
             mgrObj.FilenamePattern = FileManager.KNOWN_EXT_EDGECUT_KICAD;
             mgrObj.Description = "KiCad Board Outline";
             ctlFileManagersDisplay1.AddFileManager(mgrObj);
@@ -4232,7 +4171,7 @@ namespace LineGrinder
             // now create the excellon for plated holes
             mgrObj = FileManager.DeepClone(defMgrObj);
             mgrObj.OperationMode = FileManager.OperationModeEnum.Excellon;
-            mgrObj.IsoFlipMode = FileManager.IsoFlipModeEnum.No_Flip;
+            mgrObj.IsoFlipMode = IsoFlipModeEnum.No_Flip;
             mgrObj.FilenamePattern = FileManager.KNOWN_EXT_EXEL_DRILL_PTH_KICAD;
             mgrObj.Description = "KiCad Excellon Plated Drill file.";
             mgrObj.DrillingNumberOfDecimalPlaces = 0;
@@ -4241,7 +4180,7 @@ namespace LineGrinder
             // now create the excellon for nonplated holes
             mgrObj = FileManager.DeepClone(defMgrObj);
             mgrObj.OperationMode = FileManager.OperationModeEnum.Excellon;
-            mgrObj.IsoFlipMode = FileManager.IsoFlipModeEnum.No_Flip;
+            mgrObj.IsoFlipMode = IsoFlipModeEnum.No_Flip;
             mgrObj.FilenamePattern = FileManager.KNOWN_EXT_EXEL_DRILL_NPTH_KICAD;
             mgrObj.Description = "KiCad Excellon non-Plated Drill file.";
             mgrObj.DrillingNumberOfDecimalPlaces = 0;
@@ -4250,7 +4189,7 @@ namespace LineGrinder
             // now create the excellon for plated and nonplated holes
             mgrObj = FileManager.DeepClone(defMgrObj);
             mgrObj.OperationMode = FileManager.OperationModeEnum.Excellon;
-            mgrObj.IsoFlipMode = FileManager.IsoFlipModeEnum.No_Flip;
+            mgrObj.IsoFlipMode = IsoFlipModeEnum.No_Flip;
             mgrObj.FilenamePattern = FileManager.KNOWN_EXT_EXEL_DRILL_KICAD;
             mgrObj.Description = "KiCad Excellon Generic Drill file.";
             mgrObj.DrillingNumberOfDecimalPlaces = 0;
@@ -4262,12 +4201,12 @@ namespace LineGrinder
 
 
 
-        #endregion
+#endregion
 
         // ####################################################################
         // ##### File Open and Save Code
         // ####################################################################
-        #region File Open and Save Code
+#region File Open and Save Code
 
         /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
         /// <summary>
@@ -4277,10 +4216,6 @@ namespace LineGrinder
         /// <param name="gerberFile">the gerber file to get the best name for</param>
         /// <param name="fileExtension">the file extension to use</param>
         /// <returns>file path and name for success or null for fail</returns>
-        /// <history>
-        ///    08 Aug 10  Cynic - Started
-        ///    03 Sep 10  Cynic - Converted to use sourcefilepathandname rather than gerber file
-        /// </history>
         private string GetBestGCodeOutputFileNameAndPath(ref string errStr, string sourceFilePathAndName, string fileExtension)
         {
             errStr = "";
@@ -4311,9 +4246,6 @@ namespace LineGrinder
         /// <param name="initialDirectory">the initial directory</param>
         /// <param name="suggestedFile">The suggested file</param>
         /// <returns>z success, -ve cancel, +ve fail</returns>
-        /// <history>
-        ///    08 Aug 10  Cynic - Started
-        /// </history>
         private int PickFile(string initialDirectory, string suggestedFile, ref string filePathAndName)
         {
             filePathAndName = string.Empty;
@@ -4368,9 +4300,6 @@ namespace LineGrinder
         /// <param name="initialDirectory">the initial directory</param>
         /// <param name="suggestedFile">The suggested file</param>
         /// <returns>z success, -ve cancel, +ve fail</returns>
-        /// <history>
-        ///    08 Aug 10  Cynic - Started
-        /// </history>
         private int PickGCodeFileSaveName(string initialDirectory, string suggestedFile, ref string filePathAndName)
         {
             LogMessage("PickGCodeFileSaveName called");
@@ -4432,9 +4361,6 @@ namespace LineGrinder
         /// <param name="gcodeFileText">The array containing the gcode lines containing the GCode file to save</param>
         /// <param name="errStr">we return the erros string here</param>
         /// <returns>z success, -ve fail user not notified, +ve fail user notified</returns>
-        /// <history>
-        ///    10 Aug 10  Cynic - Started
-        /// </history>
         private int SaveGCodeFile(string filePathAndName, string[] gcodeFileText, string lineTerminator, bool warnAboutOverwriting, ref string errStr, bool bSilent)
         {
             TextWriter textWriter = null;
@@ -4499,6 +4425,7 @@ namespace LineGrinder
             // will we be overwriting an existing file
             if (warnAboutOverwriting == true)
             {
+#if !DEBUG
                 // we have to test
                 if(File.Exists(filePathAndName)==true)
                 {
@@ -4514,6 +4441,7 @@ namespace LineGrinder
                         else return -104;
                     }
                 }
+#endif
             }
 
             LogMessage("SaveGCodeFile: preparing to save:" + filePathAndName);
@@ -4563,9 +4491,6 @@ namespace LineGrinder
         /// <param name="outputExcellonFile">we return the excellon file in this</param>
         /// <param name="errStr">an error string for silent returns</param>
         /// <returns>z success, -ve fail user not notified, +ve fail user notified</returns>
-        /// <history>
-        ///    01 Sep 10  Cynic - Started
-        /// </history>
         private int OpenExcellonFile(string filePathAndName, FileManager fileManagerObj, out ExcellonFile outputExcellonFile, bool bSilent, ref string errStr)
         {
             int retInt;
@@ -4637,9 +4562,13 @@ namespace LineGrinder
 
             // set the file path and name now
             outputExcellonFile.ExcellonFilePathAndName = filePathAndName;
+            // set our application units now
+            outputExcellonFile.StateMachine.IsoPlotPointsPerAppUnit = GetIsoPlotPointsPerAppUnit(outputExcellonFile.ExcellonFileUnits);
+            // ensure the units in the file manager match the units in the file
+            outputExcellonFile.ExcellonFileManager.SyncUnitsToFile(outputExcellonFile.ExcellonFileUnits);
 
             // always post process it
-            bool retBool = outputExcellonFile.PerformOpenPostProcessingChecks(out errStr, ApplicationUnits);
+            bool retBool = outputExcellonFile.PerformOpenPostProcessingChecks(out errStr);
             if (retBool != true)
             {
                 LogMessage("OpenExcellonFile Error in call to PerformOpenPostProcessingChecks. Error message is>" + errStr);
@@ -4652,28 +4581,101 @@ namespace LineGrinder
                 return -105;
             }
 
-            // we want the smallest XY DCode coordinates we found to be approximately zero
-            // get them now.
-            float tmpXMin = outputExcellonFile.MinDCodeXCoord;
-            float tmpYMin = outputExcellonFile.MinDCodeYCoord;
-            float tmpXMax = outputExcellonFile.MaxDCodeXCoord;
-            float tmpYMax = outputExcellonFile.MaxDCodeYCoord;
-            // we also have to adjust these for the isolation width
-            float workingMax = outputExcellonFile.StateMachine.GetMaxToolCollectionDrillDiameter();
-            // we give it 4 times the isolation width just to have a bit of leeway and a border
-            tmpXMin -= (workingMax * 2);
-            tmpYMin -= (workingMax * 2);
-            outputExcellonFile.SetPlotOriginCoordinateAdjustments((tmpXMin * -1), (tmpYMin * -1));
+            outputExcellonFile.SetPadCenterPointList();
 
-            // we have to adjust these so that we write within the visible border
-            tmpXMax += (workingMax * 2);
-            tmpYMax += (workingMax * 2);
+            // find the mid point now before margin adjustments, If we have reference pins this point will later be set with a better value
+            outputExcellonFile.MidDCodeXCoord = 0 + (outputExcellonFile.MaxDCodeXCoord + outputExcellonFile.MinDCodeXCoord) / 2;  // the origin is always zero
+            outputExcellonFile.MidDCodeYCoord = 0 + (outputExcellonFile.MaxDCodeYCoord + outputExcellonFile.MinDCodeYCoord) / 2;  // the origin is always zero
+            LogMessage("OpenExcellonFile MidPoint from PlotVals= (MidX,MidY)=(" + outputExcellonFile.MidDCodeXCoord.ToString() + "," + outputExcellonFile.MidDCodeYCoord.ToString() + ")");
 
-            outputExcellonFile.SetMaxPlotCoordinateAdjustments(tmpXMax, tmpYMax);
+            // figure out a margin here
+            float xMargin = Math.Abs((outputExcellonFile.MaxDCodeXCoord - outputExcellonFile.MinDCodeXCoord) * ISOPLOT_MARGIN_PERCENT);
+            float yMargin = Math.Abs((outputExcellonFile.MaxDCodeYCoord - outputExcellonFile.MinDCodeYCoord) * ISOPLOT_MARGIN_PERCENT);
 
-            // set these now, they are just the max X and Y values
-            outputExcellonFile.XFlipMax = outputExcellonFile.MaxPlotXCoord;
-            outputExcellonFile.YFlipMax = outputExcellonFile.MaxPlotYCoord;
+            // set the new minimum value
+            float tmpXMin = outputExcellonFile.MinDCodeXCoord - xMargin;
+            float tmpYMin = outputExcellonFile.MinDCodeYCoord - yMargin;
+            float xOffset = tmpXMin * -1;
+            float yOffset = tmpYMin * -1;
+            // set our offset to move the lowest point we have near the origin
+            outputExcellonFile.SetExcellonPlotOriginCoordinateAdjustments(xOffset, yOffset);
+
+            //DebugMessage("ExcellonFile (xMargin,yMargin)=(" + xMargin.ToString() + "," + yMargin.ToString() + ")");
+            //DebugMessage("ExcellonFile (MinDCodeXCoord,MinDCodeYCoord)=(" + outputExcellonFile.MinDCodeXCoord.ToString() + "," + outputExcellonFile.MinDCodeYCoord.ToString() + ")");
+            LogMessage("ExcellonFile (OffsetX,OffsetY)=(" + xOffset.ToString() + "," + yOffset.ToString() + ")");
+
+            // set the new plot maximum value
+            float tmpXMax = outputExcellonFile.MaxDCodeXCoord + xMargin;
+            float tmpYMax = outputExcellonFile.MaxDCodeYCoord + yMargin;
+            // we have to adjust these a bit to give us some wiggle room
+            outputExcellonFile.MaxDCodeXCoord = tmpXMax;
+            outputExcellonFile.MaxDCodeYCoord = tmpYMax;
+
+            LogMessage("ExcellonFile newXMax=" + tmpXMax.ToString() + ", newYMax=" + tmpYMax.ToString() + ", newXMin=" + tmpXMin.ToString() + ", newYMin=" + tmpYMin);
+
+            if (outputExcellonFile.ExcellonFileManager.DrillingReferencePinsEnabled == true)
+            {
+                retInt = outputExcellonFile.SetReferencePins(ref errStr);
+                if (retInt != 0)
+                {
+                    // record this
+                    outputExcellonFile.StateMachine.ReferencePinsFound = false;
+                    LogMessage("OpenExcellonFile Error in call to GetReferencePinList. Error message is>" + errStr);
+                    if (bSilent == true)
+                    {
+                        return 105;
+                    }
+                    DialogResult dlgRes = OISMessageBox_YesNo("Reference pins are enabled in the File Manager but no Reference Pins of size " + outputExcellonFile.ExcellonFileManager.ReferencePinPadDiameter.ToString() + " could be found. The precise alignment of double sided boards may not be possible.\n\nOpen anyways?");
+                    if (dlgRes == DialogResult.No)
+                    {
+                        // we already asked the user no need to warn again
+                        return 106;
+                    }
+                    // we are opening anyways
+                    outputExcellonFile.StateMachine.IgnoreReferencePinsIfNotFound = true;
+                }
+                else
+                {
+                    // record this
+                    outputExcellonFile.StateMachine.ReferencePinsFound = true;
+                }
+            }
+            else
+            {
+                // reference pins not enabled, ignore
+                outputExcellonFile.StateMachine.IgnoreReferencePinsIfNotFound = true;
+            }
+
+            if (outputExcellonFile.StateMachine.ReferencePinsFound == true)
+            {
+                LogMessage("OpenExcellonFile outputExcellonFile.StateMachine.ReferencePinsFound == true");
+                // now find the midpoint values
+                float midX = 0;
+                float midY = 0;
+                retInt = outputExcellonFile.GetMidPointFromReferencePins(out midX, out midY, ref errStr);
+                if (retInt != 0)
+                {
+                    LogMessage("OpenExcellonFile Error in call to GetMidPointFromReferencePins. Error message is>" + errStr);
+                    if (bSilent == false)
+                    {
+                        OISMessageBox(errStr);
+                        return 107;
+                    }
+                    return -107;
+                }
+                // set these values now. Note these points are the center of the plot between
+                // the origin and the center of the reference pins
+                outputExcellonFile.MidDCodeXCoord = midX;
+                outputExcellonFile.MidDCodeYCoord = midY;
+                LogMessage("OpenExcellonFile Midpoint from refPins = (MidX,MidY)=(" + midX.ToString() + "," + midY.ToString() + ")");
+
+            }
+            else // bottom of if (outputExcellonFile.StateMachine.ReferencePinsFound == true)
+            {
+                // we have no reference pin. We have already built the midpoints from the max and min coordinates in the file
+                // and hope for the best
+                LogMessage("OpenExcellonFile outputExcellonFile.StateMachine.ReferencePinsFound == false");
+            }
 
             return 0;
         }
@@ -4688,9 +4690,6 @@ namespace LineGrinder
         /// <param name="outputExcellonFile">we return the excellon file in this</param>
         /// <param name="errStr">an error string for silent returns</param>
         /// <returns>z success, -ve fail user not notified, +ve fail user notified</returns>
-        /// <history>
-        ///    08 Aug 10  Cynic - Started
-        /// </history>
         private int OpenGerberFile(string filePathAndName, FileManager fileManagerObj, out GerberFile outputGerberFile, bool bSilent, ref string errStr)
         {
             int retInt;
@@ -4746,23 +4745,36 @@ namespace LineGrinder
             {
                 // log this
                 LogMessage("OpenGerberFile call to ReadGerberFile returned" + retInt.ToString());
-                // yes it did, was it reported?
-                if (retInt < 0)
+                errStr = "Error " + retInt.ToString() + " occurred reading the Gerber File.\n\nPlease see the log file.";
+                if (bSilent == false)
                 {
-                    // no it was not, should we report it
-                    errStr = "Error " + retInt.ToString() + " occurred reading the Gerber File.\n\nPlease see the log file.";
-                    if (bSilent == false)
-                    {
-                        OISMessageBox(errStr);
-                        return 109;
-                    }
-                    return -109;
+                    OISMessageBox(errStr);
+                    return 109;
                 }
-                else return 1034;
+                return -109;
+            }
+
+            // now we have the commands in the outputGerberFile, we have to process them into GerberLine objects 
+            retInt = outputGerberFile.ProcessGerberCommands();
+            if (retInt != 0)
+            {
+                // log this
+                LogMessage("OpenGerberFile call to ProcessGerberCommands returned" + retInt.ToString());
+                errStr = "Error " + retInt.ToString() + " occurred processing the Gerber Commands.\n\nPlease see the log file.";
+                if (bSilent == false)
+                {
+                    OISMessageBox(errStr);
+                    return 110;
+                }
+                return -110;
             }
 
             // set the file path and name now
             outputGerberFile.GerberFilePathAndName = filePathAndName;
+            // set our application units now
+            outputGerberFile.StateMachine.IsoPlotPointsPerAppUnit = GetIsoPlotPointsPerAppUnit(outputGerberFile.GerberFileUnits);
+            // ensure the units in the file manager match the units in the file
+            outputGerberFile.GerberFileManager.SyncUnitsToFile(outputGerberFile.GerberFileUnits);
 
             // always post process check it
             retBool = outputGerberFile.PerformOpenPostProcessingFixups(out errStr);
@@ -4778,8 +4790,16 @@ namespace LineGrinder
                 return -104;
             }
 
+            // set our min and max sizes now, these will later be adjusted with margins etc
+            outputGerberFile.FindAllMinMaxPlotSizesAndSetInGerberFile();
+
+            // find the mid point now before margin adjustments, If we have reference pins this point will later be set with a better value
+            outputGerberFile.MidDCodeXCoord = 0 + (outputGerberFile.MaxDCodeXCoord + outputGerberFile.MinDCodeXCoord) / 2;  // the origin is always zero
+            outputGerberFile.MidDCodeYCoord = 0 + (outputGerberFile.MaxDCodeYCoord + outputGerberFile.MinDCodeYCoord) / 2;  // the origin is always zero
+            LogMessage("OpenGerberFile MidPoint from PlotVals= (MidX,MidY)=(" + outputGerberFile.MidDCodeXCoord.ToString() + "," + outputGerberFile.MidDCodeYCoord.ToString() + ")");
+
             // always post process check it
-            retBool = outputGerberFile.PerformOpenPostProcessingChecks(out errStr, ApplicationUnits);
+            retBool = outputGerberFile.PerformOpenPostProcessingChecks(out errStr);
             if (retBool != true)
             {
                 LogMessage("OpenGerberFile Error in call to PerformOpenPostProcessingChecks. Error message is>" + errStr);
@@ -4793,24 +4813,37 @@ namespace LineGrinder
             }
 
             // #####
-            // ##### set the min,max and mid coordinates of the gerber file we just opened
+            // ##### we have set the min,max and mid coordinates of the gerber file we just opened
+            // ##### now we need to adjust them to compensate for the margins
             // #####
 
             // we want the smallest XY DCode coordinates we found to be approximately zero
             // get them now.
-            float tmpXMax = outputGerberFile.MaxDCodeXCoord + outputGerberFile.ApertureCollection.GetMaxApertureDimension() + outputGerberFile.StateMachine.GerberFileManager.GetMaxToolWidthForEnabledOperationMode();
-            float tmpYMax = outputGerberFile.MaxDCodeYCoord + outputGerberFile.ApertureCollection.GetMaxApertureDimension() + outputGerberFile.StateMachine.GerberFileManager.GetMaxToolWidthForEnabledOperationMode();
-            float tmpXMin = outputGerberFile.MinDCodeXCoord - outputGerberFile.ApertureCollection.GetMaxApertureDimension() - outputGerberFile.StateMachine.GerberFileManager.GetMaxToolWidthForEnabledOperationMode();
-            float tmpYMin = outputGerberFile.MinDCodeYCoord - outputGerberFile.ApertureCollection.GetMaxApertureDimension() - outputGerberFile.StateMachine.GerberFileManager.GetMaxToolWidthForEnabledOperationMode();
-            LogMessage("GerberFile MaxApertureDimension=(" + outputGerberFile.ApertureCollection.GetMaxApertureDimension().ToString() + ")");
-            LogMessage("GerberFile MaxToolWidthForOp=(" + outputGerberFile.StateMachine.GerberFileManager.GetMaxToolWidthForEnabledOperationMode().ToString() + ")");
 
+            // figure out a margin here
+            float xMargin = Math.Abs((outputGerberFile.MaxDCodeXCoord - outputGerberFile.MinDCodeXCoord) * ISOPLOT_MARGIN_PERCENT);
+            float yMargin = Math.Abs((outputGerberFile.MaxDCodeYCoord - outputGerberFile.MinDCodeYCoord) * ISOPLOT_MARGIN_PERCENT);
+
+            // set the new minimum value
+            float tmpXMin = outputGerberFile.MinDCodeXCoord - xMargin;
+            float tmpYMin = outputGerberFile.MinDCodeYCoord - yMargin;
             float xOffset = tmpXMin * -1;
             float yOffset = tmpYMin * -1;
-
             // set our offset to move the lowest point we have near the origin
-            outputGerberFile.SetPlotOriginCoordinateAdjustments(xOffset, yOffset);
+            outputGerberFile.SetGerberPlotOriginCoordinateAdjustments(xOffset, yOffset);
+
+            //DebugMessage("GerberFile (xMargin,yMargin)=(" + xMargin.ToString() + "," + yMargin.ToString() + ")");
+            //DebugMessage("GerberFile (MinDCodeXCoord,MinDCodeYCoord)=(" + outputGerberFile.MinDCodeXCoord.ToString() + "," + outputGerberFile.MinDCodeYCoord.ToString() + ")");
             LogMessage("GerberFile (OffsetX,OffsetY)=(" + xOffset.ToString() + "," + yOffset.ToString() + ")");
+
+            // set the new plot maximum value
+            float tmpXMax = outputGerberFile.MaxDCodeXCoord + xMargin;
+            float tmpYMax = outputGerberFile.MaxDCodeYCoord + yMargin;
+            // we have to adjust these a bit to give us some wiggle room
+            outputGerberFile.MaxDCodeXCoord = tmpXMax;
+            outputGerberFile.MaxDCodeYCoord = tmpYMax;
+
+            LogMessage("GerberFile newXMax=" + tmpXMax.ToString() + ", newYMax=" + tmpYMax.ToString() + ", newXMin=" + tmpXMin.ToString() + ", newYMin=" + tmpYMin);
 
             // in certain operation modes we might have a set of reference pins
             if (outputGerberFile.GerberFileManager.OperationMode == FileManager.OperationModeEnum.IsolationCut)
@@ -4825,14 +4858,16 @@ namespace LineGrinder
                         LogMessage("OpenGerberFile Error in call to GetReferencePinList. Error message is>" + errStr);
                         if (bSilent == true)
                         {
-                            return -106;
+                            return 105;
                         }
-                        DialogResult dlgRes = OISMessageBox_YesNo("No Reference Pins of size " + outputGerberFile.GerberFileManager.ReferencePinPadDiameter.ToString() + " could be found. The alignment of double sided boards will not be possible.\n\nOpen anyways?");
+                        DialogResult dlgRes = OISMessageBox_YesNo("Reference pins are enabled in the File Manager but no Reference Pins of size " + outputGerberFile.GerberFileManager.ReferencePinPadDiameter.ToString() + " could be found. The precise alignment of double sided boards may not be possible.\n\nOpen anyways?");
                         if (dlgRes == DialogResult.No)
                         {
-                            OISMessageBox(errStr);
+                            // we already asked the user no need to warn again
                             return 106;
                         }
+                        // we are opening anyways
+                        outputGerberFile.StateMachine.IgnoreReferencePinsIfNotFound = true;
                     }
                     else
                     {
@@ -4842,22 +4877,13 @@ namespace LineGrinder
                 }
                 else
                 {
-                    /* we no longer warn here. Too many warnings
-                    outputGerberFile.StateMachine.ReferencePinsFound = false;
-                    DialogResult dlgRes = OISMessageBox_YesNo("Reference Pins are disabled in the File Manager. The alignment of double sided boards will not be possible.\n\nOpen anyways?");
-                    if (dlgRes == DialogResult.No)
-                    {
-                        errStr = "Ref pins disabled in File Manager. User Cancelled File Open.";
-                        OISMessageBox(errStr);
-                        return 107;
-                    }
-                    */
+                    // we are opening anyways
+                    outputGerberFile.StateMachine.IgnoreReferencePinsIfNotFound = true;
                 }
 
-                if (outputGerberFile.StateMachine.ReferencePinsFound == true)
+                if (outputGerberFile.StateMachine.ReferencePinsFound == true) 
                 {
                     LogMessage("OpenGerberFile outputGerberFile.StateMachine.ReferencePinsFound == true");
-
                     // now find the midpoint values
                     float midX = 0;
                     float midY = 0;
@@ -4876,47 +4902,18 @@ namespace LineGrinder
                     // the origin and the center of the reference pins
                     outputGerberFile.MidDCodeXCoord = midX;
                     outputGerberFile.MidDCodeYCoord = midY;
-                    LogMessage("OpenGerberFile(a) (MidX,MidY)=(" + midX.ToString() + "," + midY.ToString() + ")");
+                    LogMessage("OpenGerberFile Midpoint from refPins = (MidX,MidY)=(" + midX.ToString() + "," + midY.ToString() + ")");
 
-                    // set these now, they are related to the mid points
-                    outputGerberFile.XFlipMax = outputGerberFile.MidDCodeXCoord * 2f;
-                    outputGerberFile.YFlipMax = outputGerberFile.MidDCodeYCoord * 2f;
-
-                    // add in values to compensate for the offsets 
-                    // 2 * offset makes it all work but I am not absolutely certain as to why
-                    outputGerberFile.XFlipMax += (xOffset * 2);
-                    outputGerberFile.YFlipMax += (yOffset * 2);
-                    LogMessage("OpenGerberFile(a) (XFlipMax,YFlipMax)=(" + outputGerberFile.XFlipMax.ToString() + "," + outputGerberFile.YFlipMax.ToString() + ")");
                 }
                 else // bottom of if (outputGerberFile.StateMachine.ReferencePinsFound == true)
                 {
-                    // we have no reference pin. Build the midpoints from the max and min coordinates in the file
+                    // we have no reference pin. We have already built the midpoints from the max and min coordinates in the file
                     // and hope for the best
                     LogMessage("OpenGerberFile outputGerberFile.StateMachine.ReferencePinsFound == false");
-
-                    // set these values now. Note these points are the center of the plot between
-                    // the max and min
-                    outputGerberFile.MidDCodeXCoord = tmpXMin+((tmpXMax - tmpXMin) / 2);
-                    outputGerberFile.MidDCodeYCoord = tmpYMin+((tmpYMax - tmpYMin) / 2);
-                    LogMessage("OpenGerberFile(b) (MidX,MidY)=(" + outputGerberFile.MidDCodeXCoord.ToString() + "," + outputGerberFile.MidDCodeYCoord.ToString() + ")");
-
-                    // set these now, they are related to the mid points
-                    outputGerberFile.XFlipMax = outputGerberFile.MidDCodeXCoord * 2f;
-                    outputGerberFile.YFlipMax = outputGerberFile.MidDCodeYCoord * 2f;
-
-                    // add in values to compensate for the offsets 
-                    // 2 * offset makes it all work but I am not absolutely certain as to why
-                    outputGerberFile.XFlipMax += (xOffset * 2);
-                    outputGerberFile.YFlipMax += (yOffset * 2);
-                    LogMessage("OpenGerberFile(b) (XFlipMax,YFlipMax)=(" + outputGerberFile.XFlipMax.ToString() + "," + outputGerberFile.YFlipMax.ToString() + ")");
-
                 }
 
             } // bottom of if (outputGerberFile.GerberFileManager.OperationMode == FileManager.OperationModeEnum.IsolationCut)
 
-            // we have to adjust these so our isoplots draw in the border
-            outputGerberFile.SetMaxPlotCoordinateAdjustments(tmpXMax, tmpYMax);
-            LogMessage("GerberFile (XMax,YMax)=(" + tmpXMax.ToString() + "," + tmpYMax.ToString() + ")");
 
             LogMessage("OpenGerberFile complete");
 
@@ -4933,9 +4930,6 @@ namespace LineGrinder
         /// <remarks>The gerber file is assumed to have been reset and ready to load. 
         /// We do not reset it in here</remarks>
         /// <returns>z success, -ve fail user not notified, +ve fail user notified</returns>
-        /// <history>
-        ///    06 Jul 10  Cynic - Started
-        /// </history>
         private int ReadGerberFile(string fileNameAndPath, ref GerberFile gerberFileToPopulate, bool bSilent)
         {
             string line;
@@ -4999,9 +4993,6 @@ namespace LineGrinder
         /// <param name="excellonFileToPopulate">excellon file to populate</param>
         /// <param name="bSilent">if true we do not post notice boxes</param>
         /// <returns>z success, -ve fail user not notified, +ve fail user notified</returns>
-        /// <history>
-        ///    01 Sep 10  Cynic - Started
-        /// </history>
         private int ReadExcellonFile(string fileNameAndPath, ref ExcellonFile excellonFileToPopulate, bool bSilent)
         {
             string line;
@@ -5061,9 +5052,6 @@ namespace LineGrinder
         /// <summary>
         /// Gets or Sets our MRU list form. Will never get or set a null value
         /// </summary>
-        /// <history>
-        ///    08 Aug 10  Cynic - Started
-        /// </history>
         private frmOISMRUList MRUList
         {
             get
@@ -5082,9 +5070,6 @@ namespace LineGrinder
         /// <summary>
         /// Detects if a valid gerber file has been opened.
         /// </summary>
-        /// <history>
-        ///    08 Aug 10  Cynic - Started
-        /// </history>
         private bool IsValidGerberFileOpen()
         {
             if (currentGerberFile == null) return false;
@@ -5097,9 +5082,6 @@ namespace LineGrinder
         /// <summary>
         /// Detects if a valid Excellon file has been opened.
         /// </summary>
-        /// <history>
-        ///    02 Sep 10  Cynic - Started
-        /// </history>
         private bool IsValidExcellonFileOpen()
         {
             if (currentExcellonFile == null) return false;
@@ -5112,9 +5094,6 @@ namespace LineGrinder
         /// <summary>
         /// Detects if a valid isolation GCode has been created
         /// </summary>
-        /// <history>
-        ///    08 Aug 10  Cynic - Started
-        /// </history>
         private bool IsValidIsolationGCodeFileOpen()
         {
             if (currentIsolationGCodeFile == null) return false;
@@ -5126,9 +5105,6 @@ namespace LineGrinder
         /// <summary>
         /// Detects if a valid edge mill GCode has been created
         /// </summary>
-        /// <history>
-        ///    25 Aug 10  Cynic - Started
-        /// </history>
         private bool IsValidEdgeMillGCodeFileOpen()
         {
             if (currentEdgeMillGCodeFile == null) return false;
@@ -5140,9 +5116,6 @@ namespace LineGrinder
         /// <summary>
         /// Detects if a valid bed flattening GCode has been created
         /// </summary>
-        /// <history>
-        ///    24 Aug 10  Cynic - Started
-        /// </history>
         private bool IsValidBedFlatteningGCodeFileOpen()
         {
             if (currentBedFlatteningGCodeFile == null) return false;
@@ -5154,9 +5127,6 @@ namespace LineGrinder
         /// <summary>
         /// Detects if a valid ref pin GCode has been created
         /// </summary>
-        /// <history>
-        ///    25 Aug 10  Cynic - Started
-        /// </history>
         private bool IsValidRefPinGCodeFileOpen()
         {
             if (currentReferencePinGCodeFile == null) return false;
@@ -5168,9 +5138,6 @@ namespace LineGrinder
         /// <summary>
         /// Detects if a valid drill GCode has been created
         /// </summary>
-        /// <history>
-        ///    02 Sep 10  Cynic - Started
-        /// </history>
         private bool IsValidDrillGCodeFileOpen()
         {
             if (currentDrillGCodeFile == null) return false;
@@ -5178,12 +5145,12 @@ namespace LineGrinder
             return true;
         }
 
-         #endregion
+#endregion
 
         // ####################################################################
         // ##### Gerber to GCode Conversion Routines
         // ####################################################################
-        #region Gerber to GCode Conversion Routines
+#region Gerber to GCode Conversion Routines
 
         /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
         /// <summary>
@@ -5192,18 +5159,52 @@ namespace LineGrinder
         /// </summary>
         /// <param name="gerberFile">the gerber file which will be converted
         /// to the GCode file</param>
-        /// <history>
-        ///    06 Aug 10  Cynic - Started
-        ///    03 Oct 10  Cynic - now copy in the toolhead setup
-        /// </history>
-        private GCodeFile BuildEmptyGCodeFileWithCurrentApplicationParameters(GerberFile gerberFile)
+        /// <param name="fileManagerObj">the file manager</param>
+        private GCodeFile BuildEmptyGCodeFileWithCurrentApplicationParameters(GerberFile gerberFile, FileManager fileManagerObj)
         {
             GCodeFile gcFile = new GCodeFile();
 
+            if (gerberFile == null) return null;
+            if (fileManagerObj == null) return null;
+
             // set some configuration option
             gcFile.StateMachine.ToolHeadSetup = gerberFile.StateMachine.ToolHeadSetup;
-            gcFile.StateMachine.GCodeUnits = ApplicationUnits;
-            gcFile.StateMachine.IsoPlotPointsPerAppUnit = gerberFile.StateMachine.IsoPlotPointsPerAppUnit;
+            gcFile.StateMachine.GCodeUnits = gerberFile.GerberFileUnits;
+            gcFile.StateMachine.IsoPlotPointsPerAppUnit = GetIsoPlotPointsPerAppUnit(gerberFile.GerberFileUnits);
+
+            // set our min an max values now
+            gcFile.XMinValue = gerberFile.MinPlotXCoord;
+            gcFile.YMinValue = gerberFile.MinPlotYCoord;
+            gcFile.XMaxValue = gerberFile.MaxPlotXCoord;
+            gcFile.YMaxValue = gerberFile.MaxPlotYCoord;
+
+            if (fileManagerObj.GCodeOriginAtCenter == true)
+            {
+                // user wants the origin set to the equivalent of the center of the gerber plot
+                gcFile.GCodeOutputPlotOriginAdjust_X = gerberFile.MidPlotXCoord;
+                gcFile.GCodeOutputPlotOriginAdjust_Y = gerberFile.MidPlotYCoord;
+            }
+            else
+            {
+                // leave it at 0,0
+                gcFile.GCodeOutputPlotOriginAdjust_X = 0;
+                gcFile.GCodeOutputPlotOriginAdjust_Y = 0;
+            }
+            // always give it the flip Axis
+            gcFile.GCodeMirrorAxisPlotCoord_X = gerberFile.MidPlotXCoord;
+            // are we actually flipping 
+            gcFile.MirrorOnConversionToGCode = gerberFile.FlipMode;
+
+            // get absolute offsets
+            float absoluteOffset_X = 0;
+            float absoluteOffset_Y = 0;
+            bool retBool = gerberFile.GetAbsoluteOffsets(out absoluteOffset_X, out absoluteOffset_Y);
+            if(retBool==true)
+            {
+                gcFile.AbsoluteOffset_X = absoluteOffset_X;
+                gcFile.AbsoluteOffset_Y = absoluteOffset_Y;
+            }
+
             return gcFile;
         }
 
@@ -5213,17 +5214,51 @@ namespace LineGrinder
         /// parameters and settings
         /// </summary>
         /// <param name="excellonFile">the excellon file which will be converted
+        /// <param name="fileManagerObj">the file manager</param>
         /// to the GCode file</param>
-        /// <history>
-        ///    05 Sep 10  Cynic - Started
-        /// </history>
-        private GCodeFile BuildEmptyGCodeFileWithCurrentApplicationParameters(ExcellonFile excellonFile)
+        private GCodeFile BuildEmptyGCodeFileWithCurrentApplicationParameters(ExcellonFile excellonFile, FileManager fileManagerObj)
         {
             GCodeFile gcFile = new GCodeFile();
 
+            if (excellonFile == null) return null;
+            if (fileManagerObj == null) return null;
+
             // set some configuration option
-            gcFile.StateMachine.GCodeUnits = ApplicationUnits;
-            gcFile.StateMachine.IsoPlotPointsPerAppUnit = excellonFile.StateMachine.IsoPlotPointsPerAppUnit;
+            gcFile.StateMachine.ToolHeadSetup = excellonFile.StateMachine.ToolHeadSetup;
+            gcFile.StateMachine.GCodeUnits = excellonFile.ExcellonFileUnits;
+            gcFile.StateMachine.IsoPlotPointsPerAppUnit = GetIsoPlotPointsPerAppUnit(excellonFile.ExcellonFileUnits);
+
+            // set our min an max values now
+            gcFile.XMinValue = excellonFile.MinPlotXCoord;
+            gcFile.YMinValue = excellonFile.MinPlotYCoord;
+            gcFile.XMaxValue = excellonFile.MaxPlotXCoord;
+            gcFile.YMaxValue = excellonFile.MaxPlotYCoord;
+
+            if (fileManagerObj.GCodeOriginAtCenter == true)
+            {
+                // user wants the origin set to the equivalent of the center of the excellon plot
+                gcFile.GCodeOutputPlotOriginAdjust_X = excellonFile.MidPlotXCoord;
+                gcFile.GCodeOutputPlotOriginAdjust_Y = excellonFile.MidPlotYCoord;
+            }
+            else
+            {
+                // leave it at 0,0
+                gcFile.GCodeOutputPlotOriginAdjust_X = 0;
+                gcFile.GCodeOutputPlotOriginAdjust_Y = 0;
+            }
+            // always give it the flip Axis
+            gcFile.GCodeMirrorAxisPlotCoord_X = excellonFile.MidPlotXCoord;
+
+            // get absolute offsets
+            float absoluteOffset_X = 0;
+            float absoluteOffset_Y = 0;
+            bool retBool = excellonFile.GetAbsoluteOffsets(out absoluteOffset_X, out absoluteOffset_Y);
+            if (retBool == true)
+            {
+                gcFile.AbsoluteOffset_X = absoluteOffset_X;
+                gcFile.AbsoluteOffset_Y = absoluteOffset_Y;
+            }
+
             return gcFile;
         }
 
@@ -5237,10 +5272,6 @@ namespace LineGrinder
         /// <param name="workingGerberFile">the current gerber file</param>
         /// <param name="workingExcellonFile">the current excellon file</param>
         /// <remarks>one and only one of the currentGerberfile or currentExcellonFile must be non null</remarks>
-        /// <history>
-        ///    06 Aug 10  Cynic - Started
-        ///    10 Sep 10  Cynic - Added in the current gerber file
-        /// </history>
         private void PopulateGCodeFileWithStandardHeaderLines(ref GCodeFile gcFile, GerberFile workingGerberFile, ExcellonFile workingExcellonFile)
         {
             // just call this with the default of start spindle
@@ -5258,114 +5289,137 @@ namespace LineGrinder
         /// <param name="workingExcellonFile">the current excellon file</param>
         /// <param name="wantSpindleStartCodes">if true we add in codes to start the spindle and dwell</param>
         /// <remarks>one and only one of the currentGerberfile or currentExcellonFile must be non null</remarks>
-        /// <history>
-        ///    06 Aug 10  Cynic - Started
-        ///    10 Sep 10  Cynic - Added in the current gerber file
-        ///    12 Sep 10  Cynic - Added wantSpindleStartCodes
-        /// </history>
         private void PopulateGCodeFileWithStandardHeaderLines(ref GCodeFile gcFile, GerberFile workingGerberFile, ExcellonFile workingExcellonFile, bool wantSpindleStartCodes)
         {
-            GCodeLine_Comment coLine = null;
-            GCodeLine_CommandWord cwLine = null;
-            GCodeLine_RapidMove rmLine = null;
-            GCodeLine_Dwell dwLine = null;
+            GCodeCmd_Comment coLine = null;
+            GCodeCmd_CommandWord cwLine = null;
+            GCodeCmd_SetPosition spLine = null;
+            GCodeCmd_Dwell dwLine = null;
 
             // sanity check
             if (gcFile == null) return;
             if ((workingGerberFile == null) && (workingExcellonFile == null)) return;
 
-            coLine = new GCodeLine_Comment("Generated By: " + APPLICATION_NAME + " Version: " + APPLICATION_VERSION);
+            coLine = new GCodeCmd_Comment("Generated By: " + APPLICATION_NAME + " Version: " + APPLICATION_VERSION);
             gcFile.AddLine(coLine);
-            coLine = new GCodeLine_Comment("Home Page: " + APPLICATION_HOME);
+            coLine = new GCodeCmd_Comment("Home Page: " + APPLICATION_HOME);
             gcFile.AddLine(coLine);
             if (CurrentGerberFile.GerberFilePathAndName != null)
             {
-                coLine = new GCodeLine_Comment("Generated from file: " + CurrentGerberFile.GerberFilePathAndName);
+                coLine = new GCodeCmd_Comment("Generated from file: " + CurrentGerberFile.GerberFilePathAndName);
                 gcFile.AddLine(coLine);
             }
-            coLine = new GCodeLine_Comment("Date Generated: " + DateTime.Now.ToString("f"));
+            coLine = new GCodeCmd_Comment("Date Generated: " + DateTime.Now.ToString("f"));
             gcFile.AddLine(coLine);
 
             // blank
-            coLine = new GCodeLine_Comment("");
+            coLine = new GCodeCmd_Comment("");
             gcFile.AddLine(coLine);
 
             // Standard comment header 
-            coLine = new GCodeLine_Comment(WARN01);
+            coLine = new GCodeCmd_Comment(WARN01);
             gcFile.AddLine(coLine);
-            coLine = new GCodeLine_Comment(WARN02);
+            coLine = new GCodeCmd_Comment(WARN02);
             gcFile.AddLine(coLine);
-            coLine = new GCodeLine_Comment(WARN03);
+            coLine = new GCodeCmd_Comment(WARN03);
             gcFile.AddLine(coLine);
-            coLine = new GCodeLine_Comment(WARN04);
+            coLine = new GCodeCmd_Comment(WARN04);
             gcFile.AddLine(coLine);
-            coLine = new GCodeLine_Comment(WARN05);
+            coLine = new GCodeCmd_Comment(WARN05);
             gcFile.AddLine(coLine);
-            coLine = new GCodeLine_Comment(WARN06);
+            coLine = new GCodeCmd_Comment(WARN06);
             gcFile.AddLine(coLine);
-            coLine = new GCodeLine_Comment(WARN07);
+            coLine = new GCodeCmd_Comment(WARN07);
             gcFile.AddLine(coLine);
-            coLine = new GCodeLine_Comment(WARN08);
+            coLine = new GCodeCmd_Comment(WARN08);
             gcFile.AddLine(coLine);
-            coLine = new GCodeLine_Comment(WARN09);
+            coLine = new GCodeCmd_Comment(WARN09);
             gcFile.AddLine(coLine);
-            coLine = new GCodeLine_Comment(WARN10);
+            coLine = new GCodeCmd_Comment(WARN10);
             gcFile.AddLine(coLine);
-            coLine = new GCodeLine_Comment(WARN11);
+            coLine = new GCodeCmd_Comment(WARN11);
             gcFile.AddLine(coLine);
-            coLine = new GCodeLine_Comment(WARN12);
+            coLine = new GCodeCmd_Comment(WARN12);
             gcFile.AddLine(coLine);
-            coLine = new GCodeLine_Comment(WARN13);
+            coLine = new GCodeCmd_Comment(WARN13);
             gcFile.AddLine(coLine);
-            coLine = new GCodeLine_Comment(WARN14);
+            coLine = new GCodeCmd_Comment(WARN14);
             gcFile.AddLine(coLine);
             // blank
-            coLine = new GCodeLine_Comment("");
+            coLine = new GCodeCmd_Comment("");
             gcFile.AddLine(coLine);
 
             if (gcFile.StateMachine.GCodeUnits ==ApplicationUnitsEnum.INCHES)
             {
                 // G20 
-                cwLine = new GCodeLine_CommandWord(GCodeLine.GCODEWORD_UNIT_IN, "Use Inches");
+                cwLine = new GCodeCmd_CommandWord(GCodeCmd.GCODEWORD_UNIT_IN, "Use Inches");
                 gcFile.AddLine(cwLine);
             }
             else
             {
                 // G21 
-                cwLine = new GCodeLine_CommandWord(GCodeLine.GCODEWORD_UNIT_MM, "Use MilliMeters");
+                cwLine = new GCodeCmd_CommandWord(GCodeCmd.GCODEWORD_UNIT_MM, "Use MilliMeters");
                 gcFile.AddLine(cwLine);
             }
 
             // G90 Set Absolute Coordinates
-            cwLine = new GCodeLine_CommandWord(GCodeLine.GCODEWORD_COORDMODE_ABSOLUTE, "Set Absolute Coordinates");
+            cwLine = new GCodeCmd_CommandWord(GCodeCmd.GCODEWORD_COORDMODE_ABSOLUTE, "Set Absolute Coordinates");
             gcFile.AddLine(cwLine);
 
             // G17 xy plane selection 
-            cwLine = new GCodeLine_CommandWord(GCodeLine.GCODEWORD_XYPLANE, "XY plane selection");
+            cwLine = new GCodeCmd_CommandWord(GCodeCmd.GCODEWORD_XYPLANE, "XY plane selection");
             gcFile.AddLine(cwLine);
 
             if (workingGerberFile != null)
             {
-                // G00 rapid move to the origin
-                rmLine = new GCodeLine_RapidMove(workingGerberFile.ConvertXCoordToOriginCompensated(0), workingGerberFile.ConvertYCoordToOriginCompensated(0), "Move to Origin");
-                gcFile.AddLine(rmLine);
+                // assume we are in the lower right hand corner
+                int workingPlotOrigin_X = 0;
+                int workingPlotOrigin_Y = 0;
+
+                // are we centering the origin
+                if (workingGerberFile.GerberFileManager.GCodeOriginAtCenter == true)
+                {
+                    // override this 
+                    workingPlotOrigin_X = (int)(workingGerberFile.MidDCodeXCoord * gcFile.StateMachine.IsoPlotPointsPerAppUnit) - (int)(gcFile.StateMachine.AbsoluteOffset_X);
+                    workingPlotOrigin_Y = (int)(workingGerberFile.MidDCodeYCoord * gcFile.StateMachine.IsoPlotPointsPerAppUnit) - (int)(gcFile.StateMachine.AbsoluteOffset_Y);
+                }
+                // note there is a bug here. On the X flip boards the origin is not right if origin is 0,0. It is ok if the origin is in the center.
+                // the ability to place the gcode origin in the lower left has been disabled in the configuration manager
+
+                //// G92 assume our tool is now over the origin
+                spLine = new GCodeCmd_SetPosition(workingPlotOrigin_X, workingPlotOrigin_Y, "SetPosition");
+                gcFile.AddLine(spLine);
             }
             else if (workingExcellonFile != null)
             {
-                // G00 rapid move to the origin
-                rmLine = new GCodeLine_RapidMove(workingExcellonFile.ConvertXCoordToOriginCompensated(0), workingExcellonFile.ConvertYCoordToOriginCompensated(0), "Move to Origin");
-                gcFile.AddLine(rmLine);
+                // assume we are in the lower right hand corner
+                int workingPlotOrigin_X = 0;
+                int workingPlotOrigin_Y = 0;
+
+                // are we centering the origin
+                if (workingExcellonFile.ExcellonFileManager.GCodeOriginAtCenter == true)
+                {
+                    // override this 
+                    workingPlotOrigin_X = (int)(workingExcellonFile.MidDCodeXCoord * gcFile.StateMachine.IsoPlotPointsPerAppUnit) - (int)(gcFile.StateMachine.AbsoluteOffset_X);
+                    workingPlotOrigin_Y = (int)(workingExcellonFile.MidDCodeYCoord * gcFile.StateMachine.IsoPlotPointsPerAppUnit) - (int)(gcFile.StateMachine.AbsoluteOffset_Y);
+                }
+                // note there is a bug here. On the X flip boards the origin is not right if origin is 0,0. It is ok if the origin is in the center.
+                // the ability to place the gcode origin in the lower left has been disabled in the configuration manager
+
+                //// G92 assume our tool is now over the origin
+                spLine = new GCodeCmd_SetPosition(workingPlotOrigin_X, workingPlotOrigin_Y, "SetPosition");
+                gcFile.AddLine(spLine);
             }
 
             // not everthing wants this
             if (wantSpindleStartCodes == true)
             {
                 // M03 start spindle
-                cwLine = new GCodeLine_CommandWord(GCodeLine.GCODEWORD_SPINDLESTART_CW, "Start spindle");
+                cwLine = new GCodeCmd_CommandWord(GCodeCmd.GCODEWORD_SPINDLESTART_CW, "Start spindle");
                 gcFile.AddLine(cwLine);
 
                 // G04 Dwell 
-                dwLine = new GCodeLine_Dwell(GCodeLine_Dwell.DEFAULT_DWELL_TIME, "Pause to let the spindle start");
+                dwLine = new GCodeCmd_Dwell(GCodeCmd_Dwell.DEFAULT_DWELL_TIME, "Pause to let the spindle start");
                 gcFile.AddLine(dwLine);
             }
 
@@ -5380,42 +5434,42 @@ namespace LineGrinder
         /// <param name="workingGerberFile">the current gerber file</param>
         /// <param name="workingExcellonFile">the current excellon file</param>
         /// <remarks>one and only one of the currentGerberfile or currentExcellonFile must be non null</remarks>
-        /// <history>
-        ///    06 Aug 10  Cynic - Started
-        ///    10 Sep 10  Cynic - Added in the current gerber file
-        /// </history>
         private void PopulateGCodeFileWithStandardFooterLines(ref GCodeFile gcFile, GerberFile workingGerberFile, ExcellonFile workingExcellonFile)
         {
-            GCodeLine_CommandWord cwLine = null;
-            GCodeLine_ZMove zLine = null;
-            GCodeLine_RapidMove rmLine = null;
+            GCodeCmd_CommandWord cwLine = null;
+            GCodeCmd_ZMove zLine = null;
+            GCodeCmd_RapidMove rmLine = null;
 
             // sanity check
             if (gcFile == null) return;
 
             // G00 - pull bit off the work piece
-            zLine = new GCodeLine_ZMove(GCodeLine_ZMove.GCodeZMoveHeightEnum.GCodeZMoveHeight_ZCoordForClear, "Clear workspace");
+            zLine = new GCodeCmd_ZMove(GCodeCmd_ZMove.GCodeZMoveHeightEnum.GCodeZMoveHeight_ZCoordForClear, "Clear workspace");
             gcFile.AddLine(zLine);
 
             if (workingGerberFile != null)
             {
+                int workingPlotOrigin_X = (int)(gcFile.StateMachine.GCodeOutputPlotOriginAdjust_X * gcFile.StateMachine.IsoPlotPointsPerAppUnit);
+                int workingPlotOrigin_Y = (int)(gcFile.StateMachine.GCodeOutputPlotOriginAdjust_Y * gcFile.StateMachine.IsoPlotPointsPerAppUnit);
                 // G00 rapid move to the origin
-                rmLine = new GCodeLine_RapidMove(workingGerberFile.ConvertXCoordToOriginCompensated(0), workingGerberFile.ConvertYCoordToOriginCompensated(0), "Move to Origin");
+                rmLine = new GCodeCmd_RapidMove(workingPlotOrigin_X, workingPlotOrigin_Y, "Move to Origin");
                 gcFile.AddLine(rmLine);
             }
             else if (workingExcellonFile != null)
             {
                 // G00 rapid move to the origin
-                rmLine = new GCodeLine_RapidMove(workingExcellonFile.ConvertXCoordToOriginCompensated(0), workingExcellonFile.ConvertYCoordToOriginCompensated(0), "Move to Origin");
+                int workingPlotOrigin_X = (int)(gcFile.StateMachine.GCodeOutputPlotOriginAdjust_X * gcFile.StateMachine.IsoPlotPointsPerAppUnit);
+                int workingPlotOrigin_Y = (int)(gcFile.StateMachine.GCodeOutputPlotOriginAdjust_Y * gcFile.StateMachine.IsoPlotPointsPerAppUnit);
+                rmLine = new GCodeCmd_RapidMove(workingPlotOrigin_X, workingPlotOrigin_Y, "Move to Origin");
                 gcFile.AddLine(rmLine);
             }
 
             // M05 stop spindle
-            cwLine = new GCodeLine_CommandWord(GCodeLine.GCODEWORD_SPINDLESTOP, "Stop spindle");
+            cwLine = new GCodeCmd_CommandWord(GCodeCmd.GCODEWORD_SPINDLESTOP, "Stop spindle");
             gcFile.AddLine(cwLine);
 
             // M02 Program end
-            cwLine = new GCodeLine_CommandWord(GCodeLine.GCODEWORD_PROGRAMEND, "Program End");
+            cwLine = new GCodeCmd_CommandWord(GCodeCmd.GCODEWORD_PROGRAMEND, "Program End");
             gcFile.AddLine(cwLine);
 
         }
@@ -5430,11 +5484,9 @@ namespace LineGrinder
         /// <param name="edgeMillGCodeFile">the isolation Gcode file which produced the edge mill code</param>
         /// <param name="outGCodeFile">we return the refpins gcode here</param>
         /// <returns>z success, -ve err not reported, +ve err reported</returns>
-        /// <history>
-        ///    24 Jul 10  Cynic - Started
-        /// </history>
         private int CreateBedFlatteningGCode(FileManager fileManagerObj, GerberFile gerberFile, GCodeFile edgeMillGCodeFile, out GCodeFile outGCodeFile, ref string errStr)
         {
+
             errStr = "";
             DateTime conversionStart;
             DateTime conversionEnd;
@@ -5494,8 +5546,6 @@ namespace LineGrinder
                 if (fileManagerObj.BedFlatteningSizeMode == FileManager.BedFlatteningSizeModeEnum.Add_Margin_To_Border)
                 {
                     // find the max and min values of all coordinates
-                    edgeMillGCodeFile.SetXYCompensatedMaxMin();
-                    edgeMillGCodeFile.ConvertXYCompensatedMaxMinToUncompensated();
                     if (edgeMillGCodeFile.AreXYMaxMinOk() == false)
                     {
                         errStr = "Generating BedFlattening GCode: The maximum and minimum XY coordinates could not be found in the GCode file.\n\nIs there a PCB border outline in that file?";
@@ -5541,23 +5591,16 @@ namespace LineGrinder
 
                 LogMessage("CreateBedFlatteningGCode: Building Empty GCode File");
                 // build a new GCode object with the application parameters here
-                outGCodeFile = BuildEmptyGCodeFileWithCurrentApplicationParameters(gerberFile);
+                outGCodeFile = BuildEmptyGCodeFileWithCurrentApplicationParameters(gerberFile, fileManagerObj);
                 // populate with file specific options from the FileManagers
                 outGCodeFile.GCodeFileManager = fileManagerObj;
-
-                if (fileManagerObj.AutoAdjustOrigin == false)
-                {
-                    // user wants the origin set back to where it was defined
-                    // in the Gerber plot
-                    outGCodeFile.SetPlotOriginCoordinateAdjustments(gerberFile.PlotXCoordOriginAdjust, gerberFile.PlotYCoordOriginAdjust);
-                }
 
                 // set it up with the standard header lines
                 PopulateGCodeFileWithStandardHeaderLines(ref outGCodeFile, gerberFile, null, true);
 
                 LogMessage("CreateBedFlatteningGCode: ConvertIsolationSegmentsToGCode starting");
                 // now generate a pocket suitable for bed flattening
-                retInt = outGCodeFile.GeneratePocketGCode(
+                retInt = outGCodeFile.GeneratePocketGCode(currentGerberFile.StateMachine.IsoPlotPointsPerAppUnit,
                                                     xMin,
                                                     yMin,
                                                     xMax,
@@ -5587,6 +5630,7 @@ namespace LineGrinder
                 OISMessageBox("An error occurred when converting to GCode.\n\n" + ex.Message + "\n\nPlease see the log file for more details.");
                 return 900;
             }
+
         }
 
         /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
@@ -5600,12 +5644,10 @@ namespace LineGrinder
         /// <param name="gerberFile">the gerber file</param>
         /// <param name="outGCodeFile">we return the refpins gcode here</param>
         /// <returns>z success, -ve err not reported, +ve err reported</returns>
-        /// <history>
-        ///    26 Jul 10  Cynic - Started
-        ///    10 Sep 10  Cynic - extensively re-worked
-        /// </history>
         private int CreateReferencePinGCode(FileManager fileManagerObj, GerberFile gerberFile, out GCodeFile outGCodeFile, ref string errStr)
         {
+            outGCodeFile = null;
+
             errStr = "";
             DateTime conversionStart;
             DateTime conversionEnd;
@@ -5644,16 +5686,9 @@ namespace LineGrinder
 
                 LogMessage("CreateReferencePinGCode: Building Empty GCode File");
                 // build a new GCode object with the application parameters here
-                outGCodeFile = BuildEmptyGCodeFileWithCurrentApplicationParameters(gerberFile);
+                outGCodeFile = BuildEmptyGCodeFileWithCurrentApplicationParameters(gerberFile, fileManagerObj);
                 // populate with file specific options from the FileManagers
                 outGCodeFile.GCodeFileManager = fileManagerObj;
-
-                if (fileManagerObj.AutoAdjustOrigin == false)
-                {
-                    // user wants the origin set back to where it was defined
-                    // in the Gerber plot
-                    outGCodeFile.SetPlotOriginCoordinateAdjustments(gerberFile.PlotXCoordOriginAdjust, gerberFile.PlotYCoordOriginAdjust);
-                }
 
                 // set it up with the standard header lines
                 PopulateGCodeFileWithStandardHeaderLines(ref outGCodeFile, gerberFile, null, true);
@@ -5694,11 +5729,12 @@ namespace LineGrinder
                 // OK, everything looks good, the reference pin pads seem to be setup correctly
                 foreach (GerberPad gcPadObj in refPadsList)
                 {
-                    float tmpX = gerberFile.ConvertXCoordToOriginCompensated(gcPadObj.X0);
-                    float tmpY = gerberFile.ConvertYCoordToOriginCompensated(gcPadObj.Y0);
+                    int tmpX = (int)(gerberFile.ConvertXCoordToOriginCompensatedFlipped(gcPadObj.X0) * gerberFile.StateMachine.IsoPlotPointsPerAppUnit);
+                    int tmpY = (int)(gerberFile.ConvertYCoordToOriginCompensatedFlipped(gcPadObj.Y0) * gerberFile.StateMachine.IsoPlotPointsPerAppUnit);
+                    //DebugMessage("zxtmpX=" + tmpX.ToString() + ", zxtmpY=" + tmpY.ToString());
 
-                    // now drill the hole for our first reference pin
-                    retInt = outGCodeFile.AddDrillCodeLines(tmpX, tmpY, fileManagerObj.ReferencePinPadDiameter, ref errStr);
+                    // now drill the hole for our reference pin
+                    retInt = outGCodeFile.AddPadTouchDownOrDrillLine(tmpX, tmpY, fileManagerObj.ReferencePinPadDiameter, ref errStr);
                     if (retInt != 0)
                     {
                         LogMessage("CreateReferencePinGCode: AddDrillCodeLines Error, err=" + retInt.ToString() + ", ErrStr=" + errStr);
@@ -5734,11 +5770,10 @@ namespace LineGrinder
         /// <param name="excellonFile">the excellon file we process</param>
         /// <param name="outGCodeFile">the gcode file we return</param>
         /// <returns>z success, -ve err not reported, +ve err reported</returns>
-        /// <history>
-        ///    02 Sep 10  Cynic - Started
-        /// </history>
         private int CreateDrillGCode(FileManager fileManagerObj, ExcellonFile excellonFile, out GCodeFile outGCodeFile, ref string errStr)
         {
+            outGCodeFile = null;
+
             DateTime conversionStart;
             DateTime conversionEnd;
             int retInt;
@@ -5755,7 +5790,7 @@ namespace LineGrinder
             }
             if (fileManagerObj.OperationMode != FileManager.OperationModeEnum.Excellon)
             {
-                errStr = "Generating Drill GCode: File Manager is not in IsolationCut mode.\n\nPlease see the logs.";
+                errStr = "Generating Drill GCode: File Manager is not in Excellon mode.\n\nPlease see the logs.";
                 return -51;
             }
 
@@ -5778,16 +5813,9 @@ namespace LineGrinder
 
                 LogMessage("CreateDrillGCode: Building Empty GCode File");
                 // build a new GCode object with the application parameters here
-                outGCodeFile = BuildEmptyGCodeFileWithCurrentApplicationParameters(excellonFile);
+                outGCodeFile = BuildEmptyGCodeFileWithCurrentApplicationParameters(excellonFile, fileManagerObj);
                 // populate with file specific options from the FileManagers
                 outGCodeFile.GCodeFileManager = fileManagerObj;
-
-                if (fileManagerObj.AutoAdjustOrigin == false)
-                {
-                    // user wants the origin set back to where it was defined
-                    // in the Gerber plot
-                    outGCodeFile.SetPlotOriginCoordinateAdjustments(excellonFile.PlotXCoordOriginAdjust, excellonFile.PlotYCoordOriginAdjust);
-                }
 
                 // set it up with the standard header lines
                 PopulateGCodeFileWithStandardHeaderLines(ref outGCodeFile, null, excellonFile, true);
@@ -5796,10 +5824,10 @@ namespace LineGrinder
 
                 // We Build the GCode file by converting each Excellon lines. The excellon line Object
                 // knows how to convert itself
-                List<GCodeLine> gcLineList = null;
+                List<GCodeCmd> gcLineList = null;
                 foreach (ExcellonLine lineObj in excellonFile.SourceLines)
                 {
-                    retInt = lineObj.GetGCodeLine(excellonFile.StateMachine, out gcLineList);
+                    retInt = lineObj.GetGCodeCmd(excellonFile.StateMachine, out gcLineList);
                     if (retInt != 0)
                     {
                         errStr = "Error " + retInt.ToString() + " returned when converting excellon file line number: " + lineObj.LineNumber.ToString();
@@ -5814,7 +5842,7 @@ namespace LineGrinder
                         return -343;
                     }
                     // add the lines to our GCode file
-                    foreach (GCodeLine gcLine in gcLineList)
+                    foreach (GCodeCmd gcLine in gcLineList)
                     {
                         outGCodeFile.AddLine(gcLine);
                     }
@@ -5835,7 +5863,6 @@ namespace LineGrinder
                 OISMessageBox("An error occurred when converting to GCode.\n\n" + ex.Message + "\n\nPlease see the log file for more details.");
                 return 900;
             }
-
         }
 
         /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
@@ -5845,27 +5872,20 @@ namespace LineGrinder
         /// <param name="errStr">an error string</param>
         /// <param name="gerberFileToConvert">the gerber file we convert</param>
         /// <param name="fileManagerObj">the file manager object to use</param>
-        /// <param name="outputGCodeBuilder">the GCodeBuilderObject we built</param>
+        /// <param name="outputIsoPlotBuilder">the IsoPlotObject we built</param>
         /// <param name="outputGCodeFile">the GCodeFile we created</param>
         /// <returns>z success, -ve err not reported, +ve err reported</returns>
-        /// <history>
-        ///    22 Jul 10  Cynic - Started
-        /// </history>
-        private int CreateIsolationCutGCode(FileManager fileManagerObj, GerberFile gerberFileToConvert, out GCodeFile outputGCodeFile, out GCodeBuilder outputGCodeBuilder, ref string errStr)
+        private int CreateIsolationCutGCode(FileManager fileManagerObj, GerberFile gerberFileToConvert, out GCodeFile outputGCodeFile, out IsoPlotBuilder outputIsoPlotBuilder, ref string errStr)
         {
-            GCodeLine_Comment coLine;
+            GCodeCmd_Comment coLine;
             errStr = "";
             int retInt;
-            DateTime conversionStart;
-            DateTime isoStep1End;
-            DateTime isoStep2End;
-            DateTime isoStep3End;
-            DateTime conversionEnd;
+            TimeSpan timeTaken;
 
             LogMessage("CreateIsolationCutGCode called");
 
             outputGCodeFile = null;
-            outputGCodeBuilder = null;
+            outputIsoPlotBuilder = null;
             errStr = "";
 
             // reset these flags
@@ -5894,37 +5914,42 @@ namespace LineGrinder
             try
             {
                 // start the clock
-                conversionStart = DateTime.Now;
+                Stopwatch timer = new Stopwatch();
+                timer.Start();
 
                 // #################
                 // ### Perform Step 1
                 // #################
                 LogMessage("CreateIsolationCutGCode gerberFileToConvert.PerformGerberToGCodeStep1 starting");
-                retInt = gerberFileToConvert.PerformGerberToGCodeStep1(out outputGCodeBuilder, ctlPlotViewer1.VirtualPlotSize, ctlPlotViewer1.IsoPlotPointsPerAppUnit, ref errStr);
+                retInt = gerberFileToConvert.PerformGerberToGCodeStep1(out outputIsoPlotBuilder, ctlPlotViewer1.VirtualPlotSize, ctlPlotViewer1.IsoPlotPointsPerAppUnit, ref errStr);
                 if (retInt != 0)
                 {
                     LogMessage("PerformGerberToGCodeStep1 Error, err=" + retInt.ToString() + ", ErrStr=" + errStr);
                     return -271;
                 }
-                if (outputGCodeBuilder == null)
+                if (outputIsoPlotBuilder == null)
                 {
-                    LogMessage("PerformGerberToGCodeStep1 Error, builderObjOut==null");
+                    LogMessage("PerformGerberToGCodeStep1 Error, isoPlotObjOut==null");
                     return -272;
                 }
                 // set this now
-                outputGCodeBuilder.GCodeBuilderFileManager = CurrentFileManager;
+                outputIsoPlotBuilder.CurrentFileManager = CurrentFileManager;
                 LogMessage("CreateIsolationCutGCode: gerberFileToConvert.PerformGerberToGCodeStep1 successful");
                 gerberToGCodeStep1Successful = true;
 
                 // stop the clock
-                isoStep1End = DateTime.Now;
-                LogMessage("GCode Conversion: isoStep1 elapsed time is " + OISUtils.ConvertTimeSpanToHumanReadableTimeInterval(isoStep1End.Subtract(conversionStart)));
+                timer.Stop();
+                timeTaken = timer.Elapsed;
+                string isoStep1ElapsedTime = timeTaken.ToString(@"m\:ss\.fff");
+                LogMessage("GCode Conversion: isoStep1 elapsed time is " + isoStep1ElapsedTime);
 
                 // #################
                 // ### perform Step 2
                 // #################
-                LogMessage("CreateIsolationCutGCode GCodeBuilder.PerformSecondaryIsolationArrayProcessing starting");
-                retInt = outputGCodeBuilder.PerformSecondaryIsolationArrayProcessing(ref errStr);
+                timer  = Stopwatch.StartNew();
+
+                LogMessage("CreateIsolationCutGCode IsoPlotBuilder.PerformSecondaryIsolationArrayProcessing starting");
+                retInt = outputIsoPlotBuilder.PerformSecondaryIsolationArrayProcessing(ref errStr);
                 if (retInt != 0)
                 {
                     LogMessage("PerformSecondaryIsolationArrayProcessing Error, err=" + retInt.ToString() + ", ErrStr=" + errStr);
@@ -5934,21 +5959,17 @@ namespace LineGrinder
                 gerberToGCodeStep2Successful = true;
 
                 // stop the clock
-                isoStep2End = DateTime.Now;
-                LogMessage("GCode Conversion: isoStep2 elapsed time is " + OISUtils.ConvertTimeSpanToHumanReadableTimeInterval(isoStep2End.Subtract(conversionStart)));
+                timer.Stop();
+                timeTaken = timer.Elapsed;
+                string isoStep2ElapsedTime = timeTaken.ToString(@"m\:ss\.fff");
+                //      isoStep2End = DateTime.Now;
+                LogMessage("GCode Conversion: isoStep2 elapsed time is " + isoStep2ElapsedTime);
 
                 LogMessage("CreateIsolationCutGCode: Building Empty GCode File");
                 // build a new GCode object with the application parameters here
-                outputGCodeFile = BuildEmptyGCodeFileWithCurrentApplicationParameters(gerberFileToConvert);
+                outputGCodeFile = BuildEmptyGCodeFileWithCurrentApplicationParameters(gerberFileToConvert, fileManagerObj);
                 // populate with file specific options from the FileManagers
                 outputGCodeFile.GCodeFileManager = fileManagerObj;
-
-                if (fileManagerObj.AutoAdjustOrigin == false)
-                {
-                    // user wants the origin set back to where it was defined
-                    // in the Gerber plot
-                    outputGCodeFile.SetPlotOriginCoordinateAdjustments(gerberFileToConvert.PlotXCoordOriginAdjust, gerberFileToConvert.PlotYCoordOriginAdjust);
-                }
 
                 // set it up with the standard header lines
                 PopulateGCodeFileWithStandardHeaderLines(ref outputGCodeFile, gerberFileToConvert, null, true);
@@ -5956,9 +5977,11 @@ namespace LineGrinder
                 // #################
                 // ### perform Step 3
                 // #################
+                timer = Stopwatch.StartNew();
+
                 LogMessage("CreateIsolationCutGCode: ConvertIsolationSegmentsToGCode starting");
-                // now convert the isolation segments in the GCodeBuilder to GCodeLine objects in the GCodeFile
-                retInt = outputGCodeBuilder.ConvertIsolationSegmentsToGCode(ref outputGCodeFile, ref errStr);
+                // now convert the isolation segments in the IsoPlotBuilder to GCodeCmd objects in the GCodeFile
+                retInt = outputIsoPlotBuilder.ConvertIsolationSegmentsToGCode(ref outputGCodeFile, ref errStr);
                 if (retInt != 0)
                 {
                     LogMessage("CreateIsolationCutGCode: ConvertIsolationSegmentsToGCode Error, err=" + retInt.ToString() + ", ErrStr=" + errStr);
@@ -5966,16 +5989,24 @@ namespace LineGrinder
                 }
                 LogMessage("CreateIsolationCutGCode: ConvertIsolationSegmentsToGCode successful");
                 gerberToGCodeStep3Successful = true;
+
                 // stop the clock
-                isoStep3End = DateTime.Now;
-                LogMessage("GCode Conversion: isoStep3 elapsed time is " + OISUtils.ConvertTimeSpanToHumanReadableTimeInterval(isoStep3End.Subtract(conversionStart)));
+                timer.Stop();
+                timeTaken = timer.Elapsed;
+                string isoStep3ElapsedTime = timeTaken.ToString(@"m\:ss\.fff");
+                LogMessage("GCode Conversion: isoStep3 elapsed time is " + isoStep3ElapsedTime);
+
+                // #################
+                // ### perform Step 4
+                // #################
+                timer = Stopwatch.StartNew();
 
                 // did the user want pad touchdowns?
                 if ((fileManagerObj.OperationMode == FileManager.OperationModeEnum.IsolationCut) &&
                     (fileManagerObj.IsoPadTouchDownsWanted == true))
                 {
                     // yes, the user wants pad touchdowns
-                    coLine = new GCodeLine_Comment("... pad touchdown start ...");
+                    coLine = new GCodeCmd_Comment("... pad touchdown start ...");
                     outputGCodeFile.AddLine(coLine);
 
                     foreach (GerberPad padObj in gerberFileToConvert.StateMachine.PadCenterPointList)
@@ -5983,16 +6014,19 @@ namespace LineGrinder
                         // we do not do reference pins
                         if (padObj.IsRefPin == true) continue;
                         // generate the code, the hard coded TOUCHDOWN_HOLE_DIAMETER is just for display
-                        float tmpX = gerberFileToConvert.ConvertXCoordToOriginCompensatedFlipped(padObj.X0);
-                        float tmpY = gerberFileToConvert.ConvertYCoordToOriginCompensatedFlipped(padObj.Y0);
-                        retInt = outputGCodeFile.AddDrillCodeLines(tmpX, tmpY, GCodeLine_ZMove.GCodeZMoveHeightEnum.GCodeZMoveHeight_ZCoordForAlt1Cut, GCodeFile.TOUCHDOWN_HOLE_DISPLAY_DIAMETER, FileManager.DEFAULT_DRILLDWELL_TIME, ref errStr);
+                        int tmpX = (int)(gerberFileToConvert.ConvertXCoordToOriginCompensatedFlipped(padObj.X0) * gerberFileToConvert.StateMachine.IsoPlotPointsPerAppUnit);
+                        int tmpY = (int)(gerberFileToConvert.ConvertYCoordToOriginCompensatedFlipped(padObj.Y0) * gerberFileToConvert.StateMachine.IsoPlotPointsPerAppUnit);
+
+                        // this is just a touchdown it should come in at the isoWidth
+                        int touchdownDisplayDiameter = (int)((gerberFileToConvert.StateMachine.IsolationWidth * gerberFileToConvert.StateMachine.IsoPlotPointsPerAppUnit));
+                        retInt = outputGCodeFile.AddPadTouchDownOrDrillLine(tmpX, tmpY, GCodeCmd_ZMove.GCodeZMoveHeightEnum.GCodeZMoveHeight_ZCoordForAlt1Cut, touchdownDisplayDiameter, FileManager.DEFAULT_DRILLDWELL_TIME, ref errStr);
                         if (retInt != 0)
                         {
                             LogMessage("GCode Conversion: AddDrillCodeLines Error, err=" + retInt.ToString() + ", ErrStr=" + errStr);
                             return -501;
                         }
                     }
-                    coLine = new GCodeLine_Comment("... pad touchdown end ...");
+                    coLine = new GCodeCmd_Comment("... pad touchdown end ...");
                     outputGCodeFile.AddLine(coLine);
                 }
 
@@ -6000,8 +6034,11 @@ namespace LineGrinder
                 PopulateGCodeFileWithStandardFooterLines(ref outputGCodeFile, gerberFileToConvert, null);
 
                 // stop the clock
-                conversionEnd = DateTime.Now;
-                LogMessage("GCode Conversion: total elapsed time is " + OISUtils.ConvertTimeSpanToHumanReadableTimeInterval(conversionEnd.Subtract(conversionStart)));
+                timer.Stop();
+                timeTaken = timer.Elapsed;
+                string isoStep4ElapsedTime = timeTaken.ToString(@"m\:ss\.fff");
+                LogMessage("GCode Conversion: isoStep4 elapsed time is " + isoStep4ElapsedTime);
+
                 return 0;
             }
             catch (Exception ex)
@@ -6017,9 +6054,6 @@ namespace LineGrinder
         /// <summary>
         /// Gets the GerberToGCodeStep1Successful flag
         /// </summary>
-        /// <history>
-        ///    26 Jul 10  Cynic - Started
-        /// </history>
         public bool GerberToGCodeStep1Successful
         {
             get
@@ -6032,9 +6066,6 @@ namespace LineGrinder
         /// <summary>
         /// Gets the GerberToGCodeStep2Successful flag
         /// </summary>
-        /// <history>
-        ///    26 Jul 10  Cynic - Started
-        /// </history>
         public bool GerberToGCodeStep2Successful
         {
             get
@@ -6047,9 +6078,6 @@ namespace LineGrinder
         /// <summary>
         /// Gets the GerberToGCodeStep3Successful flag
         /// </summary>
-        /// <history>
-        ///    26 Jul 10  Cynic - Started
-        /// </history>
         public bool GerberToGCodeStep3Successful
         {
             get
@@ -6058,14 +6086,43 @@ namespace LineGrinder
             }
         }
 
+
         #endregion
 
+        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+        /// <summary>
+        /// Removes all file managers
+        /// </summary>
+        private void buttonRemoveAllFileManagers_Click(object sender, EventArgs e)
+        {
+            DialogResult dlgRes = OISMessageBox_YesNo("This option will remove all File Managers.\n\nDo you wish to proceed?");
+            if (dlgRes != DialogResult.Yes) return;
+            // remove all
+            this.ctlFileManagersDisplay1.RemoveAllFileManagers();
+        }
 
- 
+        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+        /// <summary>
+        /// Removes all file managers
+        /// </summary>
+        private void buttonRemoveSelectedFileManager_Click(object sender, EventArgs e)
+        {
+            DialogResult dlgRes = OISMessageBox_YesNo("This option will remove the selected File Manager.\n\nDo you wish to proceed?");
+            if (dlgRes != DialogResult.Yes) return;
+            // remove selected
+            this.ctlFileManagersDisplay1.RemoveSelectedFileManager();
+        }
 
- 
+        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+        /// <summary>
+        /// Adds a new file manager
+        /// </summary>
+        private void buttonAddNewFileManager_Click(object sender, EventArgs e)
+        {
+            // add new
+            this.ctlFileManagersDisplay1.AddNewFileManager();
+        }
 
-
- 
     }
 }
+

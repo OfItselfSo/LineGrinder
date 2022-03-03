@@ -9,19 +9,19 @@ using System.IO;
 using System.ComponentModel;
 
 /// +------------------------------------------------------------------------------------------------------------------------------+
-/// ¦                                                   TERMS OF USE: MIT License                                                  ¦
-/// +------------------------------------------------------------------------------------------------------------------------------¦
-/// ¦Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation    ¦
-/// ¦files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy,    ¦
-/// ¦modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software¦
-/// ¦is furnished to do so, subject to the following conditions:                                                                   ¦
-/// ¦                                                                                                                              ¦
-/// ¦The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.¦
-/// ¦                                                                                                                              ¦
-/// ¦THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE          ¦
-/// ¦WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR         ¦
-/// ¦COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,   ¦
-/// ¦ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                         ¦
+/// ï¿½                                                   TERMS OF USE: MIT License                                                  ï¿½
+/// +------------------------------------------------------------------------------------------------------------------------------ï¿½
+/// ï¿½Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation    ï¿½
+/// ï¿½files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy,    ï¿½
+/// ï¿½modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Softwareï¿½
+/// ï¿½is furnished to do so, subject to the following conditions:                                                                   ï¿½
+/// ï¿½                                                                                                                              ï¿½
+/// ï¿½The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.ï¿½
+/// ï¿½                                                                                                                              ï¿½
+/// ï¿½THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE          ï¿½
+/// ï¿½WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR         ï¿½
+/// ï¿½COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,   ï¿½
+/// ï¿½ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                         ï¿½
 /// +------------------------------------------------------------------------------------------------------------------------------+
 
 /// #########
@@ -37,9 +37,6 @@ namespace OISCommon
     /// other options in a transparent way which still allows the ctl to inherit
     /// from System.Windows.Forms.Form.
     /// </summary>
-    /// <history>
-    ///    03 Nov 09  Cynic - Started
-    /// </history>
     public class frmOISBase : System.Windows.Forms.Form
     {
         // the logger instance
@@ -49,9 +46,6 @@ namespace OISCommon
         /// <summary>
         /// Constructor
         /// </summary>
-        /// <history>
-        ///    03 Nov 09  Cynic - Started
-        /// </history>
         public frmOISBase()
         {
             // create a handle now. This prevents a nasty InvokeRequired bug
@@ -73,9 +67,6 @@ namespace OISCommon
         /// Turns the cursor into an hourglass or back off
         /// </summary>
         /// <param name="Show">if true we enable it if false we put back the default cursor</param>
-        /// <history>
-        ///    03 Nov 09  Cynic - Started
-        /// </history>
         protected void WaitCursor(bool enabled) 
         { 
             if (enabled == true) 
@@ -100,9 +91,6 @@ namespace OISCommon
         /// in width</remarks>
         /// <param name="strIn">Incoming string to measure</param>
         /// <param name="labelIn">label which should be increased</param>
-        /// <history>
-        ///    03 Nov 09  Cynic - Started
-        /// </history>
         protected void AdjustFormToTextDimensions(string strIn, System.Windows.Forms.Label labelIn)
         {
             int textArea;
@@ -156,9 +144,6 @@ namespace OISCommon
         /// </summary>
         /// <param name="helpDirName">directory to use if null the global dir is used. if not rooted the application exe path is assumed</param>
         /// <param name="helpFileName">the name of the help file</param>
-        /// <history>
-        ///   13 Sep 10  Cynic - Originally written
-        /// </history>
         public void LaunchHelpFile(string helpDirName, string helpFileName)
         {
             string dirName;
@@ -203,9 +188,6 @@ namespace OISCommon
         /// <param name="showNewFolder">if true show new folder button</param>
         /// <param name="startDir">the starting directory</param>
         /// <returns>true the user pressed ok, false the user cancelled</returns>
-        /// <history>
-        ///    03 Jan 11  Cynic - Started
-        /// </history>
         public static bool GetDirectoryByPrompt(string startDir, string boxTitle, bool showNewFolder, out string outDir)
         {
             outDir = "";
@@ -229,9 +211,6 @@ namespace OISCommon
         /// A wrapper to launch a modal Yes/No Message box, with logging
         /// </summary>
         /// <param name="boxText">The text to display in the box</param>
-        /// <history>
-        ///    08 Aug 10  Cynic - Started
-        /// </history>
         public DialogResult OISMessageBox_YesNo(string boxText)
         {
             if (boxText == null) boxText = "";
@@ -246,9 +225,6 @@ namespace OISCommon
         /// </summary>
         /// <param name="boxText">The text to display in the box</param>
         /// <param name="boxTitle">The box title</param>
-        /// <history>
-        ///    08 Aug 10  Cynic - Started
-        /// </history>
         public DialogResult OISMessageBox_YesNo(string boxText, string boxTitle)
         {
             if (boxTitle == null) boxTitle = "";
@@ -264,9 +240,6 @@ namespace OISCommon
         /// A wrapper to launch a modal Yes/No/Cancel Message box, with logging
         /// </summary>
         /// <param name="boxText">The text to display in the box</param>
-        /// <history>
-        ///    10 Aug 10  Cynic - Started
-        /// </history>
         public DialogResult OISMessageBox_YesNoCancel(string boxText)
         {
             if (boxText == null) boxText = "";
@@ -281,9 +254,6 @@ namespace OISCommon
         /// </summary>
         /// <param name="boxText">The text to display in the box</param>
         /// <param name="boxTitle">The box title</param>
-        /// <history>
-        ///    10 Aug 10  Cynic - Started
-        /// </history>
         public DialogResult OISMessageBox_YesNoCancel(string boxText, string boxTitle)
         {
             if (boxTitle == null) boxTitle = "";
@@ -300,9 +270,6 @@ namespace OISCommon
         /// </summary>
         /// <param name="boxText">The text to display in the box</param>
         /// <param name="boxTitle">The box title</param>
-        /// <history>
-        ///    03 Nov 09  Cynic - Started
-        /// </history>
         public void OISMessageBox(string boxText, string boxTitle)
         {
             if (boxTitle == null) boxTitle = "";
@@ -316,9 +283,6 @@ namespace OISCommon
         /// A wrapper to launch a modal Message box, with logging
         /// </summary>
         /// <param name="boxText">The text to display in the box</param>
-        /// <history>
-        ///    03 Nov 09  Cynic - Started
-        /// </history>
         public void OISMessageBox(string boxText)
         {
             if (boxText == null) boxText = "";
@@ -331,9 +295,6 @@ namespace OISCommon
         /// Simple wrapper for the most common record message call
         /// </summary>
         /// <param name="msgText">Text to Write to the Log</param>
-        /// <history>
-        ///    03 Nov 09  Cynic - Started
-        /// </history>
         public void LogMessage(string msgText)
         {
             // write it out to the log - but prepend the object type name
@@ -345,9 +306,6 @@ namespace OISCommon
         /// Simple wrapper for the most common debug mode record message call
         /// </summary>
         /// <param name="msgText">Text to Write to the Log</param>
-        /// <history>
-        ///    03 Nov 09  Cynic - Started
-        /// </history>
 #if DEBUG
         public void DebugMessage(string msgText)
         {
@@ -362,9 +320,6 @@ namespace OISCommon
         /// done before release
         /// </summary>
         /// <param name="msgText">The thing To Do</param>
-        /// <history>
-        ///    03 Nov 09  Cynic - Started
-        /// </history>
         public void DebugTODO(string msgText)
         {
         }
@@ -372,3 +327,4 @@ namespace OISCommon
 #endregion
     }
 }
+

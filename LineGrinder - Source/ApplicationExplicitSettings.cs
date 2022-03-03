@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -29,9 +29,6 @@ namespace LineGrinder
     /// <summary>
     /// A class to persist the explicitly set settings of the LineGrinder app.
     /// </summary>
-    /// <history>
-    ///    07 Sep 10  Cynic - Started
-    /// </history>
     [DataContract]
     public sealed class ApplicationExplicitSettings 
     {
@@ -43,9 +40,6 @@ namespace LineGrinder
         /// <summary>
         /// Gets/sets the list of file options. Will never get/set a null
         /// </summary>
-        /// <history>
-        ///    10 Aug 10  Cynic - Started
-        /// </history>
         public BindingList<FileManager> FileManagersList
         {
             get
@@ -62,3 +56,4 @@ namespace LineGrinder
 
     }
 }
+

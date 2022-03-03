@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -29,9 +29,6 @@ namespace LineGrinder
     /// <summary>
     /// A class to encapsulate a GCode file in an easily manipulable manner
     /// </summary>
-    /// <history>
-    ///    02 Aug 10  Cynic - Started
-    /// </history>
     public class GCodeFile : OISObjBase
     {
         // NOTE: In general, if a coordinate is an int it has been scaled and it represents
@@ -40,7 +37,7 @@ namespace LineGrinder
         //       it may be origin compensated
 
         // this is the current file source
-        private List<GCodeLine> sourceLines = new List<GCodeLine>();
+        private List<GCodeCmd> sourceLines = new List<GCodeCmd>();
 
         // our state machine. Each line of a GCode File can assume many things based
         // on the state of the previously executed commands
@@ -49,41 +46,20 @@ namespace LineGrinder
         // indicates if the file has been saved
         private bool hasBeenSaved = true;
 
-        // These are the values ADDed to the existing X and Y coords from the Gerber
-        // file DCodes in order to set the origin approximately at zero. We SUBTRACT
-        // them from the X and Y coordinates in order to set the origin back to 
-        // the original position in the output GCode file. Note that these are only
-        // for internal use, plotting and calculating. We have a different set
-        // of adjustments, applied just before output for user specfied coordinate adjustments
-        private float plotXCoordOriginAdjust = 0;
-        private float plotYCoordOriginAdjust = 0;
-
-        // these are used mostly in post processing to generate the BedFlattening code
-        // these are origin compensated values
-        private float gXMinValue = float.MaxValue;
-        private float gYMinValue = float.MaxValue;
-        private float gXMaxValue = float.MinValue;
-        private float gYMaxValue = float.MinValue;
-        // these are origin uncompensated values
+         // these are origin compensated values
         private float xMinValue = float.MaxValue;
         private float yMinValue = float.MaxValue;
         private float xMaxValue = float.MinValue;
         private float yMaxValue = float.MinValue;
 
         // this is an upper bound used when cutting pockets
-        private int MAX_POCKETING_PASSES = 1000;
-
-        // this is used for display only
-        public const float TOUCHDOWN_HOLE_DISPLAY_DIAMETER = 0.02f;
+        private const int MAX_POCKETING_PASSES = 1000;
 
 
         /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
         /// <summary>
         /// Constructor
         /// </summary>
-        /// <history>
-        ///    02 Aug 10  Cynic - Started
-        /// </history>
         public GCodeFile()
         {
         }
@@ -92,9 +68,6 @@ namespace LineGrinder
         /// <summary>
         /// Gets/Sets the gcode file options to use. Never gets/sets a null value
         /// </summary>
-        /// <history>
-        ///    10 Aug 10  Cynic - Started
-        /// </history>
         public FileManager GCodeFileManager
         {
             get
@@ -109,85 +82,9 @@ namespace LineGrinder
 
         /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
         /// <summary>
-        /// Applies the current coordinate Origin Adjust value. These are the values 
-        /// ADDed to the existing X and Y coords from the Gerber file DCodes in order
-        /// to set the origin approximately at zero. We SUBTRACT them from the X and 
-        /// Y coordinates in order to set the origin back to he original position in
-        /// the output GCode file
-        /// </summary>
-        /// <param name="xCoordAdjust">x origin adjuster</param>
-        /// <param name="yCoordAdjust">y origin adjuster</param>
-        /// <history>
-        ///    11 Aug 10  Cynic - Started
-        /// </history>
-        public void SetPlotOriginCoordinateAdjustments(float xCoordAdjust, float yCoordAdjust)
-        {
-            // just run through and apply it to each GerberLine whether it uses it or not
-            foreach (GCodeLine gLine in SourceLines)
-            {
-                gLine.PlotXCoordOriginAdjust = xCoordAdjust;
-                gLine.PlotYCoordOriginAdjust = yCoordAdjust;
-            }
-            PlotXCoordOriginAdjust = xCoordAdjust;
-            PlotYCoordOriginAdjust = yCoordAdjust;
-        }
-
-        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
-        /// <summary>
-        /// Gets/Sets the current X Coord Origin Adjust value. These are compensating
-        /// values ADDED to the gerber coordinates in order to make the
-        /// smallest X coordinate specified in the plot approximately zero but 
-        /// definitely non-negative (which totally complicates the isoPlotSegments);
-        /// We SUBTRACT this value from the GCode parameters in order to put them 
-        /// back to where they were.
-        /// </summary>
-        /// <history>
-        ///    11 Aug 10  Cynic - Started
-        /// </history>
-        public float PlotXCoordOriginAdjust
-        {
-            get
-            {
-                return plotXCoordOriginAdjust;
-            }
-            set
-            {
-                plotXCoordOriginAdjust = value;
-            }
-        }
-
-        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
-        /// <summary>
-        /// Gets/Sets the current Y Coord Origin Adjust value. These are compensating
-        /// values ADDED to the gerber coordinates in order to make the
-        /// smallest Y coordinate specified in the plot approximately zero but 
-        /// definitely non-negative (which totally complicates the isoPlotSegments);
-        /// We SUBTRACT this value from the GCode parameters in order to put them 
-        /// back to where they were.
-        /// </summary>
-        /// <history>
-        ///    11 Aug 10  Cynic - Started
-        /// </history>
-        public float PlotYCoordOriginAdjust
-        {
-            get
-            {
-                return plotYCoordOriginAdjust;
-            }
-            set
-            {
-                plotYCoordOriginAdjust = value;
-            }
-        }
-
-        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
-        /// <summary>
         /// Gets/Sets the hasBeenSaved flag
         /// </summary>
         /// <param name="lineObj">the line object to add</param>
-        /// <history>
-        ///    06 Jul 10  Cynic - Started
-        /// </history>
         public bool HasBeenSaved
         {
             get
@@ -202,19 +99,13 @@ namespace LineGrinder
 
         /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
         /// <summary>
-        /// Adds a GCodeLine object to the SourceLines
+        /// Adds a GCodeCmd object to the SourceLines
         /// </summary>
         /// <param name="lineObj">the line object to add</param>
-        /// <history>
-        ///    06 Jul 10  Cynic - Started
-        /// </history>
-        public int AddLine(GCodeLine lineObj)
+        public int AddLine(GCodeCmd lineObj)
         {
             if (lineObj == null) return 100;
             sourceLines.Add(lineObj);
-            // also set this now
-            lineObj.PlotXCoordOriginAdjust = PlotXCoordOriginAdjust;
-            lineObj.PlotYCoordOriginAdjust = PlotYCoordOriginAdjust;
             return 0;
         }
 
@@ -223,9 +114,6 @@ namespace LineGrinder
         /// Gets whether the file is populated. We assume it is populated if there
         /// is at least one source line
         /// </summary>
-        /// <history>
-        ///    12 Jul 10  Cynic - Started
-        /// </history>
         public bool IsPopulated
         {
             get
@@ -239,34 +127,28 @@ namespace LineGrinder
         /// <summary>
         /// Completely resets this class
         /// </summary>
-        /// <history>
-        ///    02 Aug 10  Cynic - Started
-        /// </history>
         public void Reset()
         {
             stateMachine = new GCodeFileStateMachine();
-            SourceLines = new List<GCodeLine>();
+            SourceLines = new List<GCodeCmd>();
         }
 
         /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
         /// <summary>
         /// Gets/Sets the GCode file source. Will never set or get a null value.
         /// </summary>
-        /// <history>
-        ///    02 Aug 10  Cynic - Started
-        /// </history>
         [BrowsableAttribute(false)]
-        public List<GCodeLine> SourceLines
+        public List<GCodeCmd> SourceLines
         {
             get
             {
-                if (sourceLines == null) sourceLines = new List<GCodeLine>();
+                if (sourceLines == null) sourceLines = new List<GCodeCmd>();
                 return sourceLines;
             }
             set
             {
                 sourceLines = value;
-                if (sourceLines == null) sourceLines = new List<GCodeLine>();
+                if (sourceLines == null) sourceLines = new List<GCodeCmd>();
                 LogMessage("SourceLines Set, lines =" + sourceLines.Count.ToString());
             }
         }
@@ -277,112 +159,115 @@ namespace LineGrinder
         /// </summary>
         /// <param name="toolHeadSettingsIn">the Tool Head Parameters (depth, xy speed etc)</param>
         /// <returns>A string builder containing the properly formatted lines</returns>
-        /// <history>
-        ///    06 Aug 10  Cynic - Started
-        ///    05 Sep 10  Cynic - Now passing in the toolHeadSettings
-        /// </history>
-        public StringBuilder GetGCodeLinesAsText(ToolHeadParameters toolHeadSettingsIn)
+        public StringBuilder GetGCodeCmdsAsText()
         {
-            ToolHeadParameters originalSettings=null;
             StringBuilder sb = new StringBuilder();
-            
-            // remember this
-            originalSettings = StateMachine.ToolHeadSetup;
-            try
+
+            // get all of the lines into the list
+            foreach (GCodeCmd gLineObj in SourceLines)
             {
-                // if toolHeadSettingsIn == null this will auto reset to default values
-                StateMachine.ToolHeadSetup = toolHeadSettingsIn;
-                // get all of the lines into the list
-                foreach (GCodeLine gLineObj in SourceLines)
-                {
-                    sb.Append(gLineObj.GetGCodeLine(StateMachine));
-                }
-            }
-            finally
-            {
-                // restore this
-                StateMachine.ToolHeadSetup = originalSettings;
+                sb.Append(gLineObj.GetGCodeCmd(StateMachine));
             }
 
             return sb;
         }
- 
+
         /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
         /// <summary>
-        /// Converts the gXYCompensatedMax/Min values to their uncompensated equivalents
+        /// Gets/Sets the mirrorOnConversionToGCode flag
+        /// This is is what indicates if we should output GCode mirror flipped around 
+        /// the vertical center axis
         /// </summary>
-        /// <history>
-        ///    24 Aug 10  Cynic - Started
-        /// </history>
-        public void ConvertXYCompensatedMaxMinToUncompensated()
+        public IsoFlipModeEnum MirrorOnConversionToGCode
         {
-            if (AreXYCompensatedMaxMinOk() == false) return;
-            xMinValue = gXMinValue + this.PlotXCoordOriginAdjust;
-            yMinValue = gYMinValue + this.PlotYCoordOriginAdjust;
-            xMaxValue = gXMaxValue + this.PlotXCoordOriginAdjust;
-            yMaxValue = gYMaxValue + this.PlotYCoordOriginAdjust;
+            get
+            {
+                return StateMachine.MirrorOnConversionToGCode;
+            }
+            set
+            {
+                StateMachine.MirrorOnConversionToGCode = value;
+            }
         }
 
         /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
         /// <summary>
-        /// Sets the gXYCompensatedMax/Min values
+        /// Gets/Sets the gCodeMirrorAxisPlotCoord_X value
         /// </summary>
-        /// <history>
-        ///    24 Aug 10  Cynic - Started
-        /// </history>
-        public void SetXYCompensatedMaxMin()
+        public float GCodeMirrorAxisPlotCoord_X
         {
-            // reset these
-            gXMinValue = float.MaxValue;
-            gYMinValue = float.MaxValue;
-            gXMaxValue = float.MinValue;
-            gYMaxValue = float.MinValue;
-
-            // run through all the lines checking as we go
-            foreach (GCodeLine gLineObj in SourceLines)
+            get
             {
-                if ((gLineObj is GCodeLine_Line) == true)
-                {
-                    GCodeLine_Line tmpLine = (GCodeLine_Line)gLineObj;
-                    // check mins
-                    if ((tmpLine.gX0OffsetCompensated) < gXMinValue) gXMinValue = tmpLine.gX0OffsetCompensated;
-                    if ((tmpLine.gY0OffsetCompensated) < gYMinValue) gYMinValue = tmpLine.gY0OffsetCompensated;
-                    if ((tmpLine.gX1OffsetCompensated) < gXMinValue) gXMinValue = tmpLine.gX1OffsetCompensated;
-                    if ((tmpLine.gY1OffsetCompensated) < gYMinValue) gYMinValue = tmpLine.gY1OffsetCompensated;
-                    // max values
-                    if ((tmpLine.gX0OffsetCompensated) > gXMaxValue) gXMaxValue = tmpLine.gX0OffsetCompensated;
-                    if ((tmpLine.gY0OffsetCompensated) > gYMaxValue) gYMaxValue = tmpLine.gY0OffsetCompensated;
-                    if ((tmpLine.gX1OffsetCompensated) > gXMaxValue) gXMaxValue = tmpLine.gX1OffsetCompensated;
-                    if ((tmpLine.gY1OffsetCompensated) > gYMaxValue) gYMaxValue = tmpLine.gY1OffsetCompensated;
-                }
-                else if ((gLineObj is GCodeLine_Arc) == true)
-                {
-                    GCodeLine_Arc tmpLine = (GCodeLine_Arc)gLineObj;
-                    // check mins
-                    if ((tmpLine.gX0OffsetCompensated) < gXMinValue) gXMinValue = tmpLine.gX0OffsetCompensated;
-                    if ((tmpLine.gY0OffsetCompensated) < gYMinValue) gYMinValue = tmpLine.gY0OffsetCompensated;
-                    if ((tmpLine.gX1OffsetCompensated) < gXMinValue) gXMinValue = tmpLine.gX1OffsetCompensated;
-                    if ((tmpLine.gY1OffsetCompensated) < gYMinValue) gYMinValue = tmpLine.gY1OffsetCompensated;
-                    // max values
-                    if ((tmpLine.gX0OffsetCompensated) > gXMaxValue) gXMaxValue = tmpLine.gX0OffsetCompensated;
-                    if ((tmpLine.gY0OffsetCompensated) > gYMaxValue) gYMaxValue = tmpLine.gY0OffsetCompensated;
-                    if ((tmpLine.gX1OffsetCompensated) > gXMaxValue) gXMaxValue = tmpLine.gX1OffsetCompensated;
-                    if ((tmpLine.gY1OffsetCompensated) > gYMaxValue) gYMaxValue = tmpLine.gY1OffsetCompensated;
-                }
-                else if ((gLineObj is GCodeLine_RapidMove) == true)
-                {
-/*
-                    GCodeLine_RapidMove tmpLine = (GCodeLine_RapidMove)gLineObj;
-                    // check mins
-                    if ((tmpLine.gX0OffsetCompensated) < gXMinValue) gXMinValue = tmpLine.gX0OffsetCompensated;
-                    if ((tmpLine.gY0OffsetCompensated) < gYMinValue) gYMinValue = tmpLine.gY0OffsetCompensated;
-                    // max values
-                    if ((tmpLine.gX0OffsetCompensated) > gXMaxValue) gXMaxValue = tmpLine.gX0OffsetCompensated;
-                    if ((tmpLine.gY0OffsetCompensated) > gYMaxValue) gYMaxValue = tmpLine.gY0OffsetCompensated;
- */ 
-                }
+                return StateMachine.GCodeMirrorAxisPlotCoord_X;
             }
-            return;
+            set
+            {
+                StateMachine.GCodeMirrorAxisPlotCoord_X = value;
+            }
+        }
+
+        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+        /// <summary>
+        /// Gets/Sets the GCodeOutputPlotOriginAdjust_X value
+        /// </summary>
+        public float GCodeOutputPlotOriginAdjust_X
+        {
+            get
+            {
+                return StateMachine.GCodeOutputPlotOriginAdjust_X;
+            }
+            set
+            {
+                StateMachine.GCodeOutputPlotOriginAdjust_X = value;
+            }
+        }
+
+        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+        /// <summary>
+        /// Gets/Sets the GCodeOutputPlotOriginAdjust_X value
+        /// </summary>
+        public float GCodeOutputPlotOriginAdjust_Y
+        {
+            get
+            {
+                return StateMachine.GCodeOutputPlotOriginAdjust_Y;
+            }
+            set
+            {
+                StateMachine.GCodeOutputPlotOriginAdjust_Y = value;
+            }
+        }
+
+        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+        /// <summary>
+        /// Gets the absoluteOffset_X used in the gcode plot. 
+        /// </summary>
+        public float AbsoluteOffset_X
+        {
+            get
+            {
+                return StateMachine.AbsoluteOffset_X;
+            }
+            set
+            {
+                StateMachine.AbsoluteOffset_X = value;
+            }
+        }
+
+        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+        /// <summary>
+        /// Gets the absoluteOffset_Y used in the gcode plot. 
+        /// </summary>
+        public float AbsoluteOffset_Y
+        {
+            get
+            {
+                return StateMachine.AbsoluteOffset_Y;
+            }
+            set
+            {
+                StateMachine.AbsoluteOffset_Y = value;
+            }
         }
 
         /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
@@ -390,16 +275,13 @@ namespace LineGrinder
         /// tests the gXYCompensatedMax/Min values to see if they are not at defaults
         /// </summary>
         /// <returns>true all is well, false one or more at defaults</returns>
-        /// <history>
-        ///    24 Aug 10  Cynic - Started
-        /// </history>
         public bool AreXYCompensatedMaxMinOk()
         {
             // test these
-            if (gXMinValue == float.MaxValue) return false;
-            if (gYMinValue == float.MaxValue) return false;
-            if (gXMaxValue == float.MinValue) return false;
-            if (gYMaxValue == float.MinValue) return false;
+            if (XMinValue == float.MaxValue) return false;
+            if (YMinValue == float.MaxValue) return false;
+            if (XMaxValue == float.MinValue) return false;
+            if (YMaxValue == float.MinValue) return false;
             return true;
         }
 
@@ -408,80 +290,13 @@ namespace LineGrinder
         /// tests the gXYCompensatedMax/Min values to see if they enclose an area
         /// </summary>
         /// <returns>true all is well, false one or more at defaults</returns>
-        /// <history>
-        ///    24 Aug 10  Cynic - Started
-        /// </history>
         public bool DoXYCompensatedMaxMinEncloseAnArea()
         {
             if (AreXYCompensatedMaxMinOk() == false) return false;
             // test these
-            if (gXMinValue == gXMaxValue) return false;
-            if (gXMaxValue == gYMaxValue) return false;
+            if (XMinValue == XMaxValue) return false;
+            if (XMaxValue == YMaxValue) return false;
             return true;
-        }
-
-        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
-        /// <summary>
-        /// Gets the minimum X value used in the gcode plot. A prior call to 
-        ///  SetXYCompensatedMaxMin() must have been made to set this value.
-        /// </summary>
-        /// <history>
-        ///    24 Aug 10  Cynic - Started
-        /// </history>
-        public float GXMinValue
-        {
-            get
-            {
-                return gXMinValue;
-            }
-        }
-
-        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
-        /// <summary>
-        /// Gets the minimum Y value used in the gcode plot. A prior call to 
-        ///  SetXYCompensatedMaxMin() must have been made to set this value.
-        /// </summary>
-        /// <history>
-        ///    24 Aug 10  Cynic - Started
-        /// </history>
-        public float GYMinValue
-        {
-            get
-            {
-                return gYMinValue;
-            }
-        }
-
-        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
-        /// <summary>
-        /// Gets the maximum X value used in the gcode plot. A prior call to 
-        ///  SetXYCompensatedMaxMin() must have been made to set this value.
-        /// </summary>
-        /// <history>
-        ///    24 Aug 10  Cynic - Started
-        /// </history>
-        public float GXMaxValue
-        {
-            get
-            {
-                return gXMaxValue;
-            }
-        }
-
-        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
-        /// <summary>
-        /// Gets the maximum Y value used in the gcode plot. A prior call to 
-        ///  SetXYCompensatedMaxMin() must have been made to set this value.
-        /// </summary>
-        /// <history>
-        ///    24 Aug 10  Cynic - Started
-        /// </history>
-        public float GYMaxValue
-        {
-            get
-            {
-                return gYMaxValue;
-            }
         }
 
         /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
@@ -489,9 +304,6 @@ namespace LineGrinder
         /// tests the xYMax/Min values to see if they are not at defaults
         /// </summary>
         /// <returns>true all is well, false one or more at defaults</returns>
-        /// <history>
-        ///    26 Aug 10  Cynic - Started
-        /// </history>
         public bool AreXYMaxMinOk()
         {
             // test these
@@ -507,9 +319,6 @@ namespace LineGrinder
         /// tests the xY Max/Min values to see if they enclose an area
         /// </summary>
         /// <returns>true all is well, false one or more at defaults</returns>
-        /// <history>
-        ///    26 Aug 10  Cynic - Started
-        /// </history>
         public bool DoXYMaxMinEncloseAnArea()
         {
             if (AreXYMaxMinOk() == false) return false;
@@ -521,65 +330,65 @@ namespace LineGrinder
 
         /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
         /// <summary>
-        /// Gets the minimum X value used in the gcode plot. A prior call to 
-        ///  SetXYMaxMin() must have been made to set this value.
+        /// Gets the minimum X value used in the gcode plot. 
         /// </summary>
-        /// <history>
-        ///    26 Aug 10  Cynic - Started
-        /// </history>
         public float XMinValue
         {
             get
             {
                 return xMinValue;
             }
+            set
+            {
+                xMinValue = value;
+            }
         }
 
         /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
         /// <summary>
-        /// Gets the minimum Y value used in the gcode plot. A prior call to 
-        ///  SetXYMaxMin() must have been made to set this value.
+        /// Gets the minimum Y value used in the gcode plot. 
         /// </summary>
-        /// <history>
-        ///    26 Aug 10  Cynic - Started
-        /// </history>
         public float YMinValue
         {
             get
             {
                 return yMinValue;
             }
+            set
+            {
+                yMinValue = value;
+            }
         }
 
         /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
         /// <summary>
-        /// Gets the maximum X value used in the gcode plot. A prior call to 
-        ///  SetXYMaxMin() must have been made to set this value.
+        /// Gets the maximum X value used in the gcode plot. 
         /// </summary>
-        /// <history>
-        ///    26 Aug 10  Cynic - Started
-        /// </history>
         public float XMaxValue
         {
             get
             {
                 return xMaxValue;
             }
+            set
+            {
+                xMaxValue = value;
+            }
         }
 
         /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
         /// <summary>
-        /// Gets the maximum Y value used in the gcode plot. A prior call to 
-        ///  SetXYMaxMin() must have been made to set this value.
+        /// Gets the maximum Y value used in the gcode plot. 
         /// </summary>
-        /// <history>
-        ///    26 Aug 10  Cynic - Started
-        /// </history>
         public float YMaxValue
         {
             get
             {
                 return yMaxValue;
+            }
+            set
+            {
+                yMaxValue = value;
             }
         }
 
@@ -587,9 +396,6 @@ namespace LineGrinder
         /// <summary>
         /// Gets/Sets state machine. Will never set or get a null value.
         /// </summary>
-        /// <history>
-        ///    02 Aug 10  Cynic - Started
-        /// </history>
         public GCodeFileStateMachine StateMachine
         {
             get
@@ -608,9 +414,6 @@ namespace LineGrinder
         /// <summary>
         /// Gets/Sets the Virtual Coords Per Unit
         /// </summary>
-        /// <history>
-        ///    13 Jul 10  Cynic - Started
-        /// </history>
         public float IsoPlotPointsPerAppUnit
         {
             get
@@ -630,44 +433,38 @@ namespace LineGrinder
         /// <param name="graphicsObj">a graphics object to draw on</param>
         /// <param name="wantEndPointMarkers">if true we draw the endpoints of the gcodes
         /// in a different color</param>
-        /// <param name="isoPlotPointsPerAppUnit">the virtual coordinates per unit</param>
-        /// <history>
-        ///    02 Aug 10  Cynic - Started
-        /// </history>
-        public void PlotGCodeFile(Graphics graphicsObj, float isoPlotPointsPerAppUnit, bool wantEndPointMarkers)
+        public void PlotGCodeFile(Graphics graphicsObj, bool wantEndPointMarkers)
         {
             int errInt = 0;
             string errStr = "";
-            GCodeLine.PlotActionEnum errAction = GCodeLine.PlotActionEnum.PlotAction_End;
+            PlotActionEnum errAction = PlotActionEnum.PlotAction_End;
 
             // set the StateMachine
             StateMachine.ResetForPlot();
-            StateMachine.IsoPlotPointsPerAppUnit = isoPlotPointsPerAppUnit;
-            int penWidth = (int)Math.Round((StateMachine.IsolationWidth * isoPlotPointsPerAppUnit));
+            int penWidth = (int)Math.Round((StateMachine.IsolationWidth * StateMachine.IsoPlotPointsPerAppUnit));
 
             // set up our pens+brushes
             StateMachine.PlotBorderPen = new Pen(StateMachine.PlotLineColor, penWidth);
-           // StateMachine.PlotBorderPen.Alignment = System.Drawing.Drawing2D.PenAlignment.Center;
+            // StateMachine.PlotBorderPen.Alignment = System.Drawing.Drawing2D.PenAlignment.Center;
 
-            foreach (GCodeLine lineObj in SourceLines)
+            foreach (GCodeCmd lineObj in SourceLines)
             {
                 errAction = lineObj.PerformPlotGCodeAction(graphicsObj, StateMachine, wantEndPointMarkers, ref errInt, ref errStr);
-                if (errAction == GCodeLine.PlotActionEnum.PlotAction_Continue)
+                if (errAction == PlotActionEnum.PlotAction_Continue)
                 {
                     // all is well
                     continue;
                 }
-                if (errAction == GCodeLine.PlotActionEnum.PlotAction_End)
+                if (errAction == PlotActionEnum.PlotAction_End)
                 {
                     // we are all done
                     return;
                 }
-                else if (errAction == GCodeLine.PlotActionEnum.PlotAction_FailWithError)
+                else if (errAction == PlotActionEnum.PlotAction_FailWithError)
                 {
                     // handle this error
                     LogMessage("Plot Failed on obj:" + lineObj.ToString());
-                    continue; // temp for testing
-                    /// tempreturn;
+                    return;
                 }
             }
         }
@@ -686,16 +483,13 @@ namespace LineGrinder
         /// <param name="millWidth">the diameter of the mill doing the pocketing</param>
         /// <param name="overlapScaleFactor">the amount of overlap we require. Expressed as decimal fraction. 0.25 =25%</param>
         /// <param name="errStr">the error string</param>
-        /// <history>
-        ///    25 Aug 10  Cynic - Started
-        /// </history>
-        public int GeneratePocketGCode(float lX, float lY, float hX, float hY, float millWidth, float overlapScaleFactor, ref string errStr)
+        public int GeneratePocketGCode(float isoPlotPointsPerAppUnit, float lX, float lY, float hX, float hY, float millWidth, float overlapScaleFactor, ref string errStr)
         {
             int i = 0;
-            GCodeLine_ZMove zLine = null;
-            GCodeLine_RapidMove rmLine = null;
-            GCodeLine_Line gcLine = null;
-            GCodeLine_Comment coLine = null;
+            GCodeCmd_ZMove zLine = null;
+            GCodeCmd_RapidMove rmLine = null;
+            GCodeCmd_Line gcLine = null;
+            GCodeCmd_Comment coLine = null;
             errStr = "";
             float centerX;
             float centerY;
@@ -707,6 +501,13 @@ namespace LineGrinder
             float lastYCoord;
 
             // test these
+            if(isoPlotPointsPerAppUnit<=0)
+            {
+                LogMessage("GeneratePocketGCode: isoPlotPointsPerAppUnit<=0");
+                errStr = "isoPlotPointsPerAppUnit is invalid.";
+                return 1023;
+            }
+
             if ((lX == float.MaxValue) || 
                 (lY == float.MaxValue) ||
                 (hX == float.MinValue) ||
@@ -771,45 +572,45 @@ namespace LineGrinder
             }
 
             // calculate the center point
-            centerX = ((hX - lX) / 2f)+lX;
-            centerY = ((hY - lY) / 2f)+lY;
+            centerX = (((hX - lX) / 2f)+lX) * isoPlotPointsPerAppUnit;
+            centerY = (((hY - lY) / 2f)+lY) * isoPlotPointsPerAppUnit;
 
             // the first offset distance is the millWidth, after that we adjust by
-            float incrementalDistance = millWidth * overlapScaleFactor;
+            float incrementalDistance = (millWidth * overlapScaleFactor) * isoPlotPointsPerAppUnit;
 
-            coLine = new GCodeLine_Comment("... start ...");
+            coLine = new GCodeCmd_Comment("... start ...");
             this.AddLine(coLine);
 
             // figure out the new corner coordinates - compensating for milling
             // bit diameter
-            lXCutCoord = lX + (millWidth / 2);
-            lYCutCoord = lY + (millWidth / 2);
-            hXCutCoord = hX - (millWidth / 2);
-            hYCutCoord = hY - (millWidth / 2);
+            lXCutCoord = (lX + (millWidth / 2)) * isoPlotPointsPerAppUnit;
+            lYCutCoord = (lY + (millWidth / 2)) * isoPlotPointsPerAppUnit;
+            hXCutCoord = (hX - (millWidth / 2)) * isoPlotPointsPerAppUnit;
+            hYCutCoord = (hY - (millWidth / 2)) * isoPlotPointsPerAppUnit;
 
             // G00 rapid move tool head to the destX,destY
-            rmLine = new GCodeLine_RapidMove(hXCutCoord, hYCutCoord);
+            rmLine = new GCodeCmd_RapidMove((int)hXCutCoord, (int)hYCutCoord);
             this.AddLine(rmLine);
 
             // G01 - put the bit into the work piece
-            zLine = new GCodeLine_ZMove(GCodeLine_ZMove.GCodeZMoveHeightEnum.GCodeZMoveHeight_ZCoordForCut);
+            zLine = new GCodeCmd_ZMove(GCodeCmd_ZMove.GCodeZMoveHeightEnum.GCodeZMoveHeight_ZCoordForCut);
             zLine.WantLinearMove = true;
             this.AddLine(zLine);
 
             // do the vertical down leg 
-            gcLine = new GCodeLine_Line(hXCutCoord, hYCutCoord, hXCutCoord, lYCutCoord);
+            gcLine = new GCodeCmd_Line((int)hXCutCoord, (int)hYCutCoord, (int)hXCutCoord, (int)lYCutCoord);
             this.AddLine(gcLine);
 
             // do the low horizontal leg 
-            gcLine = new GCodeLine_Line(hXCutCoord, lYCutCoord, lXCutCoord, lYCutCoord);
+            gcLine = new GCodeCmd_Line((int)hXCutCoord, (int)lYCutCoord, (int)lXCutCoord, (int)lYCutCoord);
             this.AddLine(gcLine);
 
             // do the vertical up leg 
-            gcLine = new GCodeLine_Line(lXCutCoord, lYCutCoord, lXCutCoord, hYCutCoord);
+            gcLine = new GCodeCmd_Line((int)lXCutCoord, (int)lYCutCoord, (int)lXCutCoord, (int)hYCutCoord);
             this.AddLine(gcLine);
 
             // do the high horizontal leg 
-            gcLine = new GCodeLine_Line(lXCutCoord, hYCutCoord, hXCutCoord, hYCutCoord);
+            gcLine = new GCodeCmd_Line((int)lXCutCoord, (int)hYCutCoord, (int)hXCutCoord, (int)hYCutCoord);
             this.AddLine(gcLine);
             lastXCoord = hXCutCoord;
             lastYCoord = hYCutCoord;
@@ -834,10 +635,10 @@ namespace LineGrinder
                     if ((lX - lY) > (hX - hY))
                     {
                         // we have to move to the new start position
-                        gcLine = new GCodeLine_Line(lastXCoord, lastYCoord, hXCutCoord, lYCutCoord);
+                        gcLine = new GCodeCmd_Line((int)lastXCoord, (int)lastYCoord, (int)hXCutCoord, (int)lYCutCoord);
                         this.AddLine(gcLine);
                         // vertical is the longer dimension, hold X constant, run down Y
-                        gcLine = new GCodeLine_Line(hXCutCoord, hYCutCoord, hXCutCoord, lYCutCoord);
+                        gcLine = new GCodeCmd_Line((int)hXCutCoord, (int)hYCutCoord, (int)hXCutCoord, (int)lYCutCoord);
                         this.AddLine(gcLine);
                         lastXCoord = hXCutCoord;
                         lastYCoord = hYCutCoord;
@@ -845,10 +646,10 @@ namespace LineGrinder
                     else
                     {
                         // we have to move to the new start position
-                        gcLine = new GCodeLine_Line(lastXCoord, lastYCoord, hXCutCoord, hYCutCoord);
+                        gcLine = new GCodeCmd_Line((int)lastXCoord, (int)lastYCoord, (int)hXCutCoord, (int)hYCutCoord);
                         this.AddLine(gcLine);
                         // horizontal is the longer dimension, hold Y constant, run down X
-                        gcLine = new GCodeLine_Line(hXCutCoord, hYCutCoord, lXCutCoord, hYCutCoord);
+                        gcLine = new GCodeCmd_Line((int)hXCutCoord, (int)hYCutCoord, (int)lXCutCoord, (int)hYCutCoord);
                         this.AddLine(gcLine);
                         lastXCoord = hXCutCoord;
                         lastYCoord = hYCutCoord;
@@ -857,27 +658,27 @@ namespace LineGrinder
                     break;
                 }
 
-                coLine = new GCodeLine_Comment("... pass ...");
+                coLine = new GCodeCmd_Comment("... pass ...");
                 this.AddLine(coLine);
 
                 // we have to move to the new start position
-                gcLine = new GCodeLine_Line(lastXCoord, lastYCoord, hXCutCoord, hYCutCoord);
+                gcLine = new GCodeCmd_Line((int)lastXCoord, (int)lastYCoord, (int)hXCutCoord, (int)hYCutCoord);
                 this.AddLine(gcLine);
 
                 // do the vertical down leg, this will also move it to (hXCutCoord, hYCutCoord)
-                gcLine = new GCodeLine_Line(hXCutCoord, hYCutCoord, hXCutCoord, lYCutCoord);
+                gcLine = new GCodeCmd_Line((int)hXCutCoord, (int)hYCutCoord, (int)hXCutCoord, (int)lYCutCoord);
                 this.AddLine(gcLine);
 
                 // do the low horizontal leg 
-                gcLine = new GCodeLine_Line(hXCutCoord, lYCutCoord, lXCutCoord, lYCutCoord);
+                gcLine = new GCodeCmd_Line((int)hXCutCoord, (int)lYCutCoord, (int)lXCutCoord, (int)lYCutCoord);
                 this.AddLine(gcLine);
 
                 // do the vertical up leg 
-                gcLine = new GCodeLine_Line(lXCutCoord, lYCutCoord, lXCutCoord, hYCutCoord);
+                gcLine = new GCodeCmd_Line((int)lXCutCoord, (int)lYCutCoord, (int)lXCutCoord, (int)hYCutCoord);
                 this.AddLine(gcLine);
 
                 // do the high horizontal leg 
-                gcLine = new GCodeLine_Line(lXCutCoord, hYCutCoord, hXCutCoord, hYCutCoord);
+                gcLine = new GCodeCmd_Line((int)lXCutCoord, (int)hYCutCoord, (int)hXCutCoord, (int)hYCutCoord);
                 this.AddLine(gcLine);
                 lastXCoord = hXCutCoord;
                 lastYCoord = hYCutCoord;
@@ -890,7 +691,7 @@ namespace LineGrinder
                 errStr = "The the maximum number of pocketing passes was reached. The gcode file is not correct. Please see the logs.";
                 return 1036;
             }
-            coLine = new GCodeLine_Comment("... end ...");
+            coLine = new GCodeCmd_Comment("... end ...");
             this.AddLine(coLine);
 
             return 0;
@@ -898,8 +699,8 @@ namespace LineGrinder
 
         /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
         /// <summary>
-        /// Generates the gcode for a drill hole. Defaults to 
-        /// GCodeLine_ZMove.GCodeZMoveHeightEnum.GCodeZMoveHeight_ZCoordForCut
+        /// Generates the gcode for a pad touchdown or drill. Defaults to 
+        /// GCodeCmd_ZMove.GCodeZMoveHeightEnum.GCodeZMoveHeight_ZCoordForCut
         /// </summary>
         /// <remarks>the gcode file is assumed to have been populated with the standard headers.
         /// We just add our lines onto the end.</remarks>
@@ -907,18 +708,14 @@ namespace LineGrinder
         /// <param name="y0">y coord</param>
         /// <param name="errStr">the error string</param>
         /// <param name="drillWidth">the drill width. This is mostly used for plotting</param>
-        /// <history>
-        ///    31 Aug 10  Cynic - Started
-        ///    05 Sep 10  Cynic - Added drill width as a parameter
-        /// </history>
-        public int AddDrillCodeLines(float x0, float y0, float drillWidth, ref string errStr)
+        public int AddPadTouchDownOrDrillLine(int x0, int y0, float drillWidth, ref string errStr)
         {
-            return AddDrillCodeLines(x0, y0, GCodeLine_ZMove.GCodeZMoveHeightEnum.GCodeZMoveHeight_ZCoordForCut, drillWidth, FileManager.DEFAULT_DRILLDWELL_TIME, ref errStr);
+            return AddPadTouchDownOrDrillLine(x0, y0, GCodeCmd_ZMove.GCodeZMoveHeightEnum.GCodeZMoveHeight_ZCoordForCut, drillWidth, FileManager.DEFAULT_DRILLDWELL_TIME, ref errStr);
         }
 
         /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
         /// <summary>
-        /// Generates the gcode for a drill hole
+        /// Generates the gcode for a pad touchdown or drill
         /// </summary>
         /// <remarks>the gcode file is assumed to have been populated with the standard headers.
         /// We just add our lines onto the end.</remarks>
@@ -928,22 +725,18 @@ namespace LineGrinder
         /// <param name="drillDwellTime">drill dwell time at bottom of hole</param>
         /// <param name="drillWidth">the drill width. This is mostly used for plotting</param>
         /// <param name="errStr">the error string</param>
-        /// <history>
-        ///    26 Aug 10  Cynic - Started
-        ///    05 Sep 10  Cynic - Added drill width as a parameter
-        /// </history>
-        public int AddDrillCodeLines(float x0, float y0, GCodeLine_ZMove.GCodeZMoveHeightEnum cutLevel, float drillWidth, float drillDwellTime, ref string errStr)
+        public int AddPadTouchDownOrDrillLine(int x0, int y0, GCodeCmd_ZMove.GCodeZMoveHeightEnum cutLevel, float drillWidth, float drillDwellTime, ref string errStr)
         {
-            GCodeLine_ZMove zLine = null;
-            GCodeLine_RapidMove rmLine = null;
-            GCodeLine_Dwell dwLine = null;
+            GCodeCmd_ZMove zLine = null;
+            GCodeCmd_RapidMove rmLine = null;
+            GCodeCmd_Dwell dwLine = null;
             errStr = "";
 
             // test these
-            if ((x0 == float.MaxValue) ||
-                (y0 == float.MaxValue) ||
-                (x0 == float.MinValue) ||
-                (y0 == float.MinValue))
+            if ((x0 == int.MaxValue) ||
+                (y0 == int.MaxValue) ||
+                (x0 == int.MinValue) ||
+                (y0 == int.MinValue))
             {
                 LogMessage("AddDrillCodeLines: One or more of the x0,y0 coordinates are invalid.");
                 errStr = "The X and Y coordinates of the drill target are invalid.";
@@ -967,26 +760,26 @@ namespace LineGrinder
             if (drillWidth <= 0) drillWidth = 0.125f;
 
             // G00 rapid move tool head to the x0, y0
-            rmLine = new GCodeLine_RapidMove(x0, y0);
+            rmLine = new GCodeCmd_RapidMove(x0, y0);
             this.AddLine(rmLine);
 
             // G00 - put the bit into the work piece
-            zLine = new GCodeLine_ZMove(cutLevel);
+            zLine = new GCodeCmd_ZMove(cutLevel);
             zLine.SetGCodePlotDrillValues(x0, y0, drillWidth);
             zLine.WantLinearMove = true;
             this.AddLine(zLine);
 
             // dwell at the bottom 
-            dwLine = new GCodeLine_Dwell(drillDwellTime);
+            dwLine = new GCodeCmd_Dwell(drillDwellTime);
             this.AddLine(dwLine);
 
             // G00 - pull the bit out of the work piece
-            zLine = new GCodeLine_ZMove(GCodeLine_ZMove.GCodeZMoveHeightEnum.GCodeZMoveHeight_ZCoordForClear);
+            zLine = new GCodeCmd_ZMove(GCodeCmd_ZMove.GCodeZMoveHeightEnum.GCodeZMoveHeight_ZCoordForClear);
             zLine.SetGCodePlotDrillValues(x0, y0, drillWidth);
             this.AddLine(zLine);
-
             return 0;
         }
 
     }
 }
+

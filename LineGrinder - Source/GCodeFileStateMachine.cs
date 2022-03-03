@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -29,10 +29,6 @@ namespace LineGrinder
     /// A base class to keep track of the state of the gerber file. This is usually
     /// some modal state implied by the commands which have executed previously
     /// </summary>
-    /// <history>
-    ///    05 Aug 10  Cynic - Started
-    ///    26 Feb 11  Cynic - Added the UserYCoordOriginAdjust codes
-    /// </history>
     public class GCodeFileStateMachine : OISObjBase
     {
 
@@ -48,7 +44,7 @@ namespace LineGrinder
         private FileManager gcodeFileManager = new FileManager();
 
         // these are the toolhead feed rates (etc) currently in operation
-        private ToolHeadParameters toolHeadSetup = new ToolHeadParameters();
+        private ToolHeadParameters toolHeadSetup = new ToolHeadParameters(33);
 
         private ApplicationUnitsEnum gcodeUnits = ApplicationImplicitSettings.DEFAULT_APPLICATION_UNITS;
 
@@ -76,13 +72,22 @@ namespace LineGrinder
         // isolation cut information associated with them
         private List<GerberPad> padCenterPointList = new List<GerberPad>();
 
-        // These are the values ADDed to the X and Y coords of the GCODE lines
-        // in order to move the origin to a place of the users taste. These
+        // These are the values used to modify the X and Y coords of the GCODE lines
+        // in order to move the origin to the center. These
         // are purely cosmetic (in Line Grinder) and are applied only at the very
         // end of the processing - just before the output GCode is generated.
-        // the units are application units (inches or mm)
-        private float userXCoordOriginAdjust = 100;
-        private float userYCoordOriginAdjust = 100;
+        private float gCodeOutputPlotOriginAdjust_X = 0;
+        private float gCodeOutputPlotOriginAdjust_Y = 0;
+
+        // these are compensation factors relating the original gerber coords to the output coords
+        private float absoluteOffset_X = 0;
+        private float absoluteOffset_Y = 0;
+
+        // determines if we want to mirror about an axis
+        private IsoFlipModeEnum mirrorOnConversionToGCode = IsoFlipModeEnum.No_Flip;
+
+        // this is the X coord of the vertical axis around which we mirror if we are flipping.
+        private float gCodeMirrorAxisPlotCoord_X = 0;
 
         // ####################################################################
         // ##### Variables only needed to draw the gcode on the screen
@@ -107,9 +112,6 @@ namespace LineGrinder
         /// <summary>
         /// Constructor
         /// </summary>
-        /// <history>
-        ///    05 Aug 10  Cynic - Started
-        /// </history>
         public GCodeFileStateMachine()
         {
         }
@@ -118,9 +120,6 @@ namespace LineGrinder
         /// <summary>
         /// Resets the gcode file to the defaults necessary for plotting
         /// </summary>
-        /// <history>
-        ///    05 Aug 10  Cynic - Started
-        /// </history>
         public void ResetForPlot()
         {
             lastGCodeXCoord = 0;
@@ -131,49 +130,109 @@ namespace LineGrinder
 
         /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
         /// <summary>
-        /// Gets/Sets the user X Coord Origin Adjust value. 
-        /// These are the values ADDed to the X and Y coords of the GCODE lines
-        /// in order to move the origin to a place of the users taste. These
-        /// are purely cosmetic (in Line Grinder) and are applied only at the very
-        /// end of the processing - just before the output GCode is generated.
-        /// the units are application units (inches or mm)
+        /// Gets/Sets the mirrorOnConversionToGCode flag
+        /// This is is what indicates if we should output GCode mirror flipped around 
+        /// the vertical center axis
         /// </summary>
-        /// <history>
-        ///    26 Feb 11  Cynic - Started
-        /// </history>
-        public float UserXCoordOriginAdjust
+        public IsoFlipModeEnum MirrorOnConversionToGCode
         {
             get
             {
-                return userXCoordOriginAdjust;
+                return mirrorOnConversionToGCode;
             }
             set
             {
-                userXCoordOriginAdjust = value;
+                mirrorOnConversionToGCode = value;
             }
         }
 
         /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
         /// <summary>
-        /// Gets/Sets the user Y Coord Origin Adjust value. 
-        /// These are the values ADDed to the X and Y coords of the GCODE lines
-        /// in order to move the origin to a place of the users taste. These
-        /// are purely cosmetic (in Line Grinder) and are applied only at the very
-        /// end of the processing - just before the output GCode is generated.
-        /// the units are application units (inches or mm)
+        /// Gets the absoluteOffset_X used in the gcode plot. 
         /// </summary>
-        /// <history>
-        ///    26 Feb 11  Cynic - Started
-        /// </history>
-        public float UserYCoordOriginAdjust
+        public float AbsoluteOffset_X
         {
             get
             {
-                return userYCoordOriginAdjust;
+                return absoluteOffset_X;
             }
             set
             {
-                userYCoordOriginAdjust = value;
+                absoluteOffset_X = value;
+            }
+        }
+
+        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+        /// <summary>
+        /// Gets the absoluteOffset_Y used in the gcode plot. 
+        /// </summary>
+        public float AbsoluteOffset_Y
+        {
+            get
+            {
+                return absoluteOffset_Y;
+            }
+            set
+            {
+                absoluteOffset_Y = value;
+            }
+        }
+
+        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+        /// <summary>
+        /// Gets/Sets the gCodeMirrorAxisPlotCoord_X
+        /// This is the vertical axis around which we flip if we are flipping the GCode.
+        /// If the GCode origin is at the center this will correspond to the GCodeOutputPlotOriginAdjust_X
+        /// </summary>
+        public float GCodeMirrorAxisPlotCoord_X
+        {
+            get
+            {
+                return gCodeMirrorAxisPlotCoord_X;
+            }
+            set
+            {
+                gCodeMirrorAxisPlotCoord_X = value;
+            }
+        }
+
+        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+        /// <summary>
+        /// Gets/Sets the user X Coord Origin Adjust value. 
+        /// These are the values ADDed to the X and Y coords of the GCODE lines
+        /// in order to move the origin to the center. These
+        /// are purely cosmetic (in Line Grinder) and are applied only at the very
+        /// end of the processing - just before the output GCode is generated.
+        /// </summary>
+        public float GCodeOutputPlotOriginAdjust_X
+        {
+            get
+            {
+                return gCodeOutputPlotOriginAdjust_X;
+            }
+            set
+            {
+                gCodeOutputPlotOriginAdjust_X = value;
+            }
+        }
+
+        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+        /// <summary>
+        /// Gets/Sets the user X Coord Origin Adjust value. 
+        /// These are the values ADDed to the X and Y coords of the GCODE lines
+        /// in order to move the origin to the center. These
+        /// are purely cosmetic (in Line Grinder) and are applied only at the very
+        /// end of the processing - just before the output GCode is generated.
+        /// </summary>
+        public float GCodeOutputPlotOriginAdjust_Y
+        {
+            get
+            {
+                return gCodeOutputPlotOriginAdjust_Y;
+            }
+            set
+            {
+                gCodeOutputPlotOriginAdjust_Y = value;
             }
         }
 
@@ -183,20 +242,17 @@ namespace LineGrinder
         /// (eg: zDepth, xySpeed, etc) we use for the GCode Generation, These can be 
         ///  different for iso cuts, refPins, edgeMill etc. Will never get or set null.
         /// </summary>
-        /// <history>
-        ///    03 Sep 10  Cynic - Started
-        /// </history>
         public ToolHeadParameters ToolHeadSetup
         {
             get
             {
-                if(toolHeadSetup == null) toolHeadSetup =  new ToolHeadParameters();
+                if(toolHeadSetup == null) toolHeadSetup =  new ToolHeadParameters(34);
                 return toolHeadSetup;
             }
             set
             {
                 toolHeadSetup = value;
-                if (toolHeadSetup == null) toolHeadSetup = new ToolHeadParameters();
+                if (toolHeadSetup == null) toolHeadSetup = new ToolHeadParameters(35);
             }
         }
 
@@ -205,9 +261,6 @@ namespace LineGrinder
         /// <summary>
         /// Gets/Sets the pad center point list. Never get/sets a null value
         /// </summary>
-        /// <history>
-        ///    30 Aug 10  Cynic - Started
-        /// </history>
         public List<GCodePad> PadCenterPointList
         {
             get
@@ -226,9 +279,6 @@ namespace LineGrinder
         /// <summary>
         /// Resets the gcode file to the defaults necessary for emitting the GCode file
         /// </summary>
-        /// <history>
-        ///    05 Aug 10  Cynic - Started
-        /// </history>
         public void ResetForEmitFile()
         {
             lastGCodeXCoord = 0;
@@ -241,9 +291,6 @@ namespace LineGrinder
         /// <summary>
         /// Gets/Sets the gcode file options to use. Never ges/sets a null value
         /// </summary>
-        /// <history>
-        ///    10 Aug 10  Cynic - Started
-        /// </history>
         public FileManager GCodeFileManager
         {
             get
@@ -262,9 +309,6 @@ namespace LineGrinder
         /// <summary>
         /// Gets the next available line number
         /// </summary>
-        /// <history>
-        ///    05 Aug 10  Cynic - Started
-        /// </history>
         public int GetNextLineNumber()
         {
             lineNumber++;
@@ -275,21 +319,15 @@ namespace LineGrinder
         /// <summary>
         /// Gets the next available line number in a string
         /// </summary>
-        /// <history>
-        ///    05 Aug 10  Cynic - Started
-        /// </history>
         public string BuildNextLineNumberString()
         {
-            return GCodeLine.GCODEWORD_LINENUMBER + string.Format("{0:d" + LINENUMBER_DIGITS.ToString() + "}", GetNextLineNumber());
+            return GCodeCmd.GCODEWORD_LINENUMBER + string.Format("{0:d" + LINENUMBER_DIGITS.ToString() + "}", GetNextLineNumber());
         }
 
         /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
         /// <summary>
         /// Gets/sets the current units in use. 
         /// </summary>
-        /// <history>
-        ///    05 Aug 10  Cynic - Started
-        /// </history>
         public ApplicationUnitsEnum GCodeUnits
         {
             get
@@ -306,9 +344,6 @@ namespace LineGrinder
         /// <summary>
         /// Gets/Sets the X Scale Factor
         /// </summary>
-        /// <history>
-        ///    05 Aug 10  Cynic - Started
-        /// </history>
         public float IsoPlotPointsPerAppUnit
         {
             get
@@ -325,9 +360,6 @@ namespace LineGrinder
         /// <summary>
         /// Gets/Sets the working plot line color.
         /// </summary>
-        /// <history>
-        ///    05 Aug 10  Cynic - Started
-        /// </history>
         public Color PlotLineColor
         {
             get
@@ -344,9 +376,6 @@ namespace LineGrinder
         /// <summary>
         /// Gets/Sets the working line pen.
         /// </summary>
-        /// <history>
-        ///    09 Aug 10  Cynic - Started
-        /// </history>
         public Pen PlotBorderPen
         {
             get
@@ -363,9 +392,6 @@ namespace LineGrinder
         /// <summary>
         /// Gets/Sets the cut line pen.
         /// </summary>
-        /// <history>
-        ///    11 Aug 10  Cynic - Started
-        /// </history>
         public Pen PlotCutLinePen
         {
             get
@@ -382,9 +408,6 @@ namespace LineGrinder
         /// <summary>
         /// Gets/Sets the working plot border brush. Will never get/set null values
         /// </summary>
-        /// <history>
-        ///    09 Aug 10  Cynic - Started
-        /// </history>
         public Brush PlotBorderBrush
         {
             get
@@ -403,9 +426,6 @@ namespace LineGrinder
         /// <summary>
         /// Dispose of all pens
         /// </summary>
-        /// <history>
-        ///    13 Jul 10  Cynic - Started
-        /// </history>
         public void DisposeAllPens()
         {
             if ((plotBorderPen != null) && (plotBorderPen != ApplicationColorManager.DEFAULT_GCODEPLOT_BORDER_PEN))
@@ -419,9 +439,6 @@ namespace LineGrinder
         /// <summary>
         /// Gets or Sets the lineTerminator. Will never get or set a null value
         /// </summary>
-        /// <history>
-        ///    05 Aug 10  Cynic - Started
-        /// </history>
         public string LineTerminator
         {
             get
@@ -440,9 +457,6 @@ namespace LineGrinder
         /// <summary>
         /// Gets/Sets the last used GCode X Coordinate value
         /// </summary>
-        /// <history>
-        ///    05 Aug 10  Cynic - Started
-        /// </history>
         public float LastGCodeXCoord
         {
             get
@@ -459,9 +473,6 @@ namespace LineGrinder
         /// <summary>
         /// Gets/Sets the last used GCode Y Coordinate value
         /// </summary>
-        /// <history>
-        ///    05 Aug 10  Cynic - Started
-        /// </history>
         public float LastGCodeYCoord
         {
             get
@@ -478,9 +489,6 @@ namespace LineGrinder
         /// <summary>
         /// Gets/Sets the last used GCode Z Coordinate value
         /// </summary>
-        /// <history>
-        ///    05 Aug 10  Cynic - Started
-        /// </history>
         public float LastGCodeZCoord
         {
             get
@@ -497,9 +505,6 @@ namespace LineGrinder
         /// <summary>
         /// Gets/Sets the last used feedrate
         /// </summary>
-        /// <history>
-        ///    11 Sep 10  Cynic - Converted
-        /// </history>
         public float LastFeedRate
         {
             get
@@ -516,9 +521,6 @@ namespace LineGrinder
         /// <summary>
         /// Gets the operation mode from the filemanager. Just a shortcut
         /// </summary>
-        /// <history>
-        ///    24 Aug 10  Cynic - Started
-        /// </history>
         public FileManager.OperationModeEnum OperationMode
         {
             get
@@ -530,11 +532,6 @@ namespace LineGrinder
         /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
         /// <summary>
         /// Gets/Sets the Isolation width
-        /// <history>
-        ///    05 Aug 10  Cynic - Started
-        ///    24 Aug 10  Cynic - Updated to use file manager
-        ///    03 Sep 10  Cynic - Update to use toolhead parameter obj
-        /// </history>
         public float IsolationWidth
         {
             get
@@ -547,11 +544,6 @@ namespace LineGrinder
         /// <summary>
         /// Gets/Sets the current XY Feedrate
         /// </summary>
-        /// <history>
-        ///    05 Aug 10  Cynic - Started
-        ///    24 Aug 10  Cynic - Updated to use file manager
-        ///    03 Sep 10  Cynic - Update to use toolhead parameter obj
-        /// </history>
         public float CurrentXYFeedrate
         {
             get
@@ -564,11 +556,6 @@ namespace LineGrinder
         /// <summary>
         /// Gets/Sets the current Z Feedrate
         /// </summary>
-        /// <history>
-        ///    05 Aug 10  Cynic - Started
-        ///    24 Aug 10  Cynic - Updated to use file manager
-        ///    03 Sep 10  Cynic - Update to use toolhead parameter obj
-        /// </history>
         public float CurrentZFeedrate
         {
             get
@@ -581,11 +568,6 @@ namespace LineGrinder
         /// <summary>
         /// Gets/Sets the current Z Coord For Cut
         /// </summary>
-        /// <history>
-        ///    05 Aug 10  Cynic - Started
-        ///    24 Aug 10  Cynic - Updated to use file manager
-        ///    03 Sep 10  Cynic - Update to use toolhead parameter obj
-        /// </history>
         public float ZCoordForCut
         {
             get
@@ -598,10 +580,6 @@ namespace LineGrinder
         /// <summary>
         /// Gets/Sets the current Z Coord For Alt1 cut levels
         /// </summary>
-        /// <history>
-        ///    31 Aug 10  Cynic - Started
-        ///    05 Sep 10  Cynic - Converted to Alt1 cuts
-        /// </history>
         public float ZCoordForAlt1Cut
         {
             get
@@ -614,11 +592,6 @@ namespace LineGrinder
         /// <summary>
         /// Gets/Sets the current Z Coord For Move
         /// </summary>
-        /// <history>
-        ///    05 Aug 10  Cynic - Started
-        ///    24 Aug 10  Cynic - Updated to use file manager
-        ///    03 Sep 10  Cynic - Update to use toolhead parameter obj
-        /// </history>
         public float ZCoordForMove
         {
             get
@@ -631,11 +604,6 @@ namespace LineGrinder
         /// <summary>
         /// Gets/Sets the current Z Coord For Clear
         /// </summary>
-        /// <history>
-        ///    05 Aug 10  Cynic - Started
-        ///    24 Aug 10  Cynic - Updated to use file manager
-        ///    03 Sep 10  Cynic - Update to use toolhead parameter obj
-        /// </history>
         public float ZCoordForClear
         {
             get
@@ -646,3 +614,4 @@ namespace LineGrinder
 
     }
 }
+

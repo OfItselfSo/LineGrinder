@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Configuration;
@@ -39,16 +39,14 @@ namespace LineGrinder
     /// This code uses the techniques discussed here
     /// http://msdn.microsoft.com/en-us/library/system.configuration.applicationsettingsbase%28VS.80%29.aspx
     /// </remarks>
-    /// <history>
-    ///    08 Aug 10  Cynic - Started
-    /// </history>
     public sealed class ApplicationImplicitSettings : ApplicationSettingsBase
     {
         // some defines
         public const ApplicationUnitsEnum DEFAULT_APPLICATION_UNITS = ApplicationUnitsEnum.INCHES;
-        public const int DEFAULT_ISOPLOTPOINTS_PER_APPUNIT = DEFAULT_VIRTURALCOORD_PER_INCH;
         public const int DEFAULT_VIRTURALCOORD_PER_INCH = 2000;
         public const int DEFAULT_VIRTURALCOORD_PER_MM = 78;
+        public const int DEFAULT_ISOPLOTPOINTS_PER_APPUNIT_IN = DEFAULT_VIRTURALCOORD_PER_INCH;
+        public const int DEFAULT_ISOPLOTPOINTS_PER_APPUNIT_MM = DEFAULT_VIRTURALCOORD_PER_MM;
 
         // ####################################################################
         // ##### Config Items Explicitly Set By the User
@@ -57,20 +55,28 @@ namespace LineGrinder
 
         [UserScopedSetting()]
         [DefaultSettingValueAttribute("INCHES")]
-        public ApplicationUnitsEnum ApplicationUnits
+        public ApplicationUnitsEnum DefaultApplicationUnits
         {
-            get { return (ApplicationUnitsEnum)this["ApplicationUnits"]; }
-            set { this["ApplicationUnits"] = value; }
+            get { return (ApplicationUnitsEnum)this["DefaultApplicationUnits"]; }
+            set { this["DefaultApplicationUnits"] = value; }
         }
         
         [UserScopedSetting()]
         [DefaultSettingValueAttribute("2000")]
-        public int IsoPlotPointsPerAppUnit
+        public int IsoPlotPointsPerAppUnitIN
         {
-            get { return (int)this["IsoPlotPointsPerAppUnit"]; }
-            set { this["IsoPlotPointsPerAppUnit"] = value; }
+            get { return (int)this["IsoPlotPointsPerAppUnitIN"]; }
+            set { this["IsoPlotPointsPerAppUnitIN"] = value; }
         }
-                
+
+        [UserScopedSetting()]
+        [DefaultSettingValueAttribute("78")]
+        public int IsoPlotPointsPerAppUnitMM
+        {
+            get { return (int)this["IsoPlotPointsPerAppUnitMM"]; }
+            set { this["IsoPlotPointsPerAppUnitMM"] = value; }
+        }
+
         [UserScopedSetting()]
         [DefaultSettingValueAttribute("false")]
         public bool ShowGerberApertures
@@ -93,6 +99,22 @@ namespace LineGrinder
         {
             get { return (bool)this["ShowOrigin"]; }
             set { this["ShowOrigin"] = value; }
+        }
+
+        [UserScopedSetting()]
+        [DefaultSettingValueAttribute("false")]
+        public bool ShowFlipAxis
+        {
+            get { return (bool)this["ShowFlipAxis"]; }
+            set { this["ShowFlipAxis"] = value; }
+        }
+
+        [UserScopedSetting()]
+        [DefaultSettingValueAttribute("false")]
+        public bool ShowGCodeOrigin
+        {
+            get { return (bool)this["ShowGCodeOrigin"]; }
+            set { this["ShowGCodeOrigin"] = value; }
         }
 
         [UserScopedSetting()]
@@ -162,3 +184,4 @@ namespace LineGrinder
 
     }
 }
+

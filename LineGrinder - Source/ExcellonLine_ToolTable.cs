@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -28,9 +28,6 @@ namespace LineGrinder
     /// <summary>
     /// A class to encapsulate a excellon ToolTable definition Code
     /// </summary>
-    /// <history>
-    ///    01 Sep 10  Cynic - Started
-    /// </history>
     public class ExcellonLine_ToolTable : ExcellonLine
     {
 
@@ -43,9 +40,6 @@ namespace LineGrinder
         /// </summary>
         /// <param name="rawLineStrIn">The raw line string</param>
         /// <param name="processedLineStrIn">The processed line string</param>
-        /// <history>
-        ///    01 Sep 10  Cynic - Started
-        /// </history>
         public ExcellonLine_ToolTable(string rawLineStrIn, string processedLineStrIn, int lineNumberIn)
             : base(rawLineStrIn, processedLineStrIn, lineNumberIn)
         {
@@ -55,9 +49,6 @@ namespace LineGrinder
         /// <summary>
         /// Gets/Sets the current D Code value
         /// </summary>
-        /// <history>
-        ///    01 Sep 10  Cynic - Started
-        /// </history>
         public int ToolNumber
         {
             get
@@ -74,9 +65,6 @@ namespace LineGrinder
         /// <summary>
         /// Gets/Sets the current Drill diameter
         /// </summary>
-        /// <history>
-        ///    01 Sep 10  Cynic - Started
-        /// </history>
         public float DrillDiameter
         {
             get
@@ -96,9 +84,6 @@ namespace LineGrinder
         /// <param name="processedLineStr">a line string without block terminator or format parameters</param>
         /// <param name="stateMachine">The state machine containing the implied modal values</param>
         /// <returns>z success, nz fail</returns>
-        /// <history>
-        ///    01 Sep 10  Cynic - Started
-        /// </history>
         public override int ParseLine(string processedLineStr, ExcellonFileStateMachine stateMachine)
         {
             int outInt = -1;
@@ -173,15 +158,12 @@ namespace LineGrinder
         /// <param name="gcLineList">a list of the equivalent gcode line object. This can be 
         /// empty if there is no direct conversion</param>
         /// <returns>z success, nz fail</returns>
-        /// <history>
-        ///    05 Sep 10  Cynic - Started
-        /// </history>
-        public override int GetGCodeLine(ExcellonFileStateMachine stateMachine, out List<GCodeLine> gcLineList)
+        public override int GetGCodeCmd(ExcellonFileStateMachine stateMachine, out List<GCodeCmd> gcLineList)
         {
-            GCodeLine_Comment coLine = null;
-            gcLineList = new List<GCodeLine>();
+            GCodeCmd_Comment coLine = null;
+            gcLineList = new List<GCodeCmd>();
 
-            coLine = new GCodeLine_Comment("ToolTable: Tool " + toolNumber.ToString() + ", Dia= " + drillDiameter.ToString());
+            coLine = new GCodeCmd_Comment("ToolTable: Tool " + toolNumber.ToString() + ", Dia= " + drillDiameter.ToString());
             gcLineList.Add(coLine);
  
             return 0;
@@ -189,3 +171,4 @@ namespace LineGrinder
 
     }
 }
+

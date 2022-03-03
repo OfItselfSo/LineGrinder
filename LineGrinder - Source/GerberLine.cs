@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -28,10 +28,6 @@ namespace LineGrinder
     /// <summary>
     /// A abstract base class for Gerber file lines
     /// </summary>
-    /// <history>
-    ///    07 Jul 10  Cynic - Started
-    ///    15 Jan 11  Cynic - Added doNotDisplay code
-    /// </history>
     public abstract class GerberLine : OISObjBase
     {
 
@@ -72,9 +68,6 @@ namespace LineGrinder
         /// <param name="rawLineStrIn">The raw line string</param>
         /// <param name="processedLineStrIn">The processed line string</param>
         /// <param name="lineNumberIn">the line number</param>
-        /// <history>
-        ///    07 Jul 10  Cynic - Started
-        /// </history>
         public GerberLine(string rawLineStrIn, string processedLineStrIn, int lineNumberIn)
         {
             rawLineStr = rawLineStrIn;
@@ -86,9 +79,6 @@ namespace LineGrinder
         /// <summary>
         /// Gets /Sets the doNotDisplay value
         /// </summary>
-        /// <history>
-        ///    15 Jan 11  Cynic - Started
-        /// </history>
         public bool DoNotDisplay
         {
             get
@@ -106,9 +96,6 @@ namespace LineGrinder
         /// Gets the line number. There is no set accessor. This value is set in the 
         /// constructor
         /// </summary>
-        /// <history>
-        ///    09 Aug 10  Cynic - Started
-        /// </history>
         public int LineNumber
         {
             get
@@ -124,9 +111,6 @@ namespace LineGrinder
         /// smallest X coordinate specified in the plot approximately zero but 
         /// definitely non-negative (which totally complicates the isoPlotSegments);
         /// </summary>
-        /// <history>
-        ///    08 Aug 10  Cynic - Started
-        /// </history>
         public float PlotXCoordOriginAdjust
         {
             get
@@ -146,9 +130,6 @@ namespace LineGrinder
         /// smallest Y coordinate specified in the plot approximately zero but 
         /// definitely non-negative (which totally complicates the isoPlotSegments);
         /// </summary>
-        /// <history>
-        ///    08 Aug 10  Cynic - Started
-        /// </history>
         public float PlotYCoordOriginAdjust
         {
             get
@@ -166,9 +147,6 @@ namespace LineGrinder
         /// <summary>
         /// Gets or Sets the LineStr. Will never get or set a null value
         /// </summary>
-        /// <history>
-        ///    07 Jul 10  Cynic - Started
-        /// </history>
         public string RawLineStr
         {
             get
@@ -185,6 +163,15 @@ namespace LineGrinder
 
         /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
         /// <summary>
+        /// Resets for a new plot
+        /// </summary>
+        public virtual void ResetForPlot()
+        {
+            return;
+        }
+
+        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+        /// <summary>
         /// Performs the action the plot gerber code action required based on the current context
         /// </summary>
         /// <param name="graphicsObj">a graphics object on which to plot</param>
@@ -192,9 +179,6 @@ namespace LineGrinder
         /// <param name="errorString">the error string we return on fail</param>
         /// <param name="errorValue">the error value we return on fail, z success, nz fail </param>
         /// <returns>z success, nz fail</returns>
-        /// <history>
-        ///    07 Jul 10  Cynic - Started
-        /// </history>
         public virtual GerberLine.PlotActionEnum PerformPlotGerberAction(Graphics graphicsObj, GerberFileStateMachine stateMachine, ref int errorValue, ref string errorString)
         {
             // ignore this
@@ -210,24 +194,18 @@ namespace LineGrinder
         /// <param name="processedLineStr">a line string without block terminator or format parameters</param>
         /// <param name="stateMachine">The state machine containing the implied modal values</param>
         /// <returns>z success, nz fail</returns>
-        /// <history>
-        ///    07 Jul 10  Cynic - Started
-        /// </history>
         public abstract int ParseLine(string processedLineStr, GerberFileStateMachine stateMachine);
 
         /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
         /// <summary>
         /// Performs the plot Isolation Object actions required based on the current context
         /// </summary>
-        /// <param name="gCodeBuilder">A GCode Builder object</param>
+        /// <param name="isoPlotBuilder">A GCode Builder object</param>
         /// <param name="stateMachine">the gerber plot state machine</param>
         /// <param name="errorString">the error string we return on fail</param>
         /// <param name="errorValue">the error value we return on fail, z success, nz fail </param>
         /// <returns>an enum value indicating what next action to take</returns>
-        /// <history>
-        ///    24 Jul 10  Cynic - Started
-        /// </history>
-        public virtual GerberLine.PlotActionEnum PerformPlotIsoStep1Action(GCodeBuilder gCodeBuilder, GerberFileStateMachine stateMachine, ref int errorValue, ref string errorString)
+        public virtual GerberLine.PlotActionEnum PerformPlotIsoStep1Action(IsoPlotBuilder isoPlotBuilder, GerberFileStateMachine stateMachine, ref int errorValue, ref string errorString)
         {
             errorValue = 0;
             errorString = "";
@@ -236,3 +214,4 @@ namespace LineGrinder
 
     }
 }
+

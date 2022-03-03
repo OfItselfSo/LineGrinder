@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
@@ -25,12 +25,11 @@ namespace LineGrinder
     /// <summary>
     /// A enum to codify the units settings
     /// </summary>
-    /// <history>
-    ///    22 Sep 10  Cynic - Started
-    /// </history>
     public enum ApplicationUnitsEnum
     {
         INCHES,
         MILLIMETERS
     };
 }
+
+

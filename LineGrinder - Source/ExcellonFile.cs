@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -29,9 +29,6 @@ namespace LineGrinder
     /// <summary>
     /// A class to encapsulate a Excellon file in an easily manipulable manner
     /// </summary>
-    /// <history>
-    ///    01 Sep 10  Cynic - Started
-    /// </history>
     public class ExcellonFile : OISObjBase
     {
         // this is the path and name of the source Excellon file
@@ -46,21 +43,6 @@ namespace LineGrinder
 
         public const string ANSI349COMMENTDELIMITER = @";";
 
-/*
-        public const string RS274PARAMDELIMITER = @"%";
-        public const char RS274PARAMDELIMITER_CHAR = '%';
-        public const string RS274FORMATPARAM = @"FS";
-        public const string RS274MODEPARAM = @"MO";
-        public const string RS274APDEFPARAM = @"AD";
-        public const string RS274BLOCKTERMINATOR = @"*";
-        public const char RS274BLOCKTERMINATOR_CHAR = '*';
-*/
-
-        // NOTE: In general, if a coordinate is an int it has been scaled and it represents
-        //       a value in plot coordinates. If it is a float it represents an unscaled
-        //       value derived from the excellon file or gCode file although possibly
-        //       it may be origin compensated
-
         // These are the values we ADD to the existing X and Y coords from the DCodes
         // in order to set the origin approximately at zero
         private float plotXCoordOriginAdjust = 0;
@@ -71,14 +53,13 @@ namespace LineGrinder
         private float minDCodeYCoord = float.MaxValue;
         private float maxDCodeXCoord = float.MinValue;
         private float maxDCodeYCoord = float.MinValue;
+        private float midDCodeXCoord = float.MinValue;
+        private float midDCodeYCoord = float.MinValue;
 
         /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
         /// <summary>
         /// Constructor
         /// </summary>
-        /// <history>
-        ///    01 Sep 10  Cynic - Started
-        /// </history>
         public ExcellonFile()
         {
         }
@@ -88,9 +69,6 @@ namespace LineGrinder
         /// Gets whether the file is populated. We assume it is populated if there
         /// is at least one source line
         /// </summary>
-        /// <history>
-        ///    01 Sep 10  Cynic - Started
-        /// </history>
         public bool IsPopulated
         {
             get
@@ -104,9 +82,6 @@ namespace LineGrinder
         /// <summary>
         /// Gets/sets the current excellon source files path and name
         /// </summary>
-        /// <history>
-        ///    01 Sep 10  Cynic - Started
-        /// </history>
         public string ExcellonFilePathAndName
         {
             get
@@ -121,6 +96,20 @@ namespace LineGrinder
 
         /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
         /// <summary>
+        /// Gets a flag indicating the current GCode origin. There is no set this comes out of the 
+        /// current file manager.
+        /// </summary>
+        public bool GCodeOriginAtCenter
+        {
+            get
+            {
+                // this is safe to do. None of these properties return null
+                return StateMachine.ExcellonFileManager.GCodeOriginAtCenter;
+            }
+        }
+
+        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+        /// <summary>
         /// Performs checks after the file has been opened and read to 
         /// see if it is valid and useable
         /// </summary>
@@ -128,10 +117,7 @@ namespace LineGrinder
         /// <param name="applicationUnits">the units (inches or mm) the app is currently
         /// configured for</param>
         /// <returns>true all ok, false a failure was detected</returns>
-        /// <history>
-        ///    01 Sep 10  Cynic - Started
-        /// </history>
-        public bool PerformOpenPostProcessingChecks(out string errStr,ApplicationUnitsEnum applicationUnits)
+        public bool PerformOpenPostProcessingChecks(out string errStr)
         {
             // check to make sure there are valid Min and Max coodinates
             if (minDCodeXCoord == float.MaxValue)
@@ -159,17 +145,17 @@ namespace LineGrinder
             // same as the UNITS currently set in this application
             if (this.StateMachine.ExcellonFileUnits == ApplicationUnitsEnum.INCHES)
             {
-                if (applicationUnits == ApplicationUnitsEnum.MILLIMETERS)
+                if (StateMachine.ExcellonFileManager.FileManagerUnits == ApplicationUnitsEnum.MILLIMETERS)
                 {
-                    errStr = "Application units set to millimeters and the Gerber file uses inches. Adjust the options on the Settings tab.";
+                    errStr = "Application units set to millimeters and the Gerber file uses inches. This should have automatically adjusted. Please report this error.";
                     return false;
                 }
             }
             else if (this.StateMachine.ExcellonFileUnits == ApplicationUnitsEnum.MILLIMETERS)
             {
-                if (applicationUnits == ApplicationUnitsEnum.INCHES)
+                if (StateMachine.ExcellonFileManager.FileManagerUnits == ApplicationUnitsEnum.INCHES)
                 {
-                    errStr = "Application units set to inches and the Gerber file uses millimeters. Adjust the options on the Settings tab.";
+                    errStr = "Application units set to inches and the Gerber file uses millimeters. This should have automatically adjusted. Please report this error.";
                     return false;
                 }
             }
@@ -182,9 +168,6 @@ namespace LineGrinder
         /// <summary>
         /// Keeps a record of the min and max XY coords.
         /// </summary>
-        /// <history>
-        ///    01 Sep 10  Cynic - Moved this code in here
-        /// </history>
         public void RecordMinMaxXYCoords(float workingXCoord, float workingYCoord)
         {
             // we set the min and max XY here
@@ -199,9 +182,6 @@ namespace LineGrinder
         /// <summary>
         /// Gets/Sets the value we use when flipping in the X direction
         /// </summary>
-        /// <history>
-        ///    01 Sep 10  Cynic - Started
-        /// </history>
         public float XFlipMax
         {
             get
@@ -218,9 +198,6 @@ namespace LineGrinder
         /// <summary>
         /// Gets/Sets the value we use when flipping in the Y direction
         /// </summary>
-        /// <history>
-        ///    01 Sep 10  Cynic - Started
-        /// </history>
         public float YFlipMax
         {
             get
@@ -238,9 +215,6 @@ namespace LineGrinder
         /// Gets/Sets the min plot X Coordinate value. There is no set accessor
         /// this value is derived from the max/min X coord and the origin compensation
         /// </summary>
-        /// <history>
-        ///    01 Sep 10  Cynic - Started
-        /// </history>
         public float MinPlotXCoord
         {
             get
@@ -254,9 +228,6 @@ namespace LineGrinder
         /// Gets/Sets the min plot Y Coordinate value There is no set accessor
         /// this value is derived from the max/min Y coord and the origin compensation
         /// </summary>
-        /// <history>
-        ///    01 Sep 10  Cynic - Started
-        /// </history>
         public float MinPlotYCoord
         {
             get
@@ -270,9 +241,6 @@ namespace LineGrinder
         /// Gets/Sets the max plot X Coordinate value There is no set accessor
         /// this value is derived from the max/min X coord and the origin compensation
         /// </summary>
-        /// <history>
-        ///    01 Sep 10  Cynic - Started
-        /// </history>
         public float MaxPlotXCoord
         {
             get
@@ -286,9 +254,6 @@ namespace LineGrinder
         /// Gets/Sets the max plot Y Coordinate value There is no set accessor
         /// this value is derived from the max/min Y coord and the origin compensation
         /// </summary>
-        /// <history>
-        ///    01 Sep 10  Cynic - Started
-        /// </history>
         public float MaxPlotYCoord
         {
             get
@@ -299,11 +264,68 @@ namespace LineGrinder
 
         /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
         /// <summary>
+        /// Gets/Sets the mid plot X Coordinate value There is no set accessor
+        /// this value is derived from the mid X coord and the origin compensation
+        /// </summary>
+        public float MidPlotXCoord
+        {
+            get
+            {
+                return midDCodeXCoord + plotXCoordOriginAdjust;
+            }
+        }
+
+        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+        /// <summary>
+        /// Gets/Sets the mid plot Y Coordinate value There is no set accessor
+        /// this value is derived from the mid Y coord and the origin compensation
+        /// </summary>
+        public float MidPlotYCoord
+        {
+            get
+            {
+                return midDCodeYCoord + plotYCoordOriginAdjust;
+            }
+        }
+
+        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+        /// <summary>
+        /// Gets/Sets the mid X Coordinate value. These are derived from the reference
+        /// pins or the best guess center of the plot if refPins are not set
+        /// </summary>
+        public float MidDCodeXCoord
+        {
+            get
+            {
+                return midDCodeXCoord;
+            }
+            set
+            {
+                midDCodeXCoord = value;
+            }
+        }
+
+        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+        /// <summary>
+        /// Gets/Sets the mid Y Coordinate value. These are derived from the reference
+        /// pins or the best guess center of the plot if refPins are not set
+        /// </summary>
+        public float MidDCodeYCoord
+        {
+            get
+            {
+                return midDCodeYCoord;
+            }
+            set
+            {
+                midDCodeYCoord = value;
+            }
+        }
+
+        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+        /// <summary>
         /// Gets/Sets the min X Coordinate value
         /// </summary>
-        /// <history>
-        ///    01 Sep 10  Cynic - Started
-        /// </history>
         public float MinDCodeXCoord
         {
             get
@@ -320,9 +342,6 @@ namespace LineGrinder
         /// <summary>
         /// Gets/Sets the min Y Coordinate value
         /// </summary>
-        /// <history>
-        ///    01 Sep 10  Cynic - Started
-        /// </history>
         public float MinDCodeYCoord
         {
             get
@@ -339,9 +358,6 @@ namespace LineGrinder
         /// <summary>
         /// Gets/Sets the max X Coordinate value
         /// </summary>
-        /// <history>
-        ///    01 Sep 10  Cynic - Started
-        /// </history>
         public float MaxDCodeXCoord
         {
             get
@@ -358,9 +374,6 @@ namespace LineGrinder
         /// <summary>
         /// Gets/Sets the max Y Coordinate value
         /// </summary>
-        /// <history>
-        ///    01 Sep 10  Cynic - Started
-        /// </history>
         public float MaxDCodeYCoord
         {
             get
@@ -377,9 +390,6 @@ namespace LineGrinder
         /// <summary>
         /// Gets the current X Coordinate value with origin compensation
         /// </summary>
-        /// <history>
-        ///    10 Sep 10  Cynic - Started
-        /// </history>
         public float ConvertXCoordToOriginCompensated(float x0)
         {
             return x0 + PlotXCoordOriginAdjust;
@@ -389,9 +399,6 @@ namespace LineGrinder
         /// <summary>
         /// Gets the current Y Coordinate value with origin compensation
         /// </summary>
-        /// <history>
-        ///    10 Sep 10  Cynic - Started
-        /// </history>
         public float ConvertYCoordToOriginCompensated(float y0)
         {
             return y0 + PlotYCoordOriginAdjust;
@@ -401,9 +408,6 @@ namespace LineGrinder
         /// <summary>
         /// Gets/Sets state machine. Will never set or get a null value.
         /// </summary>
-        /// <history>
-        ///    01 Sep 10  Cynic - Started
-        /// </history>
         public ExcellonFileStateMachine StateMachine
         {
             get
@@ -420,11 +424,22 @@ namespace LineGrinder
 
         /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
         /// <summary>
+        /// Gets the currently set flip mode. There is no set this comes out of the 
+        /// current excellon file.
+        /// </summary>
+        public ApplicationUnitsEnum ExcellonFileUnits
+        {
+            get
+            {
+                // this is safe to do. None of these properties return null
+                return StateMachine.ExcellonFileUnits;
+            }
+        }
+
+        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+        /// <summary>
         /// Gets/Sets the tool table collection. 
         /// </summary>
-        /// <history>
-        ///    01 Sep 10  Cynic - Started
-        /// </history>
         public List<ExcellonLine_ToolTable> ToolCollection
         {
             get
@@ -441,9 +456,6 @@ namespace LineGrinder
         /// <summary>
         /// Gets/Sets the Excellon file source. Will never set or get a null value.
         /// </summary>
-        /// <history>
-        ///    01 Sep 10  Cynic - Started
-        /// </history>
         [BrowsableAttribute(false)]
         public List<ExcellonLine> SourceLines
         {
@@ -464,9 +476,6 @@ namespace LineGrinder
         /// <summary>
         /// Returns all lines as a string array. Will never get a null value.
         /// </summary>
-        /// <history>
-        ///    01 Sep 10  Cynic - Started
-        /// </history>
         public string[] GetRawSourceLinesAsArray()
         {
             List<string> retObj = new List<string>();
@@ -486,9 +495,6 @@ namespace LineGrinder
         /// </summary>
         /// <param name="lineStr">The line to add</param>
         /// <param name="lineNumber">The line number</param>
-        /// <history>
-        ///    01 Sep 10  Cynic - Started
-        /// </history>
         public int AddLine(string lineStr, int lineNumber)
         {
             int retInt;
@@ -790,14 +796,142 @@ namespace LineGrinder
 
         /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
         /// <summary>
+        /// Figures out the mid point of all pads flagged as reference pins.
+        /// </summary>
+        /// <param name="errStr">an error string</param>
+        /// 
+        /// <returns>z success, -ve err not reported, +ve err reported</returns>
+        public int GetMidPointFromReferencePins(out float midX, out float midY, ref string errStr)
+        {
+            int refPinCount = 0;
+            float minX = float.MaxValue;
+            float maxX = float.MinValue;
+            float minY = float.MaxValue;
+            float maxY = float.MinValue;
+
+            errStr = "";
+            midX = 0;
+            midY = 0;
+
+            // go through all the pads, we just look for the min and max and 
+            // assume those are the extremities
+            foreach (GerberPad padObj in StateMachine.PadCenterPointList)
+            {
+                // test it 
+                if (padObj.IsRefPin == false) continue;
+                refPinCount++;
+                if (padObj.X0 < minX) minX = padObj.X0;
+                if (padObj.X0 > maxX) maxX = padObj.X0;
+                if (padObj.Y0 < minY) minY = padObj.Y0;
+                if (padObj.Y0 > maxY) maxY = padObj.Y0;
+            }
+
+            // did we find at least two?
+            if (refPinCount < 2)
+            {
+                errStr = refPinCount.ToString() + " ref pin pads were found in the Gerber file. At least two are required.\n\nHave Reference Pin Pads been placed on the PCB schematic?";
+                LogMessage("GetMidPointFromReferencePins: " + errStr);
+                return -201;
+            }
+
+            // these are the midpoints
+            midX = minX + ((maxX - minX) / 2);
+            midY = minY + ((maxY - minY) / 2);
+            return 0;
+        }
+
+        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+        /// <summary>
+        /// Flags all of the reference pin pads in the PadCenterPointList of this 
+        /// object and performs some checks.
+        /// </summary>
+        /// <param name="errStr">an error string</param>
+        /// <returns>z success, -ve err not reported, +ve err reported</returns>
+        public int SetReferencePins(ref string errStr)
+        {
+            errStr = "";
+
+            LogMessage("SetReferencePins called");
+
+            // can we find any reference pins? The PadCenterPoint list will have these from the Excellon file
+            if (StateMachine.PadCenterPointList.Count == 0)
+            {
+                errStr = "No pads were found in the Gerber file.\n\nHave Reference Pin Pads been placed on the PCB schematic?";
+                LogMessage("SetReferencePins: " + errStr);
+                return -201;
+            }
+            // ok we have some pads, have we got any of the required size?
+            List<GerberPad> refPadsList = new List<GerberPad>();
+            foreach (GerberPad padObj in StateMachine.PadCenterPointList)
+            {
+                //DebugMessage("padObj.PadDiameter = " + padObj.PadDiameter.ToString());
+                // reset it 
+                padObj.IsRefPin = false;
+                // test it, round to 2 decimals that should be sufficent
+                if (Math.Round(padObj.PadDiameter, 2) != Math.Round(StateMachine.ExcellonFileManager.DrillingReferencePinDiameter, 2)) continue;
+                // mark it
+                padObj.IsRefPin = true;
+                // add it
+                refPadsList.Add(padObj);
+            }
+            if (refPadsList.Count == 0)
+            {
+                errStr = "No Reference Pin pads were found in the Gerber file. The File Manager thinks they should have diameter: " + StateMachine.ExcellonFileManager.DrillingReferencePinDiameter.ToString() + "\n\nHave Reference Pin Pads been placed on the PCB schematic?";
+                LogMessage("SetReferencePins: " + errStr);
+                return -202;
+            }
+            // we have to have at least 2 pins
+            if (refPadsList.Count < 2)
+            {
+                errStr = "Only one Reference Pin pad of diameter: " + StateMachine.ExcellonFileManager.DrillingReferencePinDiameter.ToString() + " was found in the Gerber file. At least two are required.\n\nHave Reference Pin Pads been placed on the PCB schematic?";
+                LogMessage("SetReferencePins: " + errStr);
+                return -203;
+            }
+            if (refPadsList.Count > StateMachine.ExcellonFileManager.DrillingReferencePinsMaxNumber)
+            {
+                errStr = refPadsList.Count.ToString() + " Reference Pin pads of diameter: " + StateMachine.ExcellonFileManager.DrillingReferencePinDiameter.ToString() + " were found in the Excellon file. According to the File Manager DrillingReferencePinsMaxNumber setting this is unlikely to be correct.\n\nDo other pins on PCB schematic have the Reference Pin Diameter of " + StateMachine.ExcellonFileManager.DrillingReferencePinDiameter.ToString() + "?";
+                LogMessage("SetReferencePins: " + errStr);
+                return -204;
+            }
+            // are the reference pins all co-linear with at least one other 
+            foreach (GerberPad gcPadObj in refPadsList)
+            {
+                bool axiallyCoLinear = false;
+                foreach (GerberPad testObj in refPadsList)
+                {
+                    // is it the same point? do not test
+                    if ((gcPadObj.X0 == testObj.X0) && (gcPadObj.Y0 == testObj.Y0)) continue;
+                    // do the YCoords match
+                    if (gcPadObj.Y0 == testObj.Y0)
+                    {
+                        // flag it
+                        axiallyCoLinear = true;
+                        continue;
+                    }
+                    // if we get here the gcPadObj is not axially colinear with the testObj
+                }
+                // is the gcPadObj axially colinear with any other object?
+                if (axiallyCoLinear == false)
+                {
+                    // no, we could not find any other objects. This is an error
+                    errStr = "The Reference Pin pad at postion (" + gcPadObj.X0.ToString() + "," + gcPadObj.Y0.ToString() + ") is not horizontally co-linear (has the same Y value) with any other Reference Pin pad.\n\nAll Reference Pin Pads on the PCB schematic must be in one or more lines parallel to the X axis.";
+                    LogMessage("SetReferencePins: " + errStr);
+                    return -206;
+
+                }
+            }
+            // OK, everything looks good, the reference pin pads seem to be setup correctly
+            LogMessage("SetReferencePins successful completion");
+            return 0;
+
+        }
+        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+        /// <summary>
         /// Gets/Sets the current X Coord Origin Adjust value. These are compensating
         /// values we apply to the current coordinates in order to make the
         /// smallest X coordinate specified in the plot approximately zero but 
         /// definitely non-negative (which totally complicates the isoPlotSegments);
         /// </summary>
-        /// <history>
-        ///    01 Sep 10  Cynic - Started
-        /// </history>
         public float PlotXCoordOriginAdjust
         {
             get
@@ -817,9 +951,6 @@ namespace LineGrinder
         /// smallest Y coordinate specified in the plot approximately zero but 
         /// definitely non-negative (which totally complicates the isoPlotSegments);
         /// </summary>
-        /// <history>
-        ///    01 Sep 10  Cynic - Started
-        /// </history>
         public float PlotYCoordOriginAdjust
         {
             get
@@ -841,10 +972,7 @@ namespace LineGrinder
         /// </summary>
         /// <param name="xCoordAdjust">x origin adjuster</param>
         /// <param name="yCoordAdjust">y origin adjuster</param>
-        /// <history>
-        ///    01 Sep 10  Cynic - Started
-        /// </history>
-        public void SetPlotOriginCoordinateAdjustments(float xCoordAdjust, float yCoordAdjust)
+        public void SetExcellonPlotOriginCoordinateAdjustments(float xCoordAdjust, float yCoordAdjust)
         {
             LogMessage("Excellon Origin coord adjustments: xCoordAdjust=" + xCoordAdjust.ToString() + " yCoordAdjust=" + yCoordAdjust.ToString());
             // just run through and apply it to each ExcellonLine whether it uses it or not
@@ -861,9 +989,6 @@ namespace LineGrinder
         /// <summary>
         /// Gets/Sets the excellon file options to use. Never gets/sets a null value
         /// </summary>
-        /// <history>
-        ///    01 Sep 10  Cynic - Started
-        /// </history>
         public FileManager ExcellonFileManager
         {
             get
@@ -878,15 +1003,94 @@ namespace LineGrinder
 
         /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
         /// <summary>
+        /// Revisits the excellon lines and figures out the pad center points
+        /// </summary>
+        public void SetPadCenterPointList()
+        {
+
+            // create a dummy statemachine We can only get a lot of the information from the DCodes
+            // by simulating a run. They use the results of the previous DCode a lot
+            ExcellonFileStateMachine workingStateMachine = new ExcellonFileStateMachine();
+            workingStateMachine.ToolCollection = stateMachine.ToolCollection;
+
+            // run through all of the DCode lines
+            foreach (ExcellonLine gLineObj in SourceLines)
+            {
+                if ((gLineObj is ExcellonLine_ToolChange) == true)
+                {
+                    ExcellonLine_ToolTable toolTabObj = null;
+                    // see if we can find the tool table object for this change
+                    toolTabObj = workingStateMachine.GetToolTableObjectByToolNumber((gLineObj as ExcellonLine_ToolChange).ToolNumber);
+                    if (toolTabObj != null) workingStateMachine.LastDrillWidth = toolTabObj.DrillDiameter;
+                    continue;
+                }
+                else if ((gLineObj is ExcellonLine_XYCode) == true)
+                {
+                    // set this now for convenience
+                    ExcellonLine_XYCode elObj = (ExcellonLine_XYCode)gLineObj;
+                    // record these centerpoints to our list, note that we save to the current statemachine but use the aperture from the working one
+                    stateMachine.PadCenterPointList.Add(new GerberPad(elObj.XCoord, elObj.YCoord, workingStateMachine.LastDrillWidth));
+                }
+            }
+        }
+
+        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+        /// <summary>
+        /// Revisits the excellon lines and figures out the absolute X and Y offsets
+        /// The coordinates in the file will have been much adjusted so as to make them
+        /// all positive and near the plot 0,0 origin point. The absolute offset
+        /// is how these modified points relate to the original hard coords of the
+        /// excellon file. This enables us to line up the gcode in different files
+        /// such as edgeCuts, drills and isoCuts etc.
+        /// 
+        /// NOTE: this code only works after the excellon file has been plotted. Before
+        /// then we do not have enough information
+        /// 
+        /// </summary>
+        public bool GetAbsoluteOffsets(out float absoluteOffset_X, out float absoluteOffset_Y)
+        {
+            absoluteOffset_X = 0;
+            absoluteOffset_Y = 0;
+
+            // run through all of the DCode lines
+            foreach (ExcellonLine gLineObj in SourceLines)
+            {
+                // we only process XY Codes 
+                if ((gLineObj is ExcellonLine_XYCode) == false) continue;
+                // set this now for convenience
+                ExcellonLine_XYCode elObj = (ExcellonLine_XYCode)gLineObj;
+
+                // we use the first nonzero plottable DCode we find. The end value is always the transformation of the original DCode
+                // coordinates into plot coordinates.
+                if ((elObj.LastPlotXCoordEnd == 0) && (elObj.LastPlotYCoordEnd == 0)) continue;
+
+                // ok we know we have one and we can figure out a transformation, scale the dcodeXY to plot coords
+                float scaledOriginal_X = elObj.XCoord * StateMachine.IsoPlotPointsPerAppUnit;
+                float scaledOriginal_Y = elObj.YCoord * StateMachine.IsoPlotPointsPerAppUnit;
+
+                // the difference between the what we ended up as and what we started with is indicative of the absolute offset of that 
+                // point in the excellon file. These should all be the same
+                absoluteOffset_X = scaledOriginal_X - (float)elObj.LastPlotXCoordEnd;
+                absoluteOffset_Y = scaledOriginal_Y - (float)elObj.LastPlotYCoordEnd;
+
+                //DebugMessage("dCodeObj.LastPlotXCoordEnd=" + elObj.LastPlotXCoordEnd.ToString() + ", dCodeObj.LastPlotYCoordEnd=" + elObj.LastPlotYCoordEnd.ToString());
+                //DebugMessage("scaledOriginalDCode_X=" + scaledOriginal_X.ToString() + ", scaledOriginalDCode_Y=" + scaledOriginal_Y.ToString() + ", absoluteOffset_X=" + absoluteOffset_X.ToString() + ", absoluteOffset_Y=" + absoluteOffset_Y.ToString());
+                return true;
+
+            }
+
+            // if we get here we failed to find an absoluet offset
+            return false;
+        }
+
+        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+        /// <summary>
         /// Applies the some adjustments to the max X and Y so that the plot is
         /// slightly larger than the outside of the furthest object + isolation
         /// distance
         /// </summary>
         /// <param name="xMaxAdjust">new X Max value</param>
         /// <param name="yMaxAdjust">new Y Max value</param>
-        /// <history>
-        ///    01 Sep 10  Cynic - Started
-        /// </history>
         public void SetMaxPlotCoordinateAdjustments(float xMaxAdjust, float yMaxAdjust)
         {
             MaxDCodeXCoord = xMaxAdjust;
@@ -898,13 +1102,39 @@ namespace LineGrinder
         /// Plots the Excellon file contents on the designated graphics object
         /// </summary>
         /// <param name="graphicsObj">a graphics object to draw on</param>
-        /// <history>
-        ///    01 Sep 10  Cynic - Started
-        /// </history>
-        public void PlotExcellonFile(Graphics graphicsObj, float isoPlotPointsPerAppUnit)
+        public void PlotExcellonFile(Graphics graphicsObj)
         {
-            // not supported yet, can only plot the converted GCode version
+            int errInt = 0;
+            string errStr = "";
+            ExcellonLine.PlotActionEnum errAction = ExcellonLine.PlotActionEnum.PlotAction_End;
+
+            // set the StateMachine
+            StateMachine.ResetForPlot();
+
+            foreach (ExcellonLine lineObj in SourceLines)
+            {
+                lineObj.ResetForPlot();
+                errAction = lineObj.PerformPlotExcellonAction(graphicsObj, StateMachine, ref errInt, ref errStr);
+                if (errAction == ExcellonLine.PlotActionEnum.PlotAction_Continue)
+                {
+                    // all is well
+                    continue;
+                }
+                if (errAction == ExcellonLine.PlotActionEnum.PlotAction_End)
+                {
+                    // we are all done
+                    return;
+                }
+                else if (errAction == ExcellonLine.PlotActionEnum.PlotAction_FailWithError)
+                {
+                    // handle this error
+                    LogMessage("Plot Failed on obj:" + lineObj.ToString() + " at line number " + lineObj.LineNumber.ToString());
+                    return;
+                }
+            }
+
         }
 
     }
 }
+

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -26,15 +26,11 @@ namespace LineGrinder
     /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
     /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
     /// <summary>
-    /// A class to encapsulate a gerber G54 Code
+    /// A class to encapsulate a gerber G54 Code. This is a deprecated command
+    /// that is rarely used and has no effect according to the spec
     /// </summary>
-    /// <history>
-    ///    23 Sep 10  Cynic - Started
-    /// </history>
     public class GerberLine_G54Code : GerberLine
     {
-
-        private int currentDCode = 0;
 
 
         /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
@@ -43,33 +39,10 @@ namespace LineGrinder
         /// </summary>
         /// <param name="rawLineStrIn">The raw line string</param>
         /// <param name="processedLineStrIn">The processed line string</param>
-        /// <history>
-        ///    23 Sep 10  Cynic - Started
-        /// </history>
         public GerberLine_G54Code(string rawLineStrIn, string processedLineStrIn, int lineNumberIn)
             : base(rawLineStrIn, processedLineStrIn, lineNumberIn)
         {
         }
-
-        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
-        /// <summary>
-        /// Gets/Sets the current D Code value
-        /// </summary>
-        /// <history>
-        ///    23 Sep 10  Cynic - Started
-        /// </history>
-        public int CurrentDCode
-        {
-            get
-            {
-                return currentDCode;
-            }
-            set
-            {
-                currentDCode = value;
-            }
-        }
-
 
         /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
         /// <summary>
@@ -80,9 +53,6 @@ namespace LineGrinder
         /// <param name="errorString">the error string we return on fail</param>
         /// <param name="errorValue">the error value we return on fail, z success, nz fail </param>
         /// <returns>an enum value indicating what next action to take</returns>
-        /// <history>
-        ///    23 Sep 10  Cynic - Started
-        /// </history>
         public override GerberLine.PlotActionEnum PerformPlotGerberAction(Graphics graphicsObj, GerberFileStateMachine stateMachine, ref int errorValue, ref string errorString)
         {
 
@@ -93,8 +63,6 @@ namespace LineGrinder
                 return GerberLine.PlotActionEnum.PlotAction_FailWithError;
             }
 
-            // must be an aperture select
-            stateMachine.CurrentAperture = stateMachine.ApertureCollection.GetApertureByID(CurrentDCode);
             return GerberLine.PlotActionEnum.PlotAction_Continue;
         }
 
@@ -102,21 +70,18 @@ namespace LineGrinder
         /// <summary>
         /// Performs the plot Isolation Object actions required based on the current context
         /// </summary>
-        /// <param name="gCodeBuilder">A GCode Builder object</param>
+        /// <param name="isoPlotBuilder">A GCode Builder object</param>
         /// <param name="stateMachine">the gerber plot state machine</param>
         /// <param name="errorString">the error string we return on fail</param>
         /// <param name="errorValue">the error value we return on fail, z success, nz fail </param>
         /// <returns>an enum value indicating what next action to take</returns>
-        /// <history>
-        ///    26 Jul 10  Cynic - Started
-        /// </history>
-        public override GerberLine.PlotActionEnum PerformPlotIsoStep1Action(GCodeBuilder gCodeBuilder, GerberFileStateMachine stateMachine, ref int errorValue, ref string errorString)
+        public override GerberLine.PlotActionEnum PerformPlotIsoStep1Action(IsoPlotBuilder isoPlotBuilder, GerberFileStateMachine stateMachine, ref int errorValue, ref string errorString)
         {
 
-            if (gCodeBuilder == null)
+            if (isoPlotBuilder == null)
             {
                 errorValue = 998;
-                errorString = "PerformPlotIsoStep1Action (G54) gCodeBuilder == null";
+                errorString = "PerformPlotIsoStep1Action (G54) isoPlotBuilder == null";
                 return GerberLine.PlotActionEnum.PlotAction_FailWithError;
             }
             if (stateMachine == null)
@@ -126,8 +91,6 @@ namespace LineGrinder
                 return GerberLine.PlotActionEnum.PlotAction_FailWithError;
             }
 
-            // must be an aperture select
-            stateMachine.CurrentAperture = stateMachine.ApertureCollection.GetApertureByID(CurrentDCode);
             return GerberLine.PlotActionEnum.PlotAction_Continue;
         }
 
@@ -138,14 +101,8 @@ namespace LineGrinder
         /// <param name="processedLineStr">a line string without block terminator or format parameters</param>
         /// <param name="stateMachine">The state machine containing the implied modal values</param>
         /// <returns>z success, nz fail</returns>
-        /// <history>
-        ///    23 Sep 10  Cynic - Started
-        /// </history>
         public override int ParseLine(string processedLineStr, GerberFileStateMachine stateMachine)
         {
-            int outInt = -1;
-            int nextStartPos = 0;
-            bool retBool;
 
             //LogMessage("ParseLine(G54) started");
 
@@ -155,37 +112,11 @@ namespace LineGrinder
                 return 200;
             }
 
-            // assume defaults from the state machine
-            if (stateMachine != null)
-            {
-                currentDCode = stateMachine.LastDCode;
-            }
-
-            // now the G54 line should have a D tag
-            nextStartPos = 0;
-            nextStartPos = GerberParseUtils.FindCharacterReturnNextPos(processedLineStr, 'D', nextStartPos);
-            if ((nextStartPos < 0) || (nextStartPos > processedLineStr.Length))
-            {
-                // this is not an error - just means we did not find one
-            }
-            else
-            {
-                // this will have a integer number
-                retBool = GerberParseUtils.ParseNumberFromString_TillNonDigit_RetInteger(processedLineStr, nextStartPos, ref outInt, ref nextStartPos);
-                if (retBool != true)
-                {
-                    LogMessage("ParseLine(G54) failed on call to ParseNumberFromString_TillNonDigit_RetInteger");
-                    return 333;
-                }
-                else
-                {
-                    // set the value now
-                    currentDCode = outInt;
-                }
-            }
+            // a G54 is an old, deprecated, command and the spec says it has no effect there is nothing to parse here
 
             return 0;
         }
 
     }
 }
+

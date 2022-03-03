@@ -1,4 +1,4 @@
-﻿namespace OISCommon
+namespace OISCommon
 {
     partial class frmOISMRUList
     {
@@ -119,3 +119,4 @@
         private System.Windows.Forms.Label label1;
     }
 }
+

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -27,9 +27,6 @@ namespace LineGrinder
     /// <summary>
     /// A class to contain some useful gerber file parsing routines
     /// </summary>
-    /// <history>
-    ///    06 Jul 10  Cynic - Started
-    /// </history>
     public static class GerberParseUtils 
     {
 
@@ -44,9 +41,6 @@ namespace LineGrinder
         /// <param name="outInt">the integer output value, parsed out and converted</param>
         /// <param name="startPos">the postion in the string to start at</param>
         /// <returns>true success, nz fail</returns>
-        /// <history>
-        ///    06 Jul 10  Cynic - Started
-        /// </history>
         static public bool ParseNumberFromString_TillNonDigit_RetInteger(string lineStr, int startPos, ref int outInt, ref int nextStartPos)
         {
             StringBuilder sb = new StringBuilder();
@@ -113,9 +107,6 @@ namespace LineGrinder
         /// <param name="outInt">the integer output value, parsed out and converted</param>
         /// <param name="startPos">the postion in the string to start at</param>
         /// <returns>true success, nz fail</returns>
-        /// <history>
-        ///    07 Jul 10  Cynic - Started
-        /// </history>
         static public bool ParseNumberFromString_TillNonDigit_RetFloat(string lineStr, int startPos, ref float outFloat, ref int nextStartPos)
         {
             StringBuilder sb = new StringBuilder();
@@ -186,9 +177,6 @@ namespace LineGrinder
         /// <param name="searchChar">the search character</param>
         /// <param name="startPos">the start position</param>
         /// <returns>true success, nz fail</returns>
-        /// <history>
-        ///    06 Jul 10  Cynic - Started
-        /// </history>
         static public int FindCharacterReturnNextPos(string lineStr, char searchChar, int startPos)
         {
             int posIndex = 0;
@@ -220,9 +208,6 @@ namespace LineGrinder
         /// <param name="lineStr">the line string to parse on</param>
         /// <param name="commentDelimiter">the comment delimiter</param>
         /// <returns>string stripped of comments</returns>
-        /// <history>
-        ///    01 Sep 10  Cynic - Started
-        /// </history>
         static public string RemoveTrailingCommentsFromString(string lineStr, string commentDelimiter)
         {
             if ((commentDelimiter == null) || (commentDelimiter.Length == 0)) return lineStr;
@@ -236,3 +221,4 @@ namespace LineGrinder
         }
     }
 }
+

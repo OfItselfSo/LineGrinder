@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
@@ -35,9 +35,6 @@ namespace LineGrinder
     /// <summary>
     /// Provides a license box for the line grinder software
     /// </summary>
-    /// <history>
-    ///    12 Sep 10  Cynic - Started
-    /// </history>
     public partial class frmDisclaimer : frmOISBase
     {
 
@@ -49,9 +46,6 @@ namespace LineGrinder
         /// <summary>
         /// Constructor
         /// </summary>
-        /// <history>
-        ///    12 Sep 10  Cynic - Started
-        /// </history>
         public frmDisclaimer(string versionStr)
         {
             InitializeComponent();
@@ -64,9 +58,6 @@ namespace LineGrinder
         /// <summary>
         /// Gets the okWithDisclaimer flag
         /// </summary>
-        /// <history>
-        ///    12 Sep 10  Cynic - Started
-        /// </history>
         public bool OKWithDisclaimer
         {
             get
@@ -79,9 +70,6 @@ namespace LineGrinder
         /// <summary>
         /// Handle a press on the Agree button
         /// </summary>
-        /// <history>
-        ///    12 Sep 10  Cynic - Started
-        /// </history>
         private void buttonAgree_Click(object sender, EventArgs e)
         {
             okWithDisclaimer = true;
@@ -93,9 +81,6 @@ namespace LineGrinder
         /// <summary>
         /// Handle a press on the Do Not Agree button
         /// </summary>
-        /// <history>
-        ///    12 Sep 10  Cynic - Started
-        /// </history>
         private void buttonDoNotAgree_Click(object sender, EventArgs e)
         {
             okWithDisclaimer = false;
@@ -104,3 +89,4 @@ namespace LineGrinder
 
     }
 }
+

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -27,20 +27,14 @@ namespace LineGrinder
     /// <summary>
     /// A class to encapsulate a collection of GerberLine_ADCode objects
     /// </summary>
-    /// <history>
-    ///    07 Jul 10  Cynic - Started
-    /// </history>
     public class GerberApertureCollection : OISObjBase, ICollection<GerberLine_ADCode> 
     {
-        private List<GerberLine_ADCode> apertureCollection = new List<GerberLine_ADCode>();
+        private List<GerberLine_ADCode> apertureList = new List<GerberLine_ADCode>();
 
         /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
         /// <summary>
         /// Constructor
         /// </summary>
-        /// <history>
-        ///    07 Jul 10  Cynic - Started
-        /// </history>
         public GerberApertureCollection()
         {
         }
@@ -49,13 +43,19 @@ namespace LineGrinder
         /// <summary>
         /// Resets the collection
         /// </summary>
-        /// <history>
-        ///    07 Jul 10  Cynic - Started
-        /// </history>
         public void Reset()
         {
             DisposeAllPens();
-            (ApertureCollection as ICollection<GerberLine_ADCode>).Clear();
+            (ApertureList as ICollection<GerberLine_ADCode>).Clear();
+        }
+
+        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+        /// <summary>
+        /// Gets a count of the collection
+        /// </summary>
+        public int Count()
+        {
+            return ApertureList.Count();
         }
 
         /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
@@ -63,18 +63,18 @@ namespace LineGrinder
         /// Finds an aperature by D Code, we never return null
         /// </summary>
         /// <param name="idValue">the D code value we are looking for</param>
-        /// <history>
-        ///    13 Jul 10  Cynic - Started
-        /// </history>
         public GerberLine_ADCode GetApertureByID(int idValue)
         {
-            foreach (GerberLine_ADCode adCode in ApertureCollection)
+            foreach (GerberLine_ADCode adCode in ApertureList)
             {
                 if (adCode.DNumber == idValue) return adCode;
             }
+            // we did not find it - throw an exception
+            LogMessage("Unknown aperture id=" + idValue.ToString() + " cannot continue");
+            throw new Exception("Unknown aperture id=" + idValue.ToString() + " Cannot continue");
             // we did not find it, return a default aperture
-            LogMessage("Unknown aperture id=" + idValue.ToString() + " returning default aperture");
-            return new GerberLine_ADCode("", "", 0);
+            //LogMessage("Unknown aperture id=" + idValue.ToString() + " returning default aperture");
+            //return new GerberLine_ADCode("", "", 0);
         }
 
         /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
@@ -83,9 +83,6 @@ namespace LineGrinder
         /// from the center point. This assumes the aperture is centered on the point
         /// </summary>
         /// <param name="idValue">the D code value we are looking for</param>
-        /// <history>
-        ///    08 Aug 10  Cynic - Started
-        /// </history>
         public float GetMaxApertureIncrementalDimension()
         {
             return GetMaxApertureDimension() / 2;
@@ -98,13 +95,10 @@ namespace LineGrinder
         /// because of the use of the apertures
         /// </summary>
         /// <param name="idValue">the D code value we are looking for</param>
-        /// <history>
-        ///    10 Sep 10  Cynic - Started
-        /// </history>
         public float GetMaxApertureDimension()
         {
             float maxApertureDimension = 0;
-            foreach (GerberLine_ADCode adCode in ApertureCollection)
+            foreach (GerberLine_ADCode adCode in ApertureList)
             {
                 if (maxApertureDimension < adCode.GetApertureDimension()) maxApertureDimension = adCode.GetApertureDimension();
             }
@@ -115,12 +109,9 @@ namespace LineGrinder
         /// <summary>
         /// Dispose of all pens
         /// </summary>
-        /// <history>
-        ///    13 Jul 10  Cynic - Started
-        /// </history>
         public void DisposeAllPens()
         {
-            foreach (GerberLine_ADCode adCode in ApertureCollection)
+            foreach (GerberLine_ADCode adCode in ApertureList)
             {
                 adCode.DisposeAllPens();
             }
@@ -130,20 +121,17 @@ namespace LineGrinder
         /// <summary>
         /// Gets/Sets the Gerber aperature collection. Will never set or get a null value.
         /// </summary>
-        /// <history>
-        ///    07 Jul 10  Cynic - Started
-        /// </history>
-        public List<GerberLine_ADCode> ApertureCollection
+        public List<GerberLine_ADCode> ApertureList
         {
             get
             {
-                if (apertureCollection == null) apertureCollection = new List<GerberLine_ADCode>();
-                return apertureCollection;
+                if (apertureList == null) apertureList = new List<GerberLine_ADCode>();
+                return apertureList;
             }
             set
             {
-                apertureCollection = value;
-                if (apertureCollection == null) apertureCollection = new List<GerberLine_ADCode>();
+                apertureList = value;
+                if (apertureList == null) apertureList = new List<GerberLine_ADCode>();
             }
         }
 
@@ -154,29 +142,29 @@ namespace LineGrinder
 
         void ICollection<GerberLine_ADCode>.Add(GerberLine_ADCode item)
         {
-            ApertureCollection.Add(item);
+            ApertureList.Add(item);
         }
 
         void ICollection<GerberLine_ADCode>.Clear()
         {
-            ApertureCollection.Clear();
+            ApertureList.Clear();
         }
 
         bool ICollection<GerberLine_ADCode>.Contains(GerberLine_ADCode item)
         {
-            return ApertureCollection.Contains(item);
+            return ApertureList.Contains(item);
         }
 
         void ICollection<GerberLine_ADCode>.CopyTo(GerberLine_ADCode[] array, int arrayIndex)
         {
-            ApertureCollection.CopyTo(array, arrayIndex);
+            ApertureList.CopyTo(array, arrayIndex);
         }
 
         int ICollection<GerberLine_ADCode>.Count
         {
             get 
             {
-                return ApertureCollection.Count; 
+                return ApertureList.Count; 
             }
         }
 
@@ -190,7 +178,7 @@ namespace LineGrinder
 
         bool ICollection<GerberLine_ADCode>.Remove(GerberLine_ADCode item)
         {
-            return ApertureCollection.Remove(item);
+            return ApertureList.Remove(item);
         }
 
         #endregion
@@ -202,7 +190,7 @@ namespace LineGrinder
 
         IEnumerator<GerberLine_ADCode> IEnumerable<GerberLine_ADCode>.GetEnumerator()
         {
-            return ApertureCollection.GetEnumerator();
+            return ApertureList.GetEnumerator();
         }
 
         #endregion
@@ -214,9 +202,10 @@ namespace LineGrinder
 
         System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
         {
-            return ApertureCollection.GetEnumerator();
+            return ApertureList.GetEnumerator();
         }
 
         #endregion
     }
 }
+

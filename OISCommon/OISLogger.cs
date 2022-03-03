@@ -7,19 +7,19 @@ using System.Threading;
 using System.Drawing;
 
 /// +------------------------------------------------------------------------------------------------------------------------------+
-/// ¦                                                   TERMS OF USE: MIT License                                                  ¦
-/// +------------------------------------------------------------------------------------------------------------------------------¦
-/// ¦Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation    ¦
-/// ¦files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy,    ¦
-/// ¦modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software¦
-/// ¦is furnished to do so, subject to the following conditions:                                                                   ¦
-/// ¦                                                                                                                              ¦
-/// ¦The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.¦
-/// ¦                                                                                                                              ¦
-/// ¦THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE          ¦
-/// ¦WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR         ¦
-/// ¦COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,   ¦
-/// ¦ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                         ¦
+/// ï¿½                                                   TERMS OF USE: MIT License                                                  ï¿½
+/// +------------------------------------------------------------------------------------------------------------------------------ï¿½
+/// ï¿½Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation    ï¿½
+/// ï¿½files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy,    ï¿½
+/// ï¿½modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Softwareï¿½
+/// ï¿½is furnished to do so, subject to the following conditions:                                                                   ï¿½
+/// ï¿½                                                                                                                              ï¿½
+/// ï¿½The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.ï¿½
+/// ï¿½                                                                                                                              ï¿½
+/// ï¿½THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE          ï¿½
+/// ï¿½WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR         ï¿½
+/// ï¿½COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,   ï¿½
+/// ï¿½ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                         ï¿½
 /// +------------------------------------------------------------------------------------------------------------------------------+
 
 /// #########
@@ -47,9 +47,6 @@ namespace OISCommon
     /// way points in the code path and a back trail of user actions and errors. 
     /// 
     /// </summary>
-    /// <history>
-    ///    03 Nov 09  Cynic - Started
-    /// </history>
     public sealed class OISLogger 
     {
         // constants
@@ -88,9 +85,6 @@ namespace OISCommon
         /// <summary>
         /// Constructor - note this is private. Required for a singleton class
         /// </summary>
-        /// <history>
-        ///    03 Nov 09  Cynic - Started
-        /// </history>
         private OISLogger()
         {
         }
@@ -106,9 +100,6 @@ namespace OISCommon
         /// Log an exception.
         /// </summary>
         /// <param name="Message">Exception to LogBase. </param>
-        /// <history>
-        ///    03 Nov 09  Cynic - Started
-        /// </history>
         public void RecordMessage(Exception Message)
         {
             this.RecordMessage(Message.Message);
@@ -125,9 +116,6 @@ namespace OISCommon
         /// </summary>
         /// <param name="msgIn">Message text. </param>
         /// <param name="wantTimeStamp">if true we output a timestamp</param>
-        /// <history>
-        ///    03 Nov 09  Cynic - Started
-        /// </history>
         public void RecordMessage(string msgIn, bool wantTimeStamp)
         {
             // if we are ignoring logging then leave now
@@ -187,9 +175,6 @@ namespace OISCommon
         /// Log a message.
         /// </summary>
         /// <param name="msgIne">Message text. </param>
-        /// <history>
-        ///    03 Nov 09  Cynic - Started
-        /// </history>
         public void RecordMessage(string msgIn)
         {
             RecordMessage(msgIn,true);
@@ -201,9 +186,6 @@ namespace OISCommon
         /// out to the log
         /// </summary>
         /// <param name="e">The exception to log the details of</param>
-        /// <history>
-        ///    03 Nov 09  Cynic - Started
-        /// </history>
         public void RecordException(Exception e)
         {
             RecordMessage("Exception Message: "+e.Message+"\nException Source: "+e.Source);
@@ -221,9 +203,6 @@ namespace OISCommon
         /// <summary>
         /// Gets/Sets the ignore logging property
         /// </summary>
-        /// <history>
-        ///    03 Nov 09  Cynic - Started
-        /// </history>
         public bool IgnoreLogging
         {
             get { return this.ignoreLogging; }
@@ -234,9 +213,6 @@ namespace OISCommon
         /// <summary>
         /// Gets/Sets the log file name
         /// </summary>
-        /// <history>
-        ///    03 Nov 09  Cynic - Started
-        /// </history>
         public string LogFileName
         {
             get
@@ -267,9 +243,6 @@ namespace OISCommon
         /// <summary>
         /// Get or set the log file directory location
         /// </summary>
-        /// <history>
-        ///    04 Nov 09  Cynic - Started
-        /// </history>
         public string LogFileDirectory
         {
             get
@@ -306,9 +279,6 @@ namespace OISCommon
         /// use the current exe directory</param>
         /// <param name="logfileBaseName">The base name of the log file</param>
         /// <param name="wantDistinctName">if true we give it a distinct name</param>
-        /// <history>
-        ///    03 Nov 09  Cynic - Started
-        /// </history>
         public bool InitLogging(string logDirName, string logfileBaseName, bool wantDistinctName)
         {
             string workingFileName = null;
@@ -344,9 +314,6 @@ namespace OISCommon
         /// <param name="logDir">the log directory to use, if null or "" we use the 
         /// application exe directory</param>
         /// <returns>log directory to use</returns>
-        /// <history>
-        ///    06 Nov 09  Cynic - Started
-        /// </history>
         private string GetBestLogfileDir(string logDir)
         {
             string workingLogDir = logDir;
@@ -383,9 +350,6 @@ namespace OISCommon
         /// <summary>
         /// Dumps a standard logfile header out to the log
         /// </summary>
-        /// <history>
-        ///    04 Nov 09  Cynic - Started
-        /// </history>
         public void EmitStandardLogfileheader(string softwareName)
         {
             RecordMessage("###########################################################");
@@ -416,9 +380,6 @@ namespace OISCommon
         /// </summary>
         /// <param name="logFileDirectoryIn">Path to log file.</param>
         /// <param name="logFileNameIn">Name of log file. </param>
-        /// <history>
-        ///    03 Nov 09  Cynic - Started
-        /// </history>
         public void Reset(string logFileDirectoryIn, string logFileNameIn)
         {
             FileStream fileStream = null;
@@ -462,9 +423,6 @@ namespace OISCommon
         /// what error happened and offers to fix it or to run without logging.
         /// </summary>
         /// <param name="errText">The error text to post</param>
-        /// <history>
-        ///    03 Nov 09  Cynic - Started
-        /// </history>
         public void HandleLoggerException(Exception e)
         {
             // you CANNOT call the standard logging functions here. The 
@@ -509,9 +467,6 @@ namespace OISCommon
         /// only be set once - immediately after the first instance of the singleton
         /// logger object is created.
         /// </summary>
-        /// <history>
-        ///    03 Nov 09  Cynic - Started
-        /// </history>
         public frmOISBase ApplicationMainForm
         {
             get
@@ -528,9 +483,6 @@ namespace OISCommon
         /// <summary>
         /// Gets the default culture we use for most things
         /// </summary>
-        /// <history>
-        ///    03 Nov 09  Cynic - Started
-        /// </history>
         public System.Globalization.CultureInfo GetDefaultCulture()
         {
             System.Globalization.CultureInfo culture = new System.Globalization.CultureInfo("");
@@ -543,9 +495,6 @@ namespace OISCommon
         /// <summary>
         /// Gets/Sets the random number seed for the application
         /// </summary>
-        /// <history>
-        ///    03 Nov 09  Cynic - Started
-        /// </history>
         public int RandomNumberSeed
         {
             get
@@ -562,9 +511,6 @@ namespace OISCommon
         /// <summary>
         /// Gets/Set the applications primary registry key.
         /// </summary>
-        /// <history>
-        ///    03 Nov 09  Cynic - Started
-        /// </history>
         public string ApplicationPrimaryRegistryKey
         {
             get
@@ -581,9 +527,6 @@ namespace OISCommon
         /// <summary>
         /// Gets/Sets the default icon for this application
         /// </summary>
-        /// <history>
-        ///    03 Nov 09  Cynic - Started
-        /// </history>
         public Icon AppIcon
         {
             get
@@ -600,9 +543,6 @@ namespace OISCommon
         /// <summary>
         /// Gets/Sets the default dialog box title
         /// </summary>
-        /// <history>
-        ///    03 Nov 09  Cynic - Started
-        /// </history>
         public string DefaultDialogBoxTitle
         {
             get
@@ -624,9 +564,6 @@ namespace OISCommon
         /// <summary>
         /// Make a Beep sound - just essentially the Win32 MessageBeep()
         /// </summary>
-        /// <history>
-        ///    03 Nov 09  Cynic - Started
-        /// </history>
         [DllImport("user32")]
         public static extern int MessageBeep(int wType);
 
@@ -635,9 +572,6 @@ namespace OISCommon
         /// Play a system .wav sound file.
         /// Usage: OISLogger.PlaySound("beep.wav", 0, OISLogger.SND_logFileName | OISLogger.SND_ASYNC); 
         /// </summary>
-        /// <history>
-        ///    03 Nov 09  Cynic - Started
-        /// </history>
         public const int SND_logFileName = 0x00020000;
         public const int SND_ASYNC = 0x0001;
         [DllImport("winmm.dll")]
@@ -649,9 +583,6 @@ namespace OISCommon
         /// so that we can crank up a counter for every one - this ensuring it
         /// is unique
         /// </summary>
-        /// <history>
-        ///    03 Nov 09  Cynic - Started
-        /// </history>
         public string GetTempObjectName(string leadingStr)
         {
             lock (this)
@@ -665,3 +596,4 @@ namespace OISCommon
 
     }
 }
+

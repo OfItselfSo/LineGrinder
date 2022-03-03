@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -28,9 +28,6 @@ namespace LineGrinder
     /// <summary>
     /// A class to encapsulate a gerber FS Code
     /// </summary>
-    /// <history>
-    ///    07 Jul 10  Cynic - Started
-    /// </history>
     public class GerberLine_FSCode : GerberLine
     {
 
@@ -79,9 +76,6 @@ namespace LineGrinder
         /// </summary>
         /// <param name="rawLineStrIn">The raw line string</param>
         /// <param name="processedLineStrIn">The processed line string</param>
-        /// <history>
-        ///    07 Jul 10  Cynic - Started
-        /// </history>
         public GerberLine_FSCode(string rawLineStrIn, string processedLineStrIn, int lineNumberIn)
             : base(rawLineStrIn, processedLineStrIn, lineNumberIn)
         {
@@ -92,9 +86,6 @@ namespace LineGrinder
         /// Gets the current xIntegerPlaces. There is no set accessor
         /// as this is derived from the FSCode Line.
         /// </summary>
-        /// <history>
-        ///    09 Jul 10  Cynic - Started
-        /// </history>
         public int XIntegerPlaces
         {
             get
@@ -108,9 +99,6 @@ namespace LineGrinder
         /// Gets the current yIntegerPlaces. There is no set accessor
         /// as this is derived from the FSCode Line.
         /// </summary>
-        /// <history>
-        ///    09 Jul 10  Cynic - Started
-        /// </history>
         public int YIntegerPlaces
         {
             get
@@ -124,9 +112,6 @@ namespace LineGrinder
         /// Gets the current xDecimalPlaces. There is no set accessor
         /// as this is derived from the FSCode Line.
         /// </summary>
-        /// <history>
-        ///    09 Jul 10  Cynic - Started
-        /// </history>
         public int XDecimalPlaces
         {
             get
@@ -140,9 +125,6 @@ namespace LineGrinder
         /// Gets the current yDecimalPlaces. There is no set accessor
         /// as this is derived from the FSCode Line.
         /// </summary>
-        /// <history>
-        ///    09 Jul 10  Cynic - Started
-        /// </history>
         public int YDecimalPlaces
         {
             get
@@ -156,9 +138,6 @@ namespace LineGrinder
         /// Gets the current leading zero mode. There is no set accessor
         /// as this is derived from the header processing done after SourceLines is set.
         /// </summary>
-        /// <history>
-        ///    06 Jul 10  Cynic - Started
-        /// </history>
         public LeadingZeroModeEnum LeadingZeroMode
         {
             get
@@ -172,9 +151,6 @@ namespace LineGrinder
         /// Gets the current coordinate mode. There is no set accessor
         /// as this is derived from the header processing done after SourceLines is set.
         /// </summary>
-        /// <history>
-        ///    06 Jul 10  Cynic - Started
-        /// </history>
         public GerberCoordinateModeEnum CoordinateMode
         {
             get
@@ -190,9 +166,6 @@ namespace LineGrinder
         /// <param name="processedLineStr">a line string without block terminator or format parameters</param>
         /// <param name="stateMachine">The state machine containing the implied modal values</param>
         /// <returns>z success, nz fail</returns>
-        /// <history>
-        ///    07 Jul 10  Cynic - Started
-        /// </history>
         public override int ParseLine(string processedLineStr, GerberFileStateMachine stateMachine)
         {
             ParsingHelperEnum parsingHelper = ParsingHelperEnum.NEXT_IS_NONE;
@@ -200,7 +173,7 @@ namespace LineGrinder
             LogMessage("ParseFormatParameter() started");
 
             if (processedLineStr == null) return 100;
-            if (processedLineStr.StartsWith(GerberFile.RS274FORMATPARAM) == false) return 200;
+            if (processedLineStr.StartsWith(GerberFile.RS274_FS_CMD) == false) return 200;
 
             // convert to a character array
             char[] fsChars = processedLineStr.ToCharArray();
@@ -294,3 +267,4 @@ namespace LineGrinder
 
     }
 }
+

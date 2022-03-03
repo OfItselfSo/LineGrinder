@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
@@ -36,9 +36,6 @@ namespace LineGrinder
     /// <summary>
     /// Provides an about box for the line grinder software
     /// </summary>
-    /// <history>
-    ///    12 Sep 10  Cynic - Started
-    /// </history>
     public partial class frmAbout : frmOISBase
     {
 
@@ -48,9 +45,6 @@ namespace LineGrinder
         /// <summary>
         /// Constructor
         /// </summary>
-        /// <history>
-        ///    12 Sep 10  Cynic - Started
-        /// </history>
         public frmAbout(string versionStr)
         {
             InitializeComponent();
@@ -64,9 +58,6 @@ namespace LineGrinder
         /// <summary>
         /// Handle a press on the cancel button
         /// </summary>
-        /// <history>
-        ///    12 Sep 10  Cynic - Started
-        /// </history>
         private void buttonCancel_Click(object sender, EventArgs e)
         {
             DialogResult = DialogResult.Cancel;
@@ -76,9 +67,6 @@ namespace LineGrinder
         /// <summary>
         /// Handle a press on the label
         /// </summary>
-        /// <history>
-        ///    03 Oct 10  Cynic - Started
-        /// </history>
         private void linkLabel1_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
         {
             ProcessStartInfo sInfo = new ProcessStartInfo(linkLabel1.Text);
@@ -89,9 +77,6 @@ namespace LineGrinder
         /// <summary>
         /// Handle a press on the label
         /// </summary>
-        /// <history>
-        ///    03 Oct 10  Cynic - Started
-        /// </history>
         private void linkLabel2_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
         {
             ProcessStartInfo sInfo = new ProcessStartInfo(linkLabel2.Text);
@@ -101,3 +86,4 @@ namespace LineGrinder
 
     }
 }
+

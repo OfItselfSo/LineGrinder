@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -28,9 +28,6 @@ namespace LineGrinder
     /// <summary>
     /// A abstract base class for Excellon file lines
     /// </summary>
-    /// <history>
-    ///    01 Sep 10  Cynic - Started
-    /// </history>
     public abstract class ExcellonLine : OISObjBase
     {
 
@@ -42,10 +39,6 @@ namespace LineGrinder
             PlotAction_FailWithError,
             PlotAction_End,
         }
-
-        // NOTE: In general, if a coordinate is an int it has been scaled and it represents
-        //       a value in plot coordinates. If it is a float it represents an unscaled
-        //       value from the excellon file or gCode file
 
         // These are the values we ADD to the existing X and Y coords from the DCodes
         // in order to set the origin approximately at zero
@@ -64,9 +57,6 @@ namespace LineGrinder
         /// <param name="rawLineStrIn">The raw line string</param>
         /// <param name="processedLineStrIn">The processed line string</param>
         /// <param name="lineNumberIn">the line number</param>
-        /// <history>
-        ///    01 Sep 10  Cynic - Started
-        /// </history>
         public ExcellonLine(string rawLineStrIn, string processedLineStrIn, int lineNumberIn)
         {
             rawLineStr = rawLineStrIn;
@@ -79,9 +69,6 @@ namespace LineGrinder
         /// Gets the line number. There is no set accessor. This value is set in the 
         /// constructor
         /// </summary>
-        /// <history>
-        ///    01 Sep 10  Cynic - Started
-        /// </history>
         public int LineNumber
         {
             get
@@ -97,9 +84,6 @@ namespace LineGrinder
         /// smallest X coordinate specified in the plot approximately zero but 
         /// definitely non-negative (which totally complicates the isoPlotSegments);
         /// </summary>
-        /// <history>
-        ///    01 Sep 10  Cynic - Started
-        /// </history>
         public float PlotXCoordOriginAdjust
         {
             get
@@ -119,9 +103,6 @@ namespace LineGrinder
         /// smallest Y coordinate specified in the plot approximately zero but 
         /// definitely non-negative (which totally complicates the isoPlotSegments);
         /// </summary>
-        /// <history>
-        ///    01 Sep 10  Cynic - Started
-        /// </history>
         public float PlotYCoordOriginAdjust
         {
             get
@@ -139,9 +120,6 @@ namespace LineGrinder
         /// <summary>
         /// Gets or Sets the LineStr. Will never get or set a null value
         /// </summary>
-        /// <history>
-        ///    01 Sep 10  Cynic - Started
-        /// </history>
         public string RawLineStr
         {
             get
@@ -158,6 +136,54 @@ namespace LineGrinder
 
         /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
         /// <summary>
+        /// Inserts decimal places into the XY coordinate values as appropriate
+        /// </summary>
+        /// <param name="numToScale">the number we need to scale</param>
+        /// <param name="integerPlaces">the number of integer places</param>
+        /// <param name="decimalPlaces">the number of decimal places</param>
+        /// <param name="leadingZeroMode">a flag to indicate if leading or traling zeros are discarded</param>
+        /// <returns>z success, nz fail</returns>
+        protected float DecimalScaleNumber(float numToScale, int decimalPlaces, FileManager.ExcellonDrillingCoordinateZerosModeEnum leadingZeroMode)
+        {
+            switch (leadingZeroMode)
+            {
+                case FileManager.ExcellonDrillingCoordinateZerosModeEnum.DecimalNumber:
+                {
+                    // in this mode the number is the number. It is already scaled
+                    return numToScale;
+                }
+                case FileManager.ExcellonDrillingCoordinateZerosModeEnum.FixedDecimalPoint:
+                case FileManager.ExcellonDrillingCoordinateZerosModeEnum.OmitLeadingZeros:
+                {
+                    // all we have to do is divide the number by the 10^decimalPlaces
+                    // for example if decimalPlaces is three and numToScale is 1503
+                    // then the real number should be 01.503
+                    if (decimalPlaces == 0) return numToScale;
+                    float tmpFloat = numToScale / (float)Math.Pow(10, decimalPlaces);
+                    return tmpFloat;
+                }
+                default: // probably omit trailing zeros mode
+                {
+                    // this is a lot more tricky since we have to have the original text
+                    // value in order to figure this out. This blows chunks, and I have
+                    // a hard time believing anybody uses it. I will leave it as not
+                    // implemented at the moment because I have better things to do.
+                    throw new NotImplementedException("Excellon Files in Omit Trailing Zeros Mode are not Supported");
+                }
+            }
+        }
+
+        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+        /// <summary>
+        /// Resets for a new plot
+        /// </summary>
+        public virtual void ResetForPlot()
+        {
+            return;
+        }
+
+        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+        /// <summary>
         /// Performs the action the plot excellon code action required based on the current context
         /// </summary>
         /// <param name="graphicsObj">a graphics object on which to plot</param>
@@ -165,10 +191,7 @@ namespace LineGrinder
         /// <param name="errorString">the error string we return on fail</param>
         /// <param name="errorValue">the error value we return on fail, z success, nz fail </param>
         /// <returns>z success, nz fail</returns>
-        /// <history>
-        ///    01 Sep 10  Cynic - Started
-        /// </history>
-        public virtual ExcellonLine.PlotActionEnum PerformPlotExcellonAction(Graphics graphicsObj, ExcellonFileStateMachine stateMachine, ref int errorValue, ref string errorString)
+        public virtual PlotActionEnum PerformPlotExcellonAction(Graphics graphicsObj, ExcellonFileStateMachine stateMachine, ref int errorValue, ref string errorString)
         {
             // ignore this
             errorValue = 0;
@@ -183,9 +206,6 @@ namespace LineGrinder
         /// <param name="processedLineStr">a line string without block terminator or format parameters</param>
         /// <param name="stateMachine">The state machine containing the implied modal values</param>
         /// <returns>z success, nz fail</returns>
-        /// <history>
-        ///    01 Sep 10  Cynic - Started
-        /// </history>
         public abstract int ParseLine(string processedLineStr, ExcellonFileStateMachine stateMachine);
 
         /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
@@ -196,11 +216,9 @@ namespace LineGrinder
         /// <param name="gcLineList">a list of the equivalent gcode line object. This can be 
         /// empty if there is no direct conversion</param>
         /// <returns>z success, nz fail</returns>
-        /// <history>
-        ///    05 Sep 10  Cynic - Started
-        /// </history>
-        public abstract int GetGCodeLine(ExcellonFileStateMachine stateMachine, out List<GCodeLine> gcLineList);
+        public abstract int GetGCodeCmd(ExcellonFileStateMachine stateMachine, out List<GCodeCmd> gcLineList);
 
 
     }
 }
+

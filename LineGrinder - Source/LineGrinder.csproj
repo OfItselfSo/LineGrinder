@@ -30,6 +30,7 @@
     <WarningLevel>4</WarningLevel>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <Prefer32Bit>false</Prefer32Bit>
+    <PlatformTarget>AnyCPU</PlatformTarget>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -63,14 +64,73 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="GCodeCmd_SetPosition.cs" />
+    <Compile Include="GerberMacroPrimitive_Outline.cs" />
+    <Compile Include="GerberMacroPrimitive_Polygon.cs" />
+    <Compile Include="GerberMacroPrimitive_VectorLine.cs" />
+    <Compile Include="GerberMacroVariablePair.cs" />
+    <Compile Include="IsoFlipModeEnum.cs" />
+    <Compile Include="GCodeCmd_ArcDirectionEnum.cs" />
+    <Compile Include="GerberAperture_Macro.cs" />
+    <Compile Include="GerberMacroPrimitive_CenterLine.cs" />
+    <Compile Include="GerberMacroPrimitive_Variable.cs" />
+    <Compile Include="GerberMacroVariableArray.cs" />
+    <Compile Include="GerberMacroCollection.cs" />
+    <Compile Include="GerberMacroVariable.cs" />
+    <Compile Include="IsoPlotObject_Outline.cs" />
+    <Compile Include="MathParser.cs" />
+    <Compile Include="PlotActionEnum.cs" />
+    <Compile Include="IsoPlotObjectSegmentCollectorTypeEnum.cs" />
+    <Compile Include="DisplayModeEnum.cs" />
+    <Compile Include="AperturePrimitiveTypeEnum.cs" />
+    <Compile Include="ApertureTypeEnum.cs" />
     <Compile Include="ApplicationImplicitSettings.cs" />
     <Compile Include="ApplicationColorManager.cs" />
     <Compile Include="ApplicationExplicitSettings.cs" />
+    <Compile Include="ArcPointMap.cs" />
+    <Compile Include="IsoPlotObject_ContourArc.cs" />
+    <Compile Include="IsoPlotObject_Arc.cs" />
+    <Compile Include="FillLineContainer.cs" />
+    <Compile Include="GerberContourLineContainer.cs" />
+    <Compile Include="GerberLayerPolarityEnum.cs" />
+    <Compile Include="GSFillModeEnum.cs" />
+    <Compile Include="ToolHeadParametersModeEnum.cs" />
     <Compile Include="ApplicationUnitsEnum.cs" />
-    <Compile Include="GCodeBuilderObject_EngravingLine.cs" />
+    <Compile Include="IsoPlotObject_Polygon.cs" />
+    <Compile Include="IsoPlotObject_Empty.cs" />
+    <Compile Include="IsoPlotObject_ContourLine.cs" />
+    <Compile Include="GerberInterpolationModeEnum.cs" />
+    <Compile Include="GerberInterpolationCircularDirectionModeEnum.cs" />
+    <Compile Include="GerberInterpolationCircularQuadrantModeEnum.cs" />
+    <Compile Include="GerberLine_G03Code.cs" />
+    <Compile Include="GerberLine_G02Code.cs" />
+    <Compile Include="GerberLine_G74Code.cs" />
+    <Compile Include="OverlayFlagEnum.cs" />
+    <Compile Include="GerberCommandSourceLines.cs" />
+    <Compile Include="GerberLine_G01Code.cs" />
+    <Compile Include="GerberLine_G04Code.cs" />
+    <Compile Include="GerberLine_G70Code.cs" />
+    <Compile Include="GerberLine_G71Code.cs" />
+    <Compile Include="GerberLine_G75Code.cs" />
+    <Compile Include="GerberLine_G90Code.cs" />
+    <Compile Include="GerberLine_G91Code.cs" />
+    <Compile Include="GerberLine_AMCode.cs" />
+    <Compile Include="GerberLine_M00Code.cs" />
+    <Compile Include="GerberLine_M01Code.cs" />
+    <Compile Include="GerberLine_TACode.cs" />
+    <Compile Include="GerberLine_TDCode.cs" />
+    <Compile Include="GerberLine_TOCode.cs" />
+    <Compile Include="GerberLine_TFCode.cs" />
+    <Compile Include="GerberMacroPrimitive_Circle.cs" />
+    <Compile Include="GerberMacroPrimitive_Base.cs" />
+    <Compile Include="GerberAperture_Base.cs" />
+    <Compile Include="GerberAperture_RCode.cs" />
+    <Compile Include="GerberAperture_OCode.cs" />
+    <Compile Include="GerberAperture_PCode.cs" />
+    <Compile Include="GerberAperture_CCode.cs" />
     <Compile Include="GerberLine_G37Code.cs" />
     <Compile Include="GerberLine_G36Code.cs" />
-    <Compile Include="GerberLine_TCode.cs" />
+    <Compile Include="xGerberLine_TCode.cs" />
     <Compile Include="GerberLine_SFCode.cs" />
     <Compile Include="GerberLine_INCode.cs" />
     <Compile Include="GerberLine_LNCode.cs" />
@@ -93,7 +153,7 @@
     </Compile>
     <Compile Include="ExcellonLine_RCode.cs" />
     <Compile Include="ExcellonLine_GCode.cs" />
-    <Compile Include="GCodeLine_ToolChange.cs" />
+    <Compile Include="GCodeCmd_ToolChange.cs" />
     <Compile Include="ExcellonLine_XYCode.cs" />
     <Compile Include="ExcellonLine_ToolTable.cs" />
     <Compile Include="ExcellonLine_Misc.cs" />
@@ -109,32 +169,31 @@
     <Compile Include="frmFileManagerChooser.Designer.cs">
       <DependentUpon>frmFileManagerChooser.cs</DependentUpon>
     </Compile>
-    <Compile Include="GerberLine_GCode.cs" />
-    <Compile Include="GCodeLine_ZMove.cs" />
-    <Compile Include="GCodeLine_Dwell.cs" />
-    <Compile Include="GCodeLine_RapidMove.cs" />
-    <Compile Include="GCodeLine_CommandWord.cs" />
-    <Compile Include="GCodeLine_Arc.cs" />
-    <Compile Include="GCodeLine_Comment.cs" />
+    <Compile Include="xGerberLine_GCode.cs" />
+    <Compile Include="GCodeCmd_ZMove.cs" />
+    <Compile Include="GCodeCmd_Dwell.cs" />
+    <Compile Include="GCodeCmd_RapidMove.cs" />
+    <Compile Include="GCodeCmd_CommandWord.cs" />
+    <Compile Include="GCodeCmd_Arc.cs" />
+    <Compile Include="GCodeCmd_Comment.cs" />
     <Compile Include="GerberPad.cs" />
-    <Compile Include="IsoPlotSegment_Arc.cs" />
-    <Compile Include="IsoPlotSegment_Line.cs" />
-    <Compile Include="IsoPlotSegment.cs" />
+    <Compile Include="IsoPlotObjectSegment_Arc.cs" />
+    <Compile Include="IsoPlotObjectSegment_Line.cs" />
+    <Compile Include="IsoPlotObjectSegment.cs" />
     <Compile Include="GCodeFileStateMachine.cs" />
     <Compile Include="GCodeFile.cs" />
-    <Compile Include="GCodeLine_Line.cs" />
-    <Compile Include="GCodeLine.cs" />
-    <Compile Include="GCodeBuilderObject_Circle.cs" />
-    <Compile Include="GCodeBuilderObjectOverlayCollection.cs" />
-    <Compile Include="GCodeBuilderObjectOverlay.cs" />
-    <Compile Include="GCodeBuilderPixelFlagEnum.cs" />
-    <Compile Include="GCodeBuilderObject_Line.cs" />
-    <Compile Include="GCodeBuilderObject.cs" />
-    <Compile Include="GCodeBuilder.cs" />
+    <Compile Include="GCodeCmd_Line.cs" />
+    <Compile Include="GCodeCmd.cs" />
+    <Compile Include="IsoPlotObject_Circle.cs" />
+    <Compile Include="OverlayCollection.cs" />
+    <Compile Include="Overlay.cs" />
+    <Compile Include="IsoPlotUsageTagFlagEnum.cs" />
+    <Compile Include="IsoPlotObject_Line.cs" />
+    <Compile Include="IsoPlotObject.cs" />
+    <Compile Include="IsoPlotBuilder.cs" />
     <Compile Include="MiscGraphicsUtils.cs" />
-    <Compile Include="GerberLine_MCode.cs" />
+    <Compile Include="GerberLine_M02Code.cs" />
     <Compile Include="GerberFileStateMachine.cs" />
-    <Compile Include="GerberLine_Unknown.cs" />
     <Compile Include="GerberLine_MOCode.cs" />
     <Compile Include="GerberLine_ADCode.cs" />
     <Compile Include="GerberLine_FSCode.cs" />

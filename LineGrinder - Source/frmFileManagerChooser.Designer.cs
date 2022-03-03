@@ -1,4 +1,4 @@
-﻿namespace LineGrinder
+namespace LineGrinder
 {
     partial class frmFileManagerChooser
     {
@@ -58,7 +58,7 @@
             // 
             // buttonFileOptEdgeMill
             // 
-            this.buttonFileOptEdgeMill.Location = new System.Drawing.Point(15, 138);
+            this.buttonFileOptEdgeMill.Location = new System.Drawing.Point(15, 133);
             this.buttonFileOptEdgeMill.Name = "buttonFileOptEdgeMill";
             this.buttonFileOptEdgeMill.Size = new System.Drawing.Size(104, 23);
             this.buttonFileOptEdgeMill.TabIndex = 1;
@@ -68,12 +68,14 @@
             // 
             // buttonFileOptTextLabel
             // 
-            this.buttonFileOptTextLabel.Location = new System.Drawing.Point(15, 188);
+            this.buttonFileOptTextLabel.Enabled = false;
+            this.buttonFileOptTextLabel.Location = new System.Drawing.Point(396, 225);
             this.buttonFileOptTextLabel.Name = "buttonFileOptTextLabel";
-            this.buttonFileOptTextLabel.Size = new System.Drawing.Size(104, 23);
+            this.buttonFileOptTextLabel.Size = new System.Drawing.Size(44, 18);
             this.buttonFileOptTextLabel.TabIndex = 2;
             this.buttonFileOptTextLabel.Text = "Text and Labels";
             this.buttonFileOptTextLabel.UseVisualStyleBackColor = true;
+            this.buttonFileOptTextLabel.Visible = false;
             this.buttonFileOptTextLabel.Click += new System.EventHandler(this.buttonFileOptTextLabel_Click);
             // 
             // label1
@@ -98,7 +100,7 @@
             // label3
             // 
             this.label3.AutoSize = true;
-            this.label3.Location = new System.Drawing.Point(125, 143);
+            this.label3.Location = new System.Drawing.Point(125, 138);
             this.label3.Name = "label3";
             this.label3.Size = new System.Drawing.Size(16, 13);
             this.label3.TabIndex = 6;
@@ -107,11 +109,13 @@
             // label4
             // 
             this.label4.AutoSize = true;
-            this.label4.Location = new System.Drawing.Point(125, 193);
+            this.label4.Enabled = false;
+            this.label4.Location = new System.Drawing.Point(318, 228);
             this.label4.Name = "label4";
             this.label4.Size = new System.Drawing.Size(16, 13);
             this.label4.TabIndex = 7;
             this.label4.Text = "<-";
+            this.label4.Visible = false;
             // 
             // textBox1
             // 
@@ -128,7 +132,7 @@
             // buttonCancel
             // 
             this.buttonCancel.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-            this.buttonCancel.Location = new System.Drawing.Point(187, 285);
+            this.buttonCancel.Location = new System.Drawing.Point(187, 225);
             this.buttonCancel.Name = "buttonCancel";
             this.buttonCancel.Size = new System.Drawing.Size(75, 23);
             this.buttonCancel.TabIndex = 11;
@@ -139,7 +143,7 @@
             // label6
             // 
             this.label6.AutoSize = true;
-            this.label6.Location = new System.Drawing.Point(125, 243);
+            this.label6.Location = new System.Drawing.Point(125, 181);
             this.label6.Name = "label6";
             this.label6.Size = new System.Drawing.Size(16, 13);
             this.label6.TabIndex = 13;
@@ -147,7 +151,7 @@
             // 
             // buttonFileOptExcellon
             // 
-            this.buttonFileOptExcellon.Location = new System.Drawing.Point(15, 238);
+            this.buttonFileOptExcellon.Location = new System.Drawing.Point(15, 176);
             this.buttonFileOptExcellon.Name = "buttonFileOptExcellon";
             this.buttonFileOptExcellon.Size = new System.Drawing.Size(104, 23);
             this.buttonFileOptExcellon.TabIndex = 12;
@@ -158,42 +162,44 @@
             // textBox2
             // 
             this.textBox2.BorderStyle = System.Windows.Forms.BorderStyle.None;
-            this.textBox2.Location = new System.Drawing.Point(141, 94);
+            this.textBox2.Location = new System.Drawing.Point(141, 88);
             this.textBox2.Multiline = true;
             this.textBox2.Name = "textBox2";
             this.textBox2.ReadOnly = true;
             this.textBox2.Size = new System.Drawing.Size(263, 32);
             this.textBox2.TabIndex = 14;
             this.textBox2.Text = "Creates a File Manager suitable for defining Isolation Cut and Reference Pin GCod" +
-                "e.";
+    "e.";
             // 
             // textBox3
             // 
             this.textBox3.BorderStyle = System.Windows.Forms.BorderStyle.None;
-            this.textBox3.Location = new System.Drawing.Point(141, 143);
+            this.textBox3.Location = new System.Drawing.Point(141, 133);
             this.textBox3.Multiline = true;
             this.textBox3.Name = "textBox3";
             this.textBox3.ReadOnly = true;
             this.textBox3.Size = new System.Drawing.Size(263, 32);
             this.textBox3.TabIndex = 15;
             this.textBox3.Text = "Creates a File Manager suitable for generating Edge Milling and Bed Flattening GC" +
-                "ode.";
+    "ode.";
             // 
             // textBox4
             // 
             this.textBox4.BorderStyle = System.Windows.Forms.BorderStyle.None;
-            this.textBox4.Location = new System.Drawing.Point(141, 193);
+            this.textBox4.Enabled = false;
+            this.textBox4.Location = new System.Drawing.Point(350, 219);
             this.textBox4.Multiline = true;
             this.textBox4.Name = "textBox4";
             this.textBox4.ReadOnly = true;
-            this.textBox4.Size = new System.Drawing.Size(263, 32);
+            this.textBox4.Size = new System.Drawing.Size(40, 25);
             this.textBox4.TabIndex = 16;
             this.textBox4.Text = "Creates a File Manager suitable for cutting text and silkscreen layers.";
+            this.textBox4.Visible = false;
             // 
             // textBox5
             // 
             this.textBox5.BorderStyle = System.Windows.Forms.BorderStyle.None;
-            this.textBox5.Location = new System.Drawing.Point(141, 243);
+            this.textBox5.Location = new System.Drawing.Point(141, 177);
             this.textBox5.Multiline = true;
             this.textBox5.Name = "textBox5";
             this.textBox5.ReadOnly = true;
@@ -205,7 +211,7 @@
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(449, 321);
+            this.ClientSize = new System.Drawing.Size(449, 261);
             this.Controls.Add(this.textBox5);
             this.Controls.Add(this.textBox4);
             this.Controls.Add(this.textBox3);
@@ -249,3 +255,4 @@
         private System.Windows.Forms.TextBox textBox5;
     }
 }
+

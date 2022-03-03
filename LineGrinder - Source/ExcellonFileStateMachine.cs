@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -29,9 +29,6 @@ namespace LineGrinder
     /// A base class to keep track of the state of the excellon file. This is usually
     /// some modal state implied by the commands which have executed previously
     /// </summary>
-    /// <history>
-    ///    01 Sep 10  Cynic - Started
-    /// </history>
     public class ExcellonFileStateMachine : OISObjBase
     {
 
@@ -49,7 +46,7 @@ namespace LineGrinder
         private FileManager excellonFileManager = new FileManager();
 
         // these are the toolhead feed rates (etc) currently in operation
-        private ToolHeadParameters toolHeadSetup = new ToolHeadParameters();
+        private ToolHeadParameters toolHeadSetup = new ToolHeadParameters(1);
 
         /// These values are used if we are flipping in the x and y directions
         private float xFlipMax = 0;
@@ -60,13 +57,17 @@ namespace LineGrinder
 
         /// These values are the decimal scaled values from the DCode itself. They
         /// are not yet scaled to plot coordinates.
-        private float lastDCodeXCoord = 0;
-        private float lastDCodeYCoord = 0;
+        private float lastXCoord = 0;
+        private float lastYCoord = 0;
 
         private int lastDCode = 0;
 
         public const float DEFAULT_DRILL_WIDTH = 0.020f;
         private float lastDrillWidth = DEFAULT_DRILL_WIDTH;
+
+        // these are the centers of all the pads, we might need these
+        // to generate pad touchdown code.
+        private List<GerberPad> padCenterPointList = new List<GerberPad>();
 
         // these values are maintained by the plot control and filled in prior to drawing
         private float isoPlotPointsPerAppUnit = ApplicationImplicitSettings.DEFAULT_VIRTURALCOORD_PER_INCH;
@@ -80,13 +81,16 @@ namespace LineGrinder
         // this plotBrush is the background color of the plot
         public Brush plotBackgroundBrush = ApplicationColorManager.DEFAULT_EXCELLONPLOT_BACKGROUND_BRUSH;
 
+        // this indicates if we have found reference pins
+        private bool referencePinsFound = false;
+        // this indicates that the user specified reference pins in the manager but we could not
+        // find them and the user is ok with this
+        private bool ignoreReferencePinsIfNotFound = false;
+
         /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
         /// <summary>
         /// Constructor
         /// </summary>
-        /// <history>
-        ///    01 Sep 10  Cynic - Started
-        /// </history>
         public ExcellonFileStateMachine()
         {
         }
@@ -95,9 +99,6 @@ namespace LineGrinder
         /// <summary>
         /// Gets/Sets the line number at which the header ends
         /// </summary>
-        /// <history>
-        ///    01 Sep 10  Cynic - Started
-        /// </history>
         public int HeaderEndLine
         {
             get
@@ -114,9 +115,6 @@ namespace LineGrinder
         /// <summary>
         /// Gets/Sets the last drill width used
         /// </summary>
-        /// <history>
-        ///    05 Sep 10  Cynic - Started
-        /// </history>
         public float LastDrillWidth
         {
             get
@@ -131,11 +129,58 @@ namespace LineGrinder
 
         /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
         /// <summary>
-        /// Gets/Sets the excellon file options to use. Never ges/sets a null value
+        /// Gets/Sets the pad center point list. Never gets/sets a null value
         /// </summary>
-        /// <history>
-        ///    01 Sep 10  Cynic - Started
-        /// </history>
+        public List<GerberPad> PadCenterPointList
+        {
+            get
+            {
+                if (padCenterPointList == null) padCenterPointList = new List<GerberPad>();
+                return padCenterPointList;
+            }
+            set
+            {
+                padCenterPointList = value;
+                if (padCenterPointList == null) padCenterPointList = new List<GerberPad>();
+            }
+        }
+
+        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+        /// <summary>
+        /// Gets/Sets the ignoreReferencePinsIfNotFound flag
+        /// </summary>
+        public bool IgnoreReferencePinsIfNotFound
+        {
+            get
+            {
+                return ignoreReferencePinsIfNotFound;
+            }
+            set
+            {
+                ignoreReferencePinsIfNotFound = value;
+            }
+        }
+
+        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+        /// <summary>
+        /// Gets/Sets the referencePinsFound flag
+        /// </summary>
+        public bool ReferencePinsFound
+        {
+            get
+            {
+                return referencePinsFound;
+            }
+            set
+            {
+                referencePinsFound = value;
+            }
+        }
+
+        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+        /// <summary>
+        /// Gets/Sets the excellon file options to use. Never gets/sets a null value
+        /// </summary>
         public FileManager ExcellonFileManager
         {
             get
@@ -156,30 +201,25 @@ namespace LineGrinder
         /// (eg: zDepth, xySpeed, etc) we use for the GCode Generation, These can be 
         ///  different for iso cuts, refPins, edgeMill etc. Will never get or set null.
         /// </summary>
-        /// <history>
-        ///    06 Sep 10  Cynic - Started
-        /// </history>
         public ToolHeadParameters ToolHeadSetup
         {
             get
             {
-                if (toolHeadSetup == null) toolHeadSetup = new ToolHeadParameters();
+                if (toolHeadSetup == null) toolHeadSetup = new ToolHeadParameters(2);
                 return toolHeadSetup;
             }
             set
             {
                 toolHeadSetup = value;
-                if (toolHeadSetup == null) toolHeadSetup = new ToolHeadParameters();
+                if (toolHeadSetup == null) toolHeadSetup = new ToolHeadParameters(3);
             }
         }
 
         /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
         /// <summary>
-        /// Gets the current units mode. 
+        /// Gets the current units mode. There is no set accessor
+        /// as this is derived from the header processing in the file itself.
         /// </summary>
-        /// <history>
-        ///    01 Sep 10  Cynic - Started
-        /// </history>
         public ApplicationUnitsEnum ExcellonFileUnits
         {
             get
@@ -196,9 +236,6 @@ namespace LineGrinder
         /// <summary>
         /// Gets/Sets the working plot line color.
         /// </summary>
-        /// <history>
-        ///    01 Sep 10  Cynic - Started
-        /// </history>
         public Color PlotLineColor
         {
             get
@@ -213,16 +250,13 @@ namespace LineGrinder
 
         /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
         /// <summary>
-        /// Gets the brush for apertures. Will never get null values
+        /// Gets the brush for drill holes
         /// </summary>
-        /// <history>
-        ///    01 Sep 10  Cynic - Started
-        /// </history>
-        public Brush PlotApertureBrush
+        public Brush ExcellonHoleBrush
         {
             get
             {
-                return ApplicationColorManager.DEFAULT_EXCELLONPLOT_BRUSH_NOSHOW_APERTURES;
+                return ApplicationColorManager.DEFAULT_EXCELLONPLOT_DRILLHOLE_BRUSH;
             }
         }
 
@@ -230,9 +264,6 @@ namespace LineGrinder
         /// <summary>
         /// Gets/Sets the working plot brush. Will never get/set null values
         /// </summary>
-        /// <history>
-        ///    01 Sep 10  Cynic - Started
-        /// </history>
         public Brush PlotBackgroundBrush
         {
             get
@@ -251,9 +282,6 @@ namespace LineGrinder
         /// <summary>
         /// Gets/Sets the aperture collection. Will never set or get a null value.
         /// </summary>
-        /// <history>
-        ///    01 Sep 10  Cynic - Started
-        /// </history>
         public List<ExcellonLine_ToolTable> ToolCollection
         {
             get
@@ -272,9 +300,6 @@ namespace LineGrinder
         /// <summary>
         /// Gets the toolTable object based on the table id
         /// </summary>
-        /// <history>
-        ///    05 Sep 10  Cynic - Started
-        /// </history>
         public ExcellonLine_ToolTable GetToolTableObjectByToolNumber(int toolNumber)
         {
             foreach (ExcellonLine_ToolTable toolTabObj in ToolCollection)
@@ -289,9 +314,6 @@ namespace LineGrinder
         /// <summary>
         /// Gets the toolTable largest diameter drill dimension
         /// </summary>
-        /// <history>
-        ///    05 Sep 10  Cynic - Started
-        /// </history>
         public float GetMaxToolCollectionDrillDiameter()
         {
             float maxDiameter=0;
@@ -307,15 +329,12 @@ namespace LineGrinder
         /// <summary>
         /// Resets the state machine values necessary for plotting to the defaults
         /// </summary>
-        /// <history>
-        ///    01 Sep 10  Cynic - Started
-        /// </history>
         public void ResetForPlot()
         {
             lastPlotXCoord = 0;
             lastPlotYCoord = 0;
-            lastDCodeXCoord = 0;
-            lastDCodeYCoord = 0;
+            lastXCoord = 0;
+            lastYCoord = 0;
             lastDrillWidth = 0;
         }
 
@@ -323,9 +342,6 @@ namespace LineGrinder
         /// <summary>
         /// Gets/Sets the Virtual Coords Per Unit
         /// </summary>
-        /// <history>
-        ///    01 Sep 10  Cynic - Started
-        /// </history>
         public float IsoPlotPointsPerAppUnit
         {
             get
@@ -343,9 +359,6 @@ namespace LineGrinder
         /// <summary>
         /// Gets the operation mode from the filemanager. Just a shortcut
         /// </summary>
-        /// <history>
-        ///    01 Sep 10  Cynic - Started
-        /// </history>
         public FileManager.OperationModeEnum OperationMode
         {
             get
@@ -358,18 +371,15 @@ namespace LineGrinder
         /// <summary>
         /// Gets/Sets the last DCode X Coordinate value
         /// </summary>
-        /// <history>
-        ///    01 Sep 10  Cynic - Started
-        /// </history>
-        public float LastDCodeXCoord
+        public float LastXCoord
         {
             get
             {
-                return lastDCodeXCoord;
+                return lastXCoord;
             }
             set
             {
-                lastDCodeXCoord = value;
+                lastXCoord = value;
             }
         }
 
@@ -377,18 +387,15 @@ namespace LineGrinder
         /// <summary>
         /// Gets/Sets the last DCode Y Coordinate value
         /// </summary>
-        /// <history>
-        ///    01 Sep 10  Cynic - Started
-        /// </history>
-        public float LastDCodeYCoord
+        public float LastYCoord
         {
             get
             {
-                return lastDCodeYCoord;
+                return lastYCoord;
             }
             set
             {
-                lastDCodeYCoord = value;
+                lastYCoord = value;
             }
         }
 
@@ -396,9 +403,6 @@ namespace LineGrinder
         /// <summary>
         /// Gets/Sets the value we use when flipping in the X direction
         /// </summary>
-        /// <history>
-        ///    01 Sep 10  Cynic - Started
-        /// </history>
         public float XFlipMax
         {
             get
@@ -415,9 +419,6 @@ namespace LineGrinder
         /// <summary>
         /// Gets/Sets the value we use when flipping in the Y direction
         /// </summary>
-        /// <history>
-        ///    01 Sep 10  Cynic - Started
-        /// </history>
         public float YFlipMax
         {
             get
@@ -434,9 +435,6 @@ namespace LineGrinder
         /// <summary>
         /// Gets/Sets the last plot X Coordinate value
         /// </summary>
-        /// <history>
-        ///    01 Sep 10  Cynic - Started
-        /// </history>
         public int LastPlotXCoord
         {
             get
@@ -453,9 +451,6 @@ namespace LineGrinder
         /// <summary>
         /// Gets/Sets the last plot Y Coordinate value
         /// </summary>
-        /// <history>
-        ///    01 Sep 10  Cynic - Started
-        /// </history>
         public int LastPlotYCoord
         {
             get
@@ -472,9 +467,6 @@ namespace LineGrinder
         /// <summary>
         /// Gets/Sets the last D Code value
         /// </summary>
-        /// <history>
-        ///    01 Sep 10  Cynic - Started
-        /// </history>
         public int LastDCode
         {
             get
@@ -489,3 +481,4 @@ namespace LineGrinder
 
     }
 }
+

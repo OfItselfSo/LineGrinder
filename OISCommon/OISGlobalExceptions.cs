@@ -4,19 +4,19 @@ using System.Windows.Forms;
 using System.Threading;
 
 /// +------------------------------------------------------------------------------------------------------------------------------+
-/// ¦                                                   TERMS OF USE: MIT License                                                  ¦
-/// +------------------------------------------------------------------------------------------------------------------------------¦
-/// ¦Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation    ¦
-/// ¦files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy,    ¦
-/// ¦modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software¦
-/// ¦is furnished to do so, subject to the following conditions:                                                                   ¦
-/// ¦                                                                                                                              ¦
-/// ¦The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.¦
-/// ¦                                                                                                                              ¦
-/// ¦THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE          ¦
-/// ¦WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR         ¦
-/// ¦COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,   ¦
-/// ¦ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                         ¦
+/// ï¿½                                                   TERMS OF USE: MIT License                                                  ï¿½
+/// +------------------------------------------------------------------------------------------------------------------------------ï¿½
+/// ï¿½Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation    ï¿½
+/// ï¿½files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy,    ï¿½
+/// ï¿½modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Softwareï¿½
+/// ï¿½is furnished to do so, subject to the following conditions:                                                                   ï¿½
+/// ï¿½                                                                                                                              ï¿½
+/// ï¿½The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.ï¿½
+/// ï¿½                                                                                                                              ï¿½
+/// ï¿½THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE          ï¿½
+/// ï¿½WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR         ï¿½
+/// ï¿½COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,   ï¿½
+/// ï¿½ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                         ï¿½
 /// +------------------------------------------------------------------------------------------------------------------------------+
 
 /// #########
@@ -33,18 +33,12 @@ namespace OISCommon
     /// the logs.  This member function based on code found at:
     /// http://samples.gotdotnet.com/quickstart/howto/doc/WinForms/WinFormsAppErrorHandler.aspx
     /// </summary>
-    /// <history>
-    ///    04 Nov 09  Cynic - Started
-    /// </history>
     public class OISGlobalExceptions : OISObjBase
     {
         /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
         /// <summary>
         /// Constructor
         /// </summary>
-        /// <history>
-        ///    04 Nov 09  Cynic - Started
-        /// </history>
         public OISGlobalExceptions()
         {
         }
@@ -53,9 +47,6 @@ namespace OISCommon
         /// <summary>
         /// Handle the exception event
         /// </summary>
-        /// <history>
-        ///    04 Nov 09  Cynic - Started
-        /// </history>
         /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=  
         public void OnThreadException(object sender, ThreadExceptionEventArgs t) 
         {
@@ -92,9 +83,6 @@ namespace OISCommon
         /// </summary>
         /// <param name="e">The exception that caused this function to be called</param>
         /// <returns>DialogResult one of Abort, Retry, Ignore</returns>
-        /// <history>
-        ///    04 Nov 09  Cynic - Started
-        /// </history>
         private DialogResult ShowThreadExceptionDialog(Exception e) 
         {
             StringBuilder sb = new StringBuilder();
@@ -109,9 +97,6 @@ namespace OISCommon
         /// <summary>
         /// The dialog that is displayed when the use chooses to continue.
         /// </summary>
-        /// <history>
-        ///    04 Nov 09  Cynic - Started
-        /// </history>
         private DialogResult ShowExceptionContinueDialog() 
         { 
             string errorMsg = "This software will attempt to continue.\n\nHowever, it might be wise at this time to save your work under a new name and possibly also stop and restart this application.";
@@ -120,3 +105,4 @@ namespace OISCommon
         }
     }
 }
+

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Drawing;
@@ -40,62 +40,52 @@ namespace LineGrinder
     /// the output extension and various other actions we might want to take
     /// with it
     /// </summary>
-    /// <history>
-    ///    10 Aug 10  Cynic - Started
-    /// </history>
     public partial class ctlFileManagersDisplay : ctlOISBase
     {
         private BindingList<FileManager> fileManagersList = new BindingList<FileManager>();
         // this keeps track of whether any options changed
         private bool optionsChanged = false;
 
-        private ApplicationUnitsEnum applicationUnits = ApplicationImplicitSettings.DEFAULT_APPLICATION_UNITS;
+        private ApplicationUnitsEnum defaultApplicationUnits = ApplicationImplicitSettings.DEFAULT_APPLICATION_UNITS;
 
         /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
         /// <summary>
         /// Constructor
         /// </summary>
-        /// <history>
-        ///    10 Aug 10  Cynic - Started
-        /// </history>
         public ctlFileManagersDisplay()
         {
             InitializeComponent();
-            listBox1.DataSource = fileManagersList;
-            listBox1.DisplayMember = "FilenamePattern";
+            listBoxFileManagers.DataSource = fileManagersList;
+            listBoxFileManagers.DisplayMember = "FilenamePattern";
             SyncButtonStates();
         }
 
         /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
         /// <summary>
-        /// Gets/Sets the currently set Application Units as an enum
+        /// Gets/Sets the currently set Default Application Units as an enum
         /// </summary>
-        /// <history>
-        ///    23 Nov 10  Cynic - Started
-        /// </history>
-        public ApplicationUnitsEnum ApplicationUnits
+        [Browsable(false)]
+        public ApplicationUnitsEnum DefaultApplicationUnits
         {
             get
             {
-                return applicationUnits;
+                return defaultApplicationUnits;
             }
             set
             {
-                applicationUnits = value;
+                defaultApplicationUnits = value;
             }
         }
 
         /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
         /// <summary>
-        /// Accepts an incoming filename and returns the matching options object.
+        /// Accepts an incoming filename and returns the matching file manager object.
         /// We never return null. If we do not have a match we return a default
         /// object. The caller should check IsAtDefaults() on it upon return
         /// </summary>
         /// <param name="filePathAndNameIn">file name to find the object for, can contain a path</param>
-        /// <history>
-        ///    10 Aug Jul 10  Cynic - Started
-        /// </history>
-        public FileManager GetMatchingFileManagersObject(string filePathAndNameIn)
+        /// <param name="wantDeepClone">if true we return a deep clone</param>
+        public FileManager GetMatchingFileManager(string filePathAndNameIn, bool wantDeepClone)
         {
             if (filePathAndNameIn == null) return new FileManager();
             if (filePathAndNameIn.Length == 0) return new FileManager();
@@ -116,7 +106,8 @@ namespace LineGrinder
                 if (filePathAndNameIn.Contains(optObj.FilenamePattern) == true)
                 {
                     // we found it
-                    return optObj;
+                    if (wantDeepClone == true) return FileManager.DeepClone(optObj);
+                    else return optObj;
                 }            
             }
 
@@ -129,9 +120,6 @@ namespace LineGrinder
         /// <summary>
         /// Gets/sets the list of file options. Will never get/set a null
         /// </summary>
-        /// <history>
-        ///    10 Aug 10  Cynic - Started
-        /// </history>
         [Browsable(false)]
         [DefaultValue(null)]
         [ReadOnlyAttribute(true)]
@@ -155,14 +143,11 @@ namespace LineGrinder
         /// We have to reset the listbox contents. This is pretty ugly but neither
         /// Invalidate() or Refresh() seem to work with this binding
         /// </summary>
-        /// <history>
-        ///    10 Aug 10  Cynic - Started
-        /// </history>
         private void ResetListBoxContents()
         {
-            listBox1.DataSource = null;
-            listBox1.DataSource = fileManagersList;
-            listBox1.DisplayMember = "FilenamePattern";
+            listBoxFileManagers.DataSource = null;
+            listBoxFileManagers.DataSource = fileManagersList;
+            listBoxFileManagers.DisplayMember = "FilenamePattern";
             GetDefaultFileManagerObject();
             SyncButtonStates();
         }
@@ -172,17 +157,14 @@ namespace LineGrinder
         /// Sets the currently selected file manager by name
         /// </summary>
         /// <param name="selectedManagerFilenamePattern">the file name pattern we match</param>
-        /// <history>
-        ///    31 Aug 10  Cynic - Started
-        /// </history>
         public void SetSelectedManagerByName(string selectedManagerFilenamePattern)
         {
             if((selectedManagerFilenamePattern==null) || (selectedManagerFilenamePattern.Length==0)) return;
-            for (int i = 0; i < listBox1.Items.Count; i++)
+            for (int i = 0; i < listBoxFileManagers.Items.Count; i++)
             {
-                if (((FileManager)listBox1.Items[i]).FilenamePattern == selectedManagerFilenamePattern)
+                if (((FileManager)listBoxFileManagers.Items[i]).FilenamePattern == selectedManagerFilenamePattern)
                 {
-                    listBox1.SelectedIndex = i;
+                    listBoxFileManagers.SelectedIndex = i;
                     return;
                 }
             }
@@ -193,24 +175,17 @@ namespace LineGrinder
         /// Gets the name of the currently selected file manager
         /// </summary>
         /// <returns>the filename pattern of the selected file manager</returns>
-        /// <history>
-        ///    31 Aug 10  Cynic - Started
-        /// </history>
         public string GetSelectedManagerName()
         {
-            if(listBox1.SelectedItem == null) return null;
-            if((listBox1.SelectedItem is FileManager)==false) return null;
-            return ((FileManager)listBox1.SelectedItem).FilenamePattern;
+            if(listBoxFileManagers.SelectedItem == null) return null;
+            if((listBoxFileManagers.SelectedItem is FileManager)==false) return null;
+            return ((FileManager)listBoxFileManagers.SelectedItem).FilenamePattern;
         }
 
         /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
         /// <summary>
         /// Gets the default file options object we just make this up new each time
         /// </summary>
-        /// <history>
-        ///    10 Aug 10  Cynic - Started
-        ///    12 Sep 10  Cynic - No longer in List, we make it up each time
-        /// </history>
         public FileManager GetDefaultFileManagerObject()
         {
             // if we get here it was not found
@@ -221,51 +196,9 @@ namespace LineGrinder
 
         /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
         /// <summary>
-        /// Converts all convertable values in the file managers to mm. It is assumed
-        /// that the values are currently in inches. This is not checked.
-        /// </summary>
-        /// <history>
-        ///    20 Nov 10  Cynic - Started
-        /// </history>
-        public void ConvertAllFileManagersToMM()
-        {
-            // now convert each filemanager object in the list
-            foreach (FileManager optObj in FileManagersList)
-            {
-                optObj.ConvertFromInchToMM();
-            }
-            // reset the list box contents
-            ResetListBoxContents();
-            optionsChanged = true;
-        }
-
-        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
-        /// <summary>
-        /// Converts all convertable values in the file managers to inches It is assumed
-        /// that the values are currently in mm. This is not checked.
-        /// </summary>
-        /// <history>
-        ///    20 Nov 10  Cynic - Started
-        /// </history>
-        public void ConvertAllFileManagersToInches()
-        {
-            // now convert each filemanager object in the list
-            foreach (FileManager optObj in FileManagersList)
-            {
-                optObj.ConvertFromMMToInch();
-            }
-            // reset the list box contents
-            ResetListBoxContents();
-            optionsChanged = true;
-        }
-
-        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
-        /// <summary>
         /// Gets/sets the optionsChanged flag
         /// </summary>
-        /// <history>
-        ///    10 Aug 10  Cynic - Started
-        /// </history>
+        [Browsable(false)]
         public bool OptionsChanged
         {
             get
@@ -282,29 +215,23 @@ namespace LineGrinder
         /// <summary>
         /// Handles a selected object changed event in the listbox
         /// </summary>
-        /// <history>
-        ///    10 Aug 10  Cynic - Started
-        /// </history>
         private void listBox1_SelectedIndexChanged(object sender, EventArgs e)
         {
-            FileManager selectedManager = (FileManager)listBox1.SelectedItem;
-            propertyGrid1.SelectedObject = selectedManager;
+            FileManager selectedManager = (FileManager)listBoxFileManagers.SelectedItem;
+            propertyGridFileManager.SelectedObject = selectedManager;
             SetPropertyStateAppropriateToOperationMode(selectedManager);
             // this double sort is necessary. Or sometimes the weird reflection
             // code in SetPropertyStateAppropriateToOperationMode will take two
             // activations to properly display the properties
-            propertyGrid1.PropertySort = PropertySort.Alphabetical;
-            propertyGrid1.PropertySort = PropertySort.Categorized;
+            propertyGridFileManager.PropertySort = PropertySort.Alphabetical;
+            propertyGridFileManager.PropertySort = PropertySort.Categorized;
         }
 
         /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
         /// <summary>
         /// Handles a property value changed event in the listbox
         /// </summary>
-        /// <history>
-        ///    10 Aug 10  Cynic - Started
-        /// </history>
-        private void propertyGrid1_PropertyValueChanged(object s, PropertyValueChangedEventArgs e)
+        private void propertyGridFileManager_PropertyValueChanged(object s, PropertyValueChangedEventArgs e)
         {
             // always flag this
             optionsChanged = true;
@@ -318,8 +245,8 @@ namespace LineGrinder
             if (e.ChangedItem.Label == "OperationMode")
             {
                 if ((e.ChangedItem.Value is FileManager.OperationModeEnum) == false) return;
-                if ((propertyGrid1.SelectedObject is FileManager) == false) return;
-                SetPropertyStateAppropriateToOperationMode((FileManager)propertyGrid1.SelectedObject);                
+                if ((propertyGridFileManager.SelectedObject is FileManager) == false) return;
+                SetPropertyStateAppropriateToOperationMode((FileManager)propertyGridFileManager.SelectedObject);                
             }            
         }
 
@@ -328,9 +255,6 @@ namespace LineGrinder
         /// Gets the index of the specfied object
         /// </summary>
         /// <returns>index or zero for not found</returns>
-        /// <history>
-        ///    23 Aug 10  Cynic - Started
-        /// </history>
         public int GetIndexForFileManagersObject(FileManager fileManagerObj)
         {
             if (fileManagerObj == null) return -1;
@@ -342,9 +266,6 @@ namespace LineGrinder
         /// Selects the file options object based on the filename pattern
         /// </summary>
         /// <returns>index or zero for not found</returns>
-        /// <history>
-        ///    23 Aug 10  Cynic - Started
-        /// </history>
         public void SelectFileManagersObjectByFilenamePattern(string filenamePatternIn)
         {
             if ((filenamePatternIn == null) || (filenamePatternIn.Length == 0)) return;
@@ -353,7 +274,7 @@ namespace LineGrinder
             {
                 if (FileManagersList[index].FilenamePattern == filenamePatternIn)
                 {
-                    listBox1.SelectedIndex = index;
+                    listBoxFileManagers.SelectedIndex = index;
                     return;
                 }
             }
@@ -361,17 +282,17 @@ namespace LineGrinder
 
         /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
         /// <summary>
-        /// Adds a file option object to the current display
+        /// Adds a file option object to the current display. Note that all file 
+        /// managers are created in INCHES by default. This is what sets them 
+        /// to MM if the default application units setting is in MM.
         /// </summary>
-        /// <history>
-        ///    10 Aug 10  Cynic - Started
-        /// </history>
         public void AddFileManager(FileManager fileManagerObj)
         {
             optionsChanged = true;
             // do we have to convert? We do if it is not the default of inches
-            if (ApplicationUnits == ApplicationUnitsEnum.MILLIMETERS)
+            if (DefaultApplicationUnits == ApplicationUnitsEnum.MILLIMETERS)
             {
+                // this will automatically convert
                 fileManagerObj.ConvertFromInchToMM();
             }
             fileManagersList.Add(fileManagerObj);
@@ -385,17 +306,14 @@ namespace LineGrinder
         /// <summary>
         /// Handles a click on the reset button
         /// </summary>
-        /// <history>
-        ///    31 Aug 10  Cynic - Started
-        /// </history>
         private void buttonReset_Click(object sender, EventArgs e)
         {
             DialogResult dlgRes = OISMessageBox_YesNo("The options in the selected File Manager will be reset to their default state. The FileNamePattern, Description and OperationMode items will not be changed.\n\nDo you wish to proceed?");
             if (dlgRes != DialogResult.Yes) return;
             optionsChanged = true;
-            FileManager selectedManager = (FileManager)listBox1.SelectedItem;
+            FileManager selectedManager = (FileManager)listBoxFileManagers.SelectedItem;
             if (selectedManager == null) return;
-            selectedManager.Reset(false);
+            selectedManager.Reset(false, DefaultApplicationUnits);
             // select the newly reset item
             listBox1_SelectedIndexChanged(this, new EventArgs());
         }
@@ -404,24 +322,79 @@ namespace LineGrinder
         /// <summary>
         /// Handles a click on the remove button
         /// </summary>
-        /// <history>
-        ///    10 Aug 10  Cynic - Started
-        /// </history>
         private void buttonRemove_Click(object sender, EventArgs e)
         {
             DialogResult dlgRes = OISMessageBox_YesNo("This option will remove the selected File Manager.\n\nDo you wish to proceed?");
             if (dlgRes != DialogResult.Yes) return;
+            // removed selected
+            RemoveSelectedFileManager();
+        }
+
+        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+        /// <summary>
+        /// Handles a click on the remove all button
+        /// </summary>
+        private void buttonRemoveAll_Click(object sender, EventArgs e)
+        {
+            DialogResult dlgRes = OISMessageBox_YesNo("This option will remove all File Managers.\n\nDo you wish to proceed?");
+            if (dlgRes != DialogResult.Yes) return;
+            // remove all
+            RemoveAllFileManagers();
+        }
+
+        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+        /// <summary>
+        /// Removes the selected file manager
+        /// </summary>
+        public void RemoveSelectedFileManager()
+        {
             // remove the current selection in the list box
-            int index = listBox1.SelectedIndex;
+            int index = listBoxFileManagers.SelectedIndex;
             if (index < 0) return;
             optionsChanged = true;
             // cannot remove when datasource is set
-            listBox1.DataSource = null;
+            listBoxFileManagers.DataSource = null;
             fileManagersList.RemoveAt(index);
-            listBox1.DataSource = fileManagersList;
-            listBox1.DisplayMember = "FilenamePattern";
+            listBoxFileManagers.DataSource = fileManagersList;
+            listBoxFileManagers.DisplayMember = "FilenamePattern";
             // this will create the default object if it is not present
             GetDefaultFileManagerObject();
+            SyncButtonStates();
+        }
+
+        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+        /// <summary>
+        /// Removes all file managers
+        /// </summary>
+        public void RemoveAllFileManagers()
+        {
+            optionsChanged = true;
+            // cannot remove when datasource is set
+            listBoxFileManagers.DataSource = null;
+            fileManagersList.Clear();
+            listBoxFileManagers.DataSource = fileManagersList;
+            listBoxFileManagers.DisplayMember = "FilenamePattern";
+            // this will create the default object if it is not present
+            GetDefaultFileManagerObject();
+            SyncButtonStates();
+        }
+
+        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+        /// <summary>
+        /// Adds a new file manager
+        /// </summary>
+        public void AddNewFileManager()
+        {
+            // ask the user what type of file manager they would like to use
+            frmFileManagerChooser optChooser = new frmFileManagerChooser(GetDefaultFileManagerObject());
+            // this is modal
+            optChooser.ShowDialog();
+            if (optChooser.DialogResult != DialogResult.OK) return;
+            if (optChooser.OutputFileManagerObject == null) return;
+            AddFileManager(optChooser.OutputFileManagerObject);
+            // select the newly added item
+            int index = GetIndexForFileManagersObject(optChooser.OutputFileManagerObject);
+            listBoxFileManagers.SelectedIndex = index;
             SyncButtonStates();
         }
 
@@ -432,9 +405,6 @@ namespace LineGrinder
         /// <param name="fileExt">the file extension</param>
         /// <param name="addItToDisplay">true, add to the display, false, do not add</param>
         /// <param name="opMode">the operation mode of the file manager to create</param>
-        /// <history>
-        ///    07 Oct 10  Cynic - Started
-        /// </history>
         public FileManager GetDefaultFileManagerForExtension(string fileExt, FileManager.OperationModeEnum opMode, bool addItToDisplay)
         {
             FileManager mgrObject = null;
@@ -458,31 +428,15 @@ namespace LineGrinder
         /// <summary>
         /// Handles a click on the add button
         /// </summary>
-        /// <history>
-        ///    10 Aug 10  Cynic - Started
-        /// </history>
         private void buttonAdd_Click(object sender, EventArgs e)
         {
-            // ask the user what type of file manager they would like to use
-            frmFileManagerChooser optChooser = new frmFileManagerChooser(GetDefaultFileManagerObject());
-            // this is modal
-            optChooser.ShowDialog();
-            if (optChooser.DialogResult != DialogResult.OK) return;
-            if (optChooser.OutputFileManagerObject == null) return;
-            AddFileManager(optChooser.OutputFileManagerObject);
-            // select the newly added item
-            int index = GetIndexForFileManagersObject(optChooser.OutputFileManagerObject);
-            listBox1.SelectedIndex = index;
-            SyncButtonStates();
+            AddNewFileManager();
         }
 
         /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
         /// <summary>
         /// Syncs the remove button enabled or disabled state
         /// </summary>
-        /// <history>
-        ///    10 Aug 10  Cynic - Started
-        /// </history>
         private void SyncButtonStates()
         {
             if (fileManagersList.Count() == 0)
@@ -497,12 +451,29 @@ namespace LineGrinder
 
         /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
         /// <summary>
+        /// Syncs the enabled state of the control. This is the overall enabled/disabled
+        /// state of the control. We are disabled when a file is open
+        /// </summary>
+        /// <param name="ctrlEnabledState">the enabled state for the control</param>
+        public void SyncEnabledState(bool ctrlEnabledState)
+        {
+            // these stay enabled
+            //labelFileManagers.Enabled = ctrlEnabledState;
+            //labelFileManagerProperties.Enabled = ctrlEnabledState;
+            //listBoxFileManagers.Enabled = ctrlEnabledState;
+
+            propertyGridFileManager.Enabled = ctrlEnabledState;
+            buttonAdd.Enabled = ctrlEnabledState;
+            buttonRemove.Enabled = ctrlEnabledState;
+            buttonRemoveAll.Enabled = ctrlEnabledState;
+            buttonReset.Enabled = ctrlEnabledState;
+        }
+
+        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+        /// <summary>
         /// Sets the readonly state of the properties so the user can only adjust 
         /// the ones appropriate to the current operation mode
         /// </summary>
-        /// <history>
-        ///    23 Aug 10  Cynic - Started
-        /// </history>
         private void SetPropertyStateAppropriateToOperationMode(FileManager optObject)
         {
             bool isoCutROState = false;
@@ -623,9 +594,6 @@ namespace LineGrinder
         /// <remarks>
         /// Credits: the basic mechanisim for performing this operation is derived
         /// from: http://www.codeproject.com/KB/tabs/ExploringPropertyGrid.aspx</remarks>
-        /// <history>
-        ///    23 Aug 10  Cynic - Started
-        /// </history>
         private void SetPropertyReadOnlyState(FileManager fileManagersObj, string propertyName, bool readOnlyState)
         {
             if (fileManagersObj == null) return;
@@ -645,9 +613,6 @@ namespace LineGrinder
         /// <remarks>
         /// Credits: the basic mechanisim for performing this operation is derived
         /// from: http://www.codeproject.com/KB/tabs/ExploringPropertyGrid.aspx</remarks>
-        /// <history>
-        ///    23 Aug 10  Cynic - Started
-        /// </history>
         private void SetPropertyBrowsableState(FileManager fileManagersObj, string propertyName, bool isNonBrowsable)
         {
             bool wantBrowsable;
@@ -665,3 +630,4 @@ namespace LineGrinder
 
     }
 }
+

@@ -5,19 +5,19 @@ using System.ComponentModel;
 using System.Windows.Forms;
 
 /// +------------------------------------------------------------------------------------------------------------------------------+
-/// ¦                                                   TERMS OF USE: MIT License                                                  ¦
-/// +------------------------------------------------------------------------------------------------------------------------------¦
-/// ¦Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation    ¦
-/// ¦files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy,    ¦
-/// ¦modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software¦
-/// ¦is furnished to do so, subject to the following conditions:                                                                   ¦
-/// ¦                                                                                                                              ¦
-/// ¦The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.¦
-/// ¦                                                                                                                              ¦
-/// ¦THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE          ¦
-/// ¦WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR         ¦
-/// ¦COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,   ¦
-/// ¦ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                         ¦
+/// ï¿½                                                   TERMS OF USE: MIT License                                                  ï¿½
+/// +------------------------------------------------------------------------------------------------------------------------------ï¿½
+/// ï¿½Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation    ï¿½
+/// ï¿½files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy,    ï¿½
+/// ï¿½modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Softwareï¿½
+/// ï¿½is furnished to do so, subject to the following conditions:                                                                   ï¿½
+/// ï¿½                                                                                                                              ï¿½
+/// ï¿½The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.ï¿½
+/// ï¿½                                                                                                                              ï¿½
+/// ï¿½THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE          ï¿½
+/// ï¿½WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR         ï¿½
+/// ï¿½COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,   ï¿½
+/// ï¿½ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                         ï¿½
 /// +------------------------------------------------------------------------------------------------------------------------------+
 
 /// #########
@@ -34,9 +34,6 @@ namespace OISCommon
     /// call things from the windows API
     /// </summary>
     /// <remarks>Strictly Windows API calls in here.</remarks>
-    /// <history>
-    ///    03 Nov 09  Cynic - Started
-    /// </history>
     public class frmOISLoggerException : System.Windows.Forms.Form
     {
         private System.ComponentModel.Container components = null;
@@ -57,9 +54,6 @@ namespace OISCommon
         /// <summary>
         /// Constructor
         /// </summary>
-        /// <history>
-        ///    03 Nov 09  Cynic - Started
-        /// </history>
         public frmOISLoggerException(Exception e)
         {
             InitializeComponent();
@@ -70,9 +64,6 @@ namespace OISCommon
         /// <summary>
         /// Get or set the log file name
         /// </summary>
-        /// <history>
-        ///    03 Nov 09  Cynic - Started
-        /// </history>
         public string LogFileName
         {
             get { return this.logFileName.Text; }
@@ -83,9 +74,6 @@ namespace OISCommon
         /// <summary>
         /// Get or set the log file directory location
         /// </summary>
-        /// <history>
-        ///    03 Nov 09  Cynic - Started
-        /// </history>
         public string LogFileDirectory
         {
             get 
@@ -107,9 +95,6 @@ namespace OISCommon
         /// <summary>
         /// Handle a click on the browse for directory button
         /// </summary>
-        /// <history>
-        ///    03 Nov 09  Cynic - Started
-        /// </history>
         private void buttonBrowseForDir_Click(object sender, System.EventArgs e)
         {
             // Show the FolderBrowserDialog.
@@ -284,3 +269,4 @@ namespace OISCommon
 
     }
 }
+

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Drawing;
@@ -28,9 +28,6 @@ namespace LineGrinder
     /// <summary>
     /// A class to keep track of the information associated with a Gerber Plot Pad
     /// </summary>
-    /// <history>
-    ///    09 Sep 10  Cynic - Started
-    /// </history>
     public class GerberPad : OISObjBase
     {
         private float x0 = 0;
@@ -44,9 +41,6 @@ namespace LineGrinder
         /// <summary>
         /// Constructor
         /// </summary>
-        /// <history>
-        ///    09 Sep 10  Cynic - Started
-        /// </history>
         public GerberPad()
         {
         }
@@ -58,9 +52,6 @@ namespace LineGrinder
         /// <param name="x0In">the x center point</param>
         /// <param name="y0In">the y center point</param>
         /// <param name="padDiameterIn">pad diameter</param>
-        /// <history>
-        ///    09 Sep 10  Cynic - Started
-        /// </history>
         public GerberPad(float x0In, float y0In, float padDiameterIn)
         {
             x0 = x0In;
@@ -72,9 +63,6 @@ namespace LineGrinder
         /// <summary>
         /// Gets/Sets the current x0 value
         /// </summary>
-        /// <history>
-        ///    09 Sep 10  Cynic - Started
-        /// </history>
         public float X0
         {
             get
@@ -91,9 +79,6 @@ namespace LineGrinder
         /// <summary>
         /// Gets/Sets the current y0 value
         /// </summary>
-        /// <history>
-        ///    09 Sep 10  Cynic - Started
-        /// </history>
         public float Y0
         {
             get
@@ -110,9 +95,6 @@ namespace LineGrinder
         /// <summary>
         /// Gets/Sets the pad diameter
         /// </summary>
-        /// <history>
-        ///    09 Sep 10  Cynic - Started
-        /// </history>
         public float PadDiameter
         {
             get
@@ -131,9 +113,6 @@ namespace LineGrinder
         /// <summary>
         /// Gets/Sets the isRefPin flag
         /// </summary>
-        /// <history>
-        ///    09 Sep 10  Cynic - Started
-        /// </history>
         public bool IsRefPin
         {
             get
@@ -151,9 +130,6 @@ namespace LineGrinder
         /// returns a deep clone of the input object
         /// </summary>
         /// <param name="gcodePadObj">the object to clone</param>
-        /// <history>
-        ///    09 Sep 10  Cynic - Started
-        /// </history>
         public static GerberPad DeepClone(GerberPad gcodePadObj)
         {
             if (gcodePadObj == null) return null;
@@ -166,3 +142,4 @@ namespace LineGrinder
         }
     }
 }
+
