@@ -168,20 +168,20 @@ namespace LineGrinder
             if (stateMachine.GCodeFileManager.ShowGCodeCmdNumbers == true) sb.Append(stateMachine.BuildNextLineNumberString() + " ");
             if (wantLinearMove == true)
             {
-                sb.Append(GCODEWORD_MOVEINLINE + " " + GCODEWORD_ZAXIS + zCoordForMove.ToString());
+                sb.Append(GCODEWORD_MOVEINLINE + " " + GCODEWORD_ZAXIS + ConvertCoordToDesiredUnitSystem(zCoordForMove, stateMachine.SourceUnits, stateMachine.OutputUnits).ToString());
                 stateMachine.LastGCodeZCoord = zCoordForMove;
                 // do we need to adjust the feedrate?
                 if (stateMachine.LastFeedRate != stateMachine.CurrentZFeedrate)
                 {
                     // yes we do 
-                    sb.Append(" " + GCODEWORD_FEEDRATE + stateMachine.CurrentZFeedrate.ToString());
+                    sb.Append(" " + GCODEWORD_FEEDRATE + ConvertCoordToDesiredUnitSystem(stateMachine.CurrentZFeedrate, stateMachine.SourceUnits, stateMachine.OutputUnits).ToString());
                     // remember this now
                     stateMachine.LastFeedRate = stateMachine.CurrentZFeedrate;
                 }
             }
             else
             {
-                sb.Append(GCODEWORD_MOVERAPID + " " + GCODEWORD_ZAXIS + zCoordForMove.ToString());
+                sb.Append(GCODEWORD_MOVERAPID + " " + GCODEWORD_ZAXIS + ConvertCoordToDesiredUnitSystem(zCoordForMove, stateMachine.SourceUnits, stateMachine.OutputUnits).ToString());
                 stateMachine.LastGCodeZCoord = zCoordForMove;
               // no feedrates on MOVERAPID, these are set by the machine controller
             }

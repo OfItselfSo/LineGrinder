@@ -128,7 +128,7 @@ namespace LineGrinder
             {
                 // no it is not, send it to the move depth
                 if (stateMachine.GCodeFileManager.ShowGCodeCmdNumbers == true) sb.Append(stateMachine.BuildNextLineNumberString() + " ");
-                sb.Append(GCODEWORD_MOVERAPID + " " + GCODEWORD_ZAXIS + zCoordForMove.ToString());
+                sb.Append(GCODEWORD_MOVERAPID + " " + GCODEWORD_ZAXIS + ConvertCoordToDesiredUnitSystem(zCoordForMove, stateMachine.SourceUnits, stateMachine.OutputUnits).ToString());
                 stateMachine.LastGCodeZCoord = zCoordForMove;
                 sb.Append(stateMachine.LineTerminator);
             }

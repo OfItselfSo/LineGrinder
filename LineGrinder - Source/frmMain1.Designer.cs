@@ -28,6 +28,7 @@ namespace LineGrinder
         /// </summary>
         private void InitializeComponent()
         {
+            this.components = new System.ComponentModel.Container();
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(frmMain1));
             this.tabControl1 = new System.Windows.Forms.TabControl();
             this.tabPagePlot = new System.Windows.Forms.TabPage();
@@ -87,6 +88,9 @@ namespace LineGrinder
             this.textBoxDrillGCodeFileName = new System.Windows.Forms.TextBox();
             this.richTextBoxDrillGCode = new System.Windows.Forms.RichTextBox();
             this.tabPageSettings = new System.Windows.Forms.TabPage();
+            this.groupBoxOutputUnits = new System.Windows.Forms.GroupBox();
+            this.radioButtonOutputUnitsAreMM = new System.Windows.Forms.RadioButton();
+            this.radioButtonOutputUnitsAreIN = new System.Windows.Forms.RadioButton();
             this.labelConfigChangesDisabled = new System.Windows.Forms.Label();
             this.buttonAddNewFileManager = new System.Windows.Forms.Button();
             this.buttonRemoveSelectedFileManager = new System.Windows.Forms.Button();
@@ -129,6 +133,7 @@ namespace LineGrinder
             this.buttonSaveDrillGCode = new System.Windows.Forms.Button();
             this.buttonSaveDrillGCodeAs = new System.Windows.Forms.Button();
             this.textBoxMouseCursorDisplay = new System.Windows.Forms.TextBox();
+            this.bindingSource1 = new System.Windows.Forms.BindingSource(this.components);
             this.tabControl1.SuspendLayout();
             this.tabPagePlot.SuspendLayout();
             this.groupBox1.SuspendLayout();
@@ -140,9 +145,11 @@ namespace LineGrinder
             this.tabPageRefPinGCode.SuspendLayout();
             this.tabPageDrillGCode.SuspendLayout();
             this.tabPageSettings.SuspendLayout();
+            this.groupBoxOutputUnits.SuspendLayout();
             this.groupBoxQuickFileManagerSetup.SuspendLayout();
             this.groupBoxDefaultApplicationUnits.SuspendLayout();
             this.groupBox2.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.bindingSource1)).BeginInit();
             this.SuspendLayout();
             // 
             // tabControl1
@@ -833,6 +840,7 @@ namespace LineGrinder
             // 
             // tabPageSettings
             // 
+            this.tabPageSettings.Controls.Add(this.groupBoxOutputUnits);
             this.tabPageSettings.Controls.Add(this.labelConfigChangesDisabled);
             this.tabPageSettings.Controls.Add(this.buttonAddNewFileManager);
             this.tabPageSettings.Controls.Add(this.buttonRemoveSelectedFileManager);
@@ -851,12 +859,46 @@ namespace LineGrinder
             this.tabPageSettings.ToolTipText = "Configuration Settings";
             this.tabPageSettings.UseVisualStyleBackColor = true;
             // 
+            // groupBoxOutputUnits
+            // 
+            this.groupBoxOutputUnits.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.groupBoxOutputUnits.Controls.Add(this.radioButtonOutputUnitsAreMM);
+            this.groupBoxOutputUnits.Controls.Add(this.radioButtonOutputUnitsAreIN);
+            this.groupBoxOutputUnits.Location = new System.Drawing.Point(748, 163);
+            this.groupBoxOutputUnits.Name = "groupBoxOutputUnits";
+            this.groupBoxOutputUnits.Size = new System.Drawing.Size(200, 58);
+            this.groupBoxOutputUnits.TabIndex = 17;
+            this.groupBoxOutputUnits.TabStop = false;
+            this.groupBoxOutputUnits.Text = "GCode Output Units";
+            // 
+            // radioButtonOutputUnitsAreMM
+            // 
+            this.radioButtonOutputUnitsAreMM.AutoSize = true;
+            this.radioButtonOutputUnitsAreMM.Location = new System.Drawing.Point(21, 37);
+            this.radioButtonOutputUnitsAreMM.Name = "radioButtonOutputUnitsAreMM";
+            this.radioButtonOutputUnitsAreMM.Size = new System.Drawing.Size(95, 17);
+            this.radioButtonOutputUnitsAreMM.TabIndex = 14;
+            this.radioButtonOutputUnitsAreMM.TabStop = true;
+            this.radioButtonOutputUnitsAreMM.Text = "Use Millimeters";
+            this.radioButtonOutputUnitsAreMM.UseVisualStyleBackColor = true;
+            // 
+            // radioButtonOutputUnitsAreIN
+            // 
+            this.radioButtonOutputUnitsAreIN.AutoSize = true;
+            this.radioButtonOutputUnitsAreIN.Location = new System.Drawing.Point(21, 19);
+            this.radioButtonOutputUnitsAreIN.Name = "radioButtonOutputUnitsAreIN";
+            this.radioButtonOutputUnitsAreIN.Size = new System.Drawing.Size(79, 17);
+            this.radioButtonOutputUnitsAreIN.TabIndex = 1;
+            this.radioButtonOutputUnitsAreIN.TabStop = true;
+            this.radioButtonOutputUnitsAreIN.Text = "Use Inches";
+            this.radioButtonOutputUnitsAreIN.UseVisualStyleBackColor = true;
+            // 
             // labelConfigChangesDisabled
             // 
             this.labelConfigChangesDisabled.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.labelConfigChangesDisabled.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.labelConfigChangesDisabled.ForeColor = System.Drawing.Color.DarkRed;
-            this.labelConfigChangesDisabled.Location = new System.Drawing.Point(749, 195);
+            this.labelConfigChangesDisabled.Location = new System.Drawing.Point(749, 238);
             this.labelConfigChangesDisabled.Name = "labelConfigChangesDisabled";
             this.labelConfigChangesDisabled.Size = new System.Drawing.Size(199, 72);
             this.labelConfigChangesDisabled.TabIndex = 16;
@@ -1370,11 +1412,14 @@ namespace LineGrinder
             this.tabPageDrillGCode.ResumeLayout(false);
             this.tabPageDrillGCode.PerformLayout();
             this.tabPageSettings.ResumeLayout(false);
+            this.groupBoxOutputUnits.ResumeLayout(false);
+            this.groupBoxOutputUnits.PerformLayout();
             this.groupBoxQuickFileManagerSetup.ResumeLayout(false);
             this.groupBoxDefaultApplicationUnits.ResumeLayout(false);
             this.groupBoxDefaultApplicationUnits.PerformLayout();
             this.groupBox2.ResumeLayout(false);
             this.groupBox2.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.bindingSource1)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -1482,6 +1527,10 @@ namespace LineGrinder
         private System.Windows.Forms.TextBox textBoxIsoPlotPointsPerIN;
         private System.Windows.Forms.Label labelIsoPlotPointsIN;
         private System.Windows.Forms.Label labelConfigChangesDisabled;
+        private System.Windows.Forms.GroupBox groupBoxOutputUnits;
+        private System.Windows.Forms.RadioButton radioButtonOutputUnitsAreMM;
+        private System.Windows.Forms.RadioButton radioButtonOutputUnitsAreIN;
+        private System.Windows.Forms.BindingSource bindingSource1;
     }
 }
 

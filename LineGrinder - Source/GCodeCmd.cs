@@ -62,6 +62,8 @@ namespace LineGrinder
         private const string DEFAULT_COMMENT_TEXT = "";
         protected string commentText = DEFAULT_COMMENT_TEXT;
 
+        private const float INCHTOMM_CONVERSION_FACTOR = 25.4f;
+
         private int isoPlotCellsInObject = 0;
 
         // sometimes we need to draw the gcodes backwards to get the chaining
@@ -212,7 +214,8 @@ namespace LineGrinder
                 }
             }
 
-            return interimX;
+            // return the val converted to the proper coords
+            return ConvertCoordToDesiredUnitSystem(interimX, stateMachine.SourceUnits, stateMachine.OutputUnits); ;
         }
 
         /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
@@ -234,7 +237,27 @@ namespace LineGrinder
             // hand corner. If the user wanted the GCode output to be defined relative to the center of the plot
             // we must SUBTRACT it from the value here
             float interimY = (yCoordToConvert / stateMachine.IsoPlotPointsPerAppUnit) - stateMachine.GCodeOutputPlotOriginAdjust_Y + (stateMachine.AbsoluteOffset_Y / stateMachine.IsoPlotPointsPerAppUnit);
-            return interimY;
+
+            // return the val converted to the proper coords
+            return ConvertCoordToDesiredUnitSystem(interimY, stateMachine.SourceUnits, stateMachine.OutputUnits);
+        }
+
+        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+        /// <summary>
+        /// Converts the coordinates to a desired system of units (inch or mm). If the 
+        /// coord is already in that system of units it does nothing.
+        /// 
+        /// </summary>
+        /// <param name="coordVal">the coordinate to convert</param>
+        /// <param name="unitsInUse">the units in use by the coordinate</param>
+        /// <param name="unitsWanted">the units wanted</param>
+        protected float ConvertCoordToDesiredUnitSystem(float coordVal, ApplicationUnitsEnum unitsInUse, ApplicationUnitsEnum unitsWanted)
+        {
+            // are we already good?
+            if(unitsInUse == unitsWanted) return coordVal;
+            if (unitsInUse == ApplicationUnitsEnum.INCHES) return coordVal * INCHTOMM_CONVERSION_FACTOR;
+            if (unitsInUse == ApplicationUnitsEnum.MILLIMETERS) return coordVal / INCHTOMM_CONVERSION_FACTOR;
+            throw new NotImplementedException("Unknown coordinate units");
         }
 
         /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=

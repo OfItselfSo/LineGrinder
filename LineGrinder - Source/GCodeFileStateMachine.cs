@@ -46,7 +46,8 @@ namespace LineGrinder
         // these are the toolhead feed rates (etc) currently in operation
         private ToolHeadParameters toolHeadSetup = new ToolHeadParameters(33);
 
-        private ApplicationUnitsEnum gcodeUnits = ApplicationImplicitSettings.DEFAULT_APPLICATION_UNITS;
+        private ApplicationUnitsEnum sourceUnits = ApplicationImplicitSettings.DEFAULT_APPLICATION_UNITS;
+        private ApplicationUnitsEnum outputUnits = ApplicationImplicitSettings.DEFAULT_APPLICATION_UNITS;
 
         /// GCode commands (such as G1) are often relative to the current position of the 
         /// tool head. The values below are the current absolute position of the toolhead
@@ -326,17 +327,33 @@ namespace LineGrinder
 
         /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
         /// <summary>
-        /// Gets/sets the current units in use. 
+        /// Gets/sets the current units in use in the source file . 
         /// </summary>
-        public ApplicationUnitsEnum GCodeUnits
+        public ApplicationUnitsEnum SourceUnits
         {
             get
             {
-                return gcodeUnits;
+                return sourceUnits;
             }
             set
             {
-                gcodeUnits = value;
+                sourceUnits = value;
+            }
+        }
+
+        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+        /// <summary>
+        /// Gets/sets the desired gcode output units. This can be different than the sourceUnits
+        /// </summary>
+        public ApplicationUnitsEnum OutputUnits
+        {
+            get
+            {
+                return outputUnits;
+            }
+            set
+            {
+                outputUnits = value;
             }
         }
 

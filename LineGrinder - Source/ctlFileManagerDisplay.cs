@@ -47,6 +47,7 @@ namespace LineGrinder
         private bool optionsChanged = false;
 
         private ApplicationUnitsEnum defaultApplicationUnits = ApplicationImplicitSettings.DEFAULT_APPLICATION_UNITS;
+        private ApplicationUnitsEnum outputApplicationUnits = ApplicationImplicitSettings.DEFAULT_APPLICATION_UNITS;
 
         /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
         /// <summary>
@@ -74,6 +75,23 @@ namespace LineGrinder
             set
             {
                 defaultApplicationUnits = value;
+            }
+        }
+
+        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+        /// <summary>
+        /// Gets/Sets the currently set Output Application Units as an enum
+        /// </summary>
+        [Browsable(false)]
+        public ApplicationUnitsEnum OutputApplicationUnits
+        {
+            get
+            {
+                return outputApplicationUnits;
+            }
+            set
+            {
+                outputApplicationUnits = value;
             }
         }
 

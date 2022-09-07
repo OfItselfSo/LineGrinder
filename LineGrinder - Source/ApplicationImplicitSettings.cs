@@ -43,6 +43,7 @@ namespace LineGrinder
     {
         // some defines
         public const ApplicationUnitsEnum DEFAULT_APPLICATION_UNITS = ApplicationUnitsEnum.INCHES;
+       
         public const int DEFAULT_VIRTURALCOORD_PER_INCH = 2000;
         public const int DEFAULT_VIRTURALCOORD_PER_MM = 78;
         public const int DEFAULT_ISOPLOTPOINTS_PER_APPUNIT_IN = DEFAULT_VIRTURALCOORD_PER_INCH;
@@ -60,7 +61,15 @@ namespace LineGrinder
             get { return (ApplicationUnitsEnum)this["DefaultApplicationUnits"]; }
             set { this["DefaultApplicationUnits"] = value; }
         }
-        
+
+        [UserScopedSetting()]
+        [DefaultSettingValueAttribute("INCHES")]
+        public ApplicationUnitsEnum OutputApplicationUnits
+        {
+            get { return (ApplicationUnitsEnum)this["OutputApplicationUnits"]; }
+            set { this["OutputApplicationUnits"] = value; }
+        }
+
         [UserScopedSetting()]
         [DefaultSettingValueAttribute("2000")]
         public int IsoPlotPointsPerAppUnitIN

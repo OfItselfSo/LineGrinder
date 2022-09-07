@@ -230,6 +230,8 @@ namespace LineGrinder
             IsoPlotPointsPerAppUnitIN = ApplicationImplicitSettings.DEFAULT_ISOPLOTPOINTS_PER_APPUNIT_IN;
             IsoPlotPointsPerAppUnitMM = ApplicationImplicitSettings.DEFAULT_ISOPLOTPOINTS_PER_APPUNIT_MM;
             DefaultApplicationUnits = ApplicationImplicitSettings.DEFAULT_APPLICATION_UNITS;
+            OutputApplicationUnits = ApplicationImplicitSettings.DEFAULT_APPLICATION_UNITS;
+            
             // this creates is if not present
             ctlFileManagersDisplay1.GetDefaultFileManagerObject();
 
@@ -1390,6 +1392,10 @@ namespace LineGrinder
             textBoxIsoPlotPointsPerMM.Enabled = mmEnabledState;
             buttonDefaultIsoPtsPerIN.Enabled = inchEnabledState;
             buttonDefaultIsoPtsPerMM.Enabled = mmEnabledState;
+
+            groupBoxOutputUnits.Enabled = groupEnabledState;
+            radioButtonOutputUnitsAreIN.Enabled = groupEnabledState;
+            radioButtonOutputUnitsAreMM.Enabled = groupEnabledState;
         }
 
         /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
@@ -1510,6 +1516,24 @@ namespace LineGrinder
             {
                 if (value == ApplicationUnitsEnum.MILLIMETERS) radioButtonDefaultUnitsAreMM.Checked = true;
                 else radioButtonDefaultUnitsAreIN.Checked = true;
+            }
+        }
+
+        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+        /// <summary>
+        /// Gets/Sets the currently set Output Application Units as an enum
+        /// </summary>
+        private ApplicationUnitsEnum OutputApplicationUnits
+        {
+            get
+            {
+                if (radioButtonOutputUnitsAreMM.Checked == true) return ApplicationUnitsEnum.MILLIMETERS;
+                else return ApplicationUnitsEnum.INCHES;
+            }
+            set
+            {
+                if (value == ApplicationUnitsEnum.MILLIMETERS) radioButtonOutputUnitsAreMM.Checked = true;
+                else radioButtonOutputUnitsAreIN.Checked = true;
             }
         }
 
@@ -1787,6 +1811,7 @@ namespace LineGrinder
             DefaultApplicationUnits = ImplicitUserSettings.DefaultApplicationUnits;
             IsoPlotPointsPerAppUnitIN = ImplicitUserSettings.IsoPlotPointsPerAppUnitIN;
             IsoPlotPointsPerAppUnitMM = ImplicitUserSettings.IsoPlotPointsPerAppUnitMM;
+            OutputApplicationUnits = ImplicitUserSettings.OutputApplicationUnits;
 
             checkBoxShowGerberApertures.Checked = ImplicitUserSettings.ShowGerberApertures;
             checkBoxShowGerberCenterLines.Checked = ImplicitUserSettings.ShowGerberCenterLines;
@@ -1817,6 +1842,7 @@ namespace LineGrinder
         {
             // test the Explicit User Configuration items
             if (ImplicitUserSettings.DefaultApplicationUnits != DefaultApplicationUnits) return true;
+            if (ImplicitUserSettings.OutputApplicationUnits != OutputApplicationUnits) return true;
             if (ImplicitUserSettings.IsoPlotPointsPerAppUnitIN != IsoPlotPointsPerAppUnitIN) return true;
             if (ImplicitUserSettings.IsoPlotPointsPerAppUnitMM != IsoPlotPointsPerAppUnitMM) return true;
             if (ctlFileManagersDisplay1.OptionsChanged == true) return true;
@@ -1833,6 +1859,7 @@ namespace LineGrinder
             ImplicitUserSettings.FormSize = this.Size;
             ImplicitUserSettings.MRUFileList = MRUList.FileList;
             ImplicitUserSettings.DefaultApplicationUnits = DefaultApplicationUnits;
+            ImplicitUserSettings.OutputApplicationUnits = OutputApplicationUnits;
             ImplicitUserSettings.IsoPlotPointsPerAppUnitIN = IsoPlotPointsPerAppUnitIN;
             ImplicitUserSettings.IsoPlotPointsPerAppUnitMM = IsoPlotPointsPerAppUnitMM;
             ImplicitUserSettings.ShowGerberApertures = checkBoxShowGerberApertures.Checked;
@@ -5169,8 +5196,9 @@ namespace LineGrinder
 
             // set some configuration option
             gcFile.StateMachine.ToolHeadSetup = gerberFile.StateMachine.ToolHeadSetup;
-            gcFile.StateMachine.GCodeUnits = gerberFile.GerberFileUnits;
+            gcFile.StateMachine.SourceUnits = gerberFile.GerberFileUnits;
             gcFile.StateMachine.IsoPlotPointsPerAppUnit = GetIsoPlotPointsPerAppUnit(gerberFile.GerberFileUnits);
+            gcFile.StateMachine.OutputUnits = OutputApplicationUnits;
 
             // set our min an max values now
             gcFile.XMinValue = gerberFile.MinPlotXCoord;
@@ -5225,8 +5253,9 @@ namespace LineGrinder
 
             // set some configuration option
             gcFile.StateMachine.ToolHeadSetup = excellonFile.StateMachine.ToolHeadSetup;
-            gcFile.StateMachine.GCodeUnits = excellonFile.ExcellonFileUnits;
+            gcFile.StateMachine.SourceUnits = excellonFile.ExcellonFileUnits;
             gcFile.StateMachine.IsoPlotPointsPerAppUnit = GetIsoPlotPointsPerAppUnit(excellonFile.ExcellonFileUnits);
+            gcFile.StateMachine.OutputUnits = OutputApplicationUnits;
 
             // set our min an max values now
             gcFile.XMinValue = excellonFile.MinPlotXCoord;
@@ -5349,7 +5378,7 @@ namespace LineGrinder
             coLine = new GCodeCmd_Comment("");
             gcFile.AddLine(coLine);
 
-            if (gcFile.StateMachine.GCodeUnits ==ApplicationUnitsEnum.INCHES)
+            if (gcFile.StateMachine.OutputUnits == ApplicationUnitsEnum.INCHES)
             {
                 // G20 
                 cwLine = new GCodeCmd_CommandWord(GCodeCmd.GCODEWORD_UNIT_IN, "Use Inches");

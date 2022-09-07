@@ -211,13 +211,13 @@ namespace LineGrinder
                 {
                     // no it is not, send it down to to the CUT depth
                     if (stateMachine.GCodeFileManager.ShowGCodeCmdNumbers == true) sb.Append(stateMachine.BuildNextLineNumberString() + " ");
-                    sb.Append(GCODEWORD_MOVEINLINE + " " + GCODEWORD_ZAXIS + stateMachine.ZCoordForCut.ToString());
+                    sb.Append(GCODEWORD_MOVEINLINE + " " + GCODEWORD_ZAXIS + ConvertCoordToDesiredUnitSystem(stateMachine.ZCoordForCut, stateMachine.SourceUnits, stateMachine.OutputUnits).ToString());
                     stateMachine.LastGCodeZCoord = stateMachine.ZCoordForCut;
                     // do we need to adjust the feedrate?
                     if (stateMachine.LastFeedRate != stateMachine.CurrentZFeedrate)
                     {
                         // yes we do 
-                        sb.Append(" " + GCODEWORD_FEEDRATE + stateMachine.CurrentZFeedrate.ToString());
+                        sb.Append(" " + GCODEWORD_FEEDRATE + ConvertCoordToDesiredUnitSystem(stateMachine.CurrentZFeedrate, stateMachine.SourceUnits, stateMachine.OutputUnits).ToString());
                         // remember this now
                         stateMachine.LastFeedRate = stateMachine.CurrentZFeedrate;
                     }
@@ -257,7 +257,7 @@ namespace LineGrinder
                 if (stateMachine.LastFeedRate != stateMachine.CurrentXYFeedrate)
                 {
                     // yes we do 
-                    sb.Append(" " + GCODEWORD_FEEDRATE+stateMachine.CurrentXYFeedrate.ToString());
+                    sb.Append(" " + GCODEWORD_FEEDRATE+ ConvertCoordToDesiredUnitSystem(stateMachine.CurrentXYFeedrate, stateMachine.SourceUnits, stateMachine.OutputUnits).ToString());
                     // remember this now
                     stateMachine.LastFeedRate = stateMachine.CurrentXYFeedrate;
                 }
@@ -273,13 +273,13 @@ namespace LineGrinder
                 {
                     // no it is not, pull it up to the MOVE distance
                     if (stateMachine.GCodeFileManager.ShowGCodeCmdNumbers == true) sb.Append(stateMachine.BuildNextLineNumberString() + " ");
-                    sb.Append(GCODEWORD_MOVEINLINE + " " + GCODEWORD_ZAXIS + stateMachine.ZCoordForMove.ToString());
+                    sb.Append(GCODEWORD_MOVEINLINE + " " + GCODEWORD_ZAXIS + ConvertCoordToDesiredUnitSystem(stateMachine.ZCoordForMove, stateMachine.SourceUnits, stateMachine.OutputUnits).ToString());
                     stateMachine.LastGCodeZCoord = stateMachine.ZCoordForMove;
                     // do we need to adjust the feedrate?
                     if (stateMachine.LastFeedRate != stateMachine.CurrentZFeedrate)
                     {
                         // yes we do 
-                        sb.Append(" " + GCODEWORD_FEEDRATE + stateMachine.CurrentZFeedrate.ToString());
+                        sb.Append(" " + GCODEWORD_FEEDRATE + ConvertCoordToDesiredUnitSystem(stateMachine.CurrentZFeedrate, stateMachine.SourceUnits, stateMachine.OutputUnits).ToString());
                         // remember this now
                         stateMachine.LastFeedRate = stateMachine.CurrentZFeedrate;
                     }
@@ -295,13 +295,13 @@ namespace LineGrinder
                 
                 // now put our Z down to the cut depth
                 if (stateMachine.GCodeFileManager.ShowGCodeCmdNumbers == true) sb.Append(stateMachine.BuildNextLineNumberString() + " ");
-                sb.Append(GCODEWORD_MOVEINLINE + " " + GCODEWORD_ZAXIS + stateMachine.ZCoordForCut.ToString());
+                sb.Append(GCODEWORD_MOVEINLINE + " " + GCODEWORD_ZAXIS + ConvertCoordToDesiredUnitSystem(stateMachine.ZCoordForCut, stateMachine.SourceUnits, stateMachine.OutputUnits).ToString());
                 stateMachine.LastGCodeZCoord = stateMachine.ZCoordForCut;
                 // do we need to adjust the feedrate?
                 if (stateMachine.LastFeedRate != stateMachine.CurrentZFeedrate)
                 {
                     // yes we do 
-                    sb.Append(" " + GCODEWORD_FEEDRATE + stateMachine.CurrentZFeedrate.ToString());
+                    sb.Append(" " + GCODEWORD_FEEDRATE + ConvertCoordToDesiredUnitSystem(stateMachine.CurrentZFeedrate, stateMachine.SourceUnits, stateMachine.OutputUnits).ToString());
                     // remember this now
                     stateMachine.LastFeedRate = stateMachine.CurrentZFeedrate;
                 }
@@ -349,7 +349,7 @@ namespace LineGrinder
                 if (stateMachine.LastFeedRate != stateMachine.CurrentXYFeedrate)
                 {
                     // yes we do 
-                    sb.Append(" " + GCODEWORD_FEEDRATE + stateMachine.CurrentXYFeedrate.ToString());
+                    sb.Append(" " + GCODEWORD_FEEDRATE + ConvertCoordToDesiredUnitSystem(stateMachine.CurrentXYFeedrate, stateMachine.SourceUnits, stateMachine.OutputUnits).ToString());
                     // remember this now
                     stateMachine.LastFeedRate = stateMachine.CurrentXYFeedrate;
                 }
