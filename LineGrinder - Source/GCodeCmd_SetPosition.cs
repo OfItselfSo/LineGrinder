@@ -124,6 +124,14 @@ namespace LineGrinder
             float gY0OffsetCompensated_Raw = (float)Math.Round(ConvertIsoPlotCoordToGCodeOutputCoord_Y(stateMachine, Y0), 3);
             float gY0OffsetCompensated_Rounded = (float)Math.Round(gY0OffsetCompensated_Raw, 3);
 
+            // set these now. This is a bit of a hack. However this appears to be the first point that the GCode offset
+            // is both definitively known and calculated. So we record it here. It does mean that if the SetPosition GCode
+            // is not created then the rezero factor will not be set
+            stateMachine.RezeroFactor_X = gX0OffsetCompensated_Rounded;
+            stateMachine.RezeroFactor_Y = gY0OffsetCompensated_Rounded;
+            gX0OffsetCompensated_Rounded = 0;
+            gY0OffsetCompensated_Rounded = 0;
+
             // do we want line numbers
             if (stateMachine.GCodeFileManager.ShowGCodeCmdNumbers == true) sb.Append(stateMachine.BuildNextLineNumberString() + " ");
             // Now set the start position

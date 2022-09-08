@@ -215,7 +215,12 @@ namespace LineGrinder
             }
 
             // return the val converted to the proper coords
-            return ConvertCoordToDesiredUnitSystem(interimX, stateMachine.SourceUnits, stateMachine.OutputUnits); ;
+            interimX = ConvertCoordToDesiredUnitSystem(interimX, stateMachine.SourceUnits, stateMachine.OutputUnits);
+
+            // apply the rezero factor if needed and return
+            if (stateMachine.ApplyRezeroFactor == true) return interimX - stateMachine.RezeroFactor_X;
+            else return interimX;
+
         }
 
         /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
@@ -239,7 +244,11 @@ namespace LineGrinder
             float interimY = (yCoordToConvert / stateMachine.IsoPlotPointsPerAppUnit) - stateMachine.GCodeOutputPlotOriginAdjust_Y + (stateMachine.AbsoluteOffset_Y / stateMachine.IsoPlotPointsPerAppUnit);
 
             // return the val converted to the proper coords
-            return ConvertCoordToDesiredUnitSystem(interimY, stateMachine.SourceUnits, stateMachine.OutputUnits);
+            interimY = ConvertCoordToDesiredUnitSystem(interimY, stateMachine.SourceUnits, stateMachine.OutputUnits);
+
+            // apply the rezero factor if needed and return
+            if (stateMachine.ApplyRezeroFactor == true) return interimY - stateMachine.RezeroFactor_Y;
+            else return interimY;
         }
 
         /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=

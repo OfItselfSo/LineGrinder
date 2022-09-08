@@ -56,6 +56,12 @@ namespace LineGrinder
         private float lastGCodeYCoord = 0;
         private float lastGCodeZCoord = 0;
 
+        // this indicates if we want to apply the rezero factor to the output gcode. It is always
+        // true unless it becomes necessary to add this as a "settable" option
+        private bool applyRezeroFactor = true;
+        private float rezeroFactor_X = 0f;
+        private float rezeroFactor_Y = 0f;
+
         // this is the last specified feedrate in the gcode file. This is 
         private float lastFeedRate = 0;
 
@@ -626,6 +632,54 @@ namespace LineGrinder
             get
             {
                 return ToolHeadSetup.ZClearLevel;
+            }
+        }
+
+        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+        /// <summary>
+        /// Gets/Sets the current rezeroFactor_X
+        /// </summary>
+        public float RezeroFactor_X
+        {
+            get
+            {
+                return rezeroFactor_X;
+            }
+            set
+            {
+                rezeroFactor_X = value;
+            }
+        }
+
+        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+        /// <summary>
+        /// Gets/Sets the current rezeroFactor_Y
+        /// </summary>
+        public float RezeroFactor_Y
+        {
+            get
+            {
+                return rezeroFactor_Y;
+            }
+            set
+            {
+                rezeroFactor_Y = value;
+            }
+        }
+
+        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+        /// <summary>
+        /// Gets/Sets the flag indicating if we apply the rezero factors
+        /// </summary>
+        public bool ApplyRezeroFactor
+        {
+            get
+            {
+                return applyRezeroFactor;
+            }
+            set
+            {
+                applyRezeroFactor = value;
             }
         }
 
