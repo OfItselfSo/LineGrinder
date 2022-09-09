@@ -132,6 +132,23 @@ namespace LineGrinder
         public const string KNOWN_EXT_EXEL_DRILL_DSPARK = "- [Through Hole].drl";
 
         // ####################################################################
+        // ##### Ignore Pad category variables
+        // ####################################################################
+        #region Ignore Pad category variables
+
+        // this determines whether we ignore certain types of pad
+        public const bool DEFAULT_IGNOREPAD_ENABLED = false;
+        [DataMember]
+        private bool ignorePadEnabled = DEFAULT_IGNOREPAD_ENABLED;
+
+        // We ignore pads with apertures of this size
+        public const float DEFAULT_IGNOREPAD_DIA = 0.01f;
+        [DataMember]
+        private float ignorePadDiameter = DEFAULT_IGNOREPAD_DIA;
+
+        #endregion 
+
+        // ####################################################################
         // ##### Isolation Cut category variables
         // ####################################################################
         #region Isolation Cut category variables
@@ -573,6 +590,10 @@ namespace LineGrinder
             if (bedFlatteningMillWidth != DEFAULT_BEDFLATTENINGMILL_WIDTH) return false;
             if (bedFlatteningMargin != DEFAULT_BEDFLATTENING_MARGIN) return false;
 
+            // ignore pad
+            if (ignorePadEnabled != DEFAULT_IGNOREPAD_ENABLED) return false;
+            if (ignorePadDiameter != DEFAULT_IGNOREPAD_DIA) return false;
+
             // iso cuts
             if (isoGCodeFileOutputExtension != DEFAULT_ISOGCODEFILE_OUTPUTEXTENSION) return false;
             if (isoFlipMode != DEFAULT_ISOFLIP_MODE) return false;
@@ -660,6 +681,10 @@ namespace LineGrinder
             bedFlatteningMillWidth = DEFAULT_BEDFLATTENINGMILL_WIDTH;
             bedFlatteningMargin = DEFAULT_BEDFLATTENING_MARGIN;
             edgeMillingGCodeEnabled = DEFAULT_EDGEMILLINGGCODE_ENABLED;
+
+            // ignore pad
+            ignorePadEnabled = DEFAULT_IGNOREPAD_ENABLED;
+            ignorePadDiameter = DEFAULT_IGNOREPAD_DIA;
 
             // isocuts
             isoFlipMode = DEFAULT_ISOFLIP_MODE;
@@ -763,6 +788,10 @@ namespace LineGrinder
             bedFlatteningMillWidth = (bedFlatteningMillWidth * INCHTOMMSCALERx10) / 10;
             bedFlatteningMargin = (bedFlatteningMargin * INCHTOMMSCALERx10) / 10;
 
+            // ignore pad
+            // n/a ignorePadEnabled
+            ignorePadDiameter = (ignorePadDiameter * INCHTOMMSCALERx10) / 10;
+
             //isocuts
             // n/a isoGCodeFileOutputExtension 
             // n/a isoFlipMode 
@@ -844,6 +873,10 @@ namespace LineGrinder
             bedFlatteningXYFeedRate = (bedFlatteningXYFeedRate * 10) / INCHTOMMSCALERx10;
             bedFlatteningMillWidth = (bedFlatteningMillWidth * 10) / INCHTOMMSCALERx10;
             bedFlatteningMargin = (bedFlatteningMargin * 10) / INCHTOMMSCALERx10;
+
+            // ignore pad
+            // n/a ignorePadEnabled
+            ignorePadDiameter = (ignorePadDiameter * 10) / INCHTOMMSCALERx10;
 
             //isocuts
             // n/a isoGCodeFileOutputExtension 
@@ -1601,6 +1634,53 @@ namespace LineGrinder
             {
                 bedFlatteningMargin = value;
                 if (bedFlatteningMargin <= 0) bedFlatteningMargin = DEFAULT_BEDFLATTENING_MARGIN;
+            }
+        }
+
+        #endregion
+
+        // ####################################################################
+        // ##### Isolation Cut category items
+        // ####################################################################
+        #region Ignore Pad category items
+
+        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+        /// <summary>
+        /// Gets/Sets the ignore pad flag 
+        /// </summary>
+        [DescriptionAttribute("This option indicates that the software will ignore pads based on certain criteria.")]
+        [CategoryAttribute("Ignore Pad")]
+        [ReadOnlyAttribute(false)]
+        [BrowsableAttribute(true)]
+        public bool IgnorePadEnabled
+        {
+            get
+            {
+                return ignorePadEnabled;
+            }
+            set
+            {
+                ignorePadEnabled = value;
+            }
+        }
+
+        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+        /// <summary>
+        /// Gets/Sets the ignorePadDiameter. 
+        /// </summary>
+        [DescriptionAttribute("Pads of this diameter will be ignored and will not be present in the GCode.")]
+        [CategoryAttribute("Ignore Pad")]
+        [ReadOnlyAttribute(false)]
+        [BrowsableAttribute(true)]
+        public float IgnorePadDiameter
+        {
+            get
+            {
+                return ignorePadDiameter;
+            }
+            set
+            {
+                ignorePadDiameter = value;
             }
         }
 

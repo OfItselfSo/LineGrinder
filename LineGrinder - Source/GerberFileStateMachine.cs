@@ -444,6 +444,29 @@ namespace LineGrinder
 
         /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
         /// <summary>
+        /// Tests to see if the specfied values match an Ignore pad
+        /// </summary>
+        /// <param name="x0">the xcoord</param>
+        /// <param name="y0">the ycoord</param>
+        /// <param name="padWidth">the padwidth</param>
+        public bool IsThisAnIgnorePad(float x0, float y0, float padWidth)
+        {
+            // just run through and test, not very efficient
+            foreach (GerberPad padObj in PadCenterPointList)
+            {
+                if (padObj.IgnoreDueToSize == false) continue;
+                if (padObj.X0 != x0) continue;
+                if (padObj.Y0 != y0) continue;
+                if (padObj.PadDiameter != padWidth) continue;
+                // this is a match - say so
+                return true;
+            }
+            return false;
+        }
+
+
+        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+        /// <summary>
         /// Gets/Sets the  gerber plot line/foreground color.
         /// </summary>
         public Color GerberForegroundColor

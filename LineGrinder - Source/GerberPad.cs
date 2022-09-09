@@ -36,6 +36,8 @@ namespace LineGrinder
         private float padDiameter = DEFAULT_PAD_DIAMETER;
         private const bool DEFAULT_IS_REFPIN = false;
         private bool isRefPin = DEFAULT_IS_REFPIN;
+        private const bool DEFAULT_IGNOREDUETOSIZE = false;
+        private bool ignoreDueToSize = DEFAULT_IGNOREDUETOSIZE;
 
         /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
         /// <summary>
@@ -127,6 +129,22 @@ namespace LineGrinder
 
         /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
         /// <summary>
+        /// Gets/Sets the ignoreDueToSize flag
+        /// </summary>
+        public bool IgnoreDueToSize
+        {
+            get
+            {
+                return ignoreDueToSize;
+            }
+            set
+            {
+                ignoreDueToSize = value;
+            }
+        }
+
+        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+        /// <summary>
         /// returns a deep clone of the input object
         /// </summary>
         /// <param name="gcodePadObj">the object to clone</param>
@@ -136,6 +154,7 @@ namespace LineGrinder
             GerberPad tmpObj = new GerberPad();
             tmpObj.PadDiameter = gcodePadObj.PadDiameter;
             tmpObj.IsRefPin = gcodePadObj.IsRefPin;
+            tmpObj.IgnoreDueToSize = gcodePadObj.IgnoreDueToSize;
             tmpObj.X0 = gcodePadObj.X0;
             tmpObj.Y0 = gcodePadObj.Y0;
             return tmpObj;

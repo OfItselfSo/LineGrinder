@@ -498,6 +498,7 @@ namespace LineGrinder
             bool isoCutRefPinROState = false;
             bool edgeMillROState = false;
             bool excellonROState = false;
+            bool ignorePadROState = false;
             //      bool textLabelROState = false;
 
             if (optObject == null) return;
@@ -514,6 +515,7 @@ namespace LineGrinder
             {
                 case FileManager.OperationModeEnum.IsolationCut:
                     isoCutROState = false;
+                    ignorePadROState = false;
                     isoCutRefPinROState = false;
                     edgeMillROState = true;
                     excellonROState = true;
@@ -521,6 +523,7 @@ namespace LineGrinder
                     break;
                 case FileManager.OperationModeEnum.BoardEdgeMill:
                     isoCutROState = true;
+                    ignorePadROState = true;
                     isoCutRefPinROState = true;
                     edgeMillROState = false;
                     excellonROState = true;
@@ -528,6 +531,7 @@ namespace LineGrinder
                     break;
                 case FileManager.OperationModeEnum.TextAndLabels:
                     isoCutROState = true;
+                    ignorePadROState = true;
                     isoCutRefPinROState = true;
                     edgeMillROState = true;
                     excellonROState = true;
@@ -535,6 +539,7 @@ namespace LineGrinder
                     break;
                 case FileManager.OperationModeEnum.Excellon:
                     isoCutROState = true;
+                    ignorePadROState = false;
                     isoCutRefPinROState = true;
                     edgeMillROState = true;
                     excellonROState = false;
@@ -542,12 +547,18 @@ namespace LineGrinder
                     break;
                 default:
                     isoCutROState = false;
+                    ignorePadROState = true;
                     isoCutRefPinROState = false;
                     edgeMillROState = false;
                     excellonROState = false;
                 //    textLabelROState = false;
                     break;
             }
+
+            // ignore pad
+            SetPropertyBrowsableState(optObject, "IgnorePadEnabled", ignorePadROState);
+            SetPropertyBrowsableState(optObject, "IgnorePadDiameter", ignorePadROState);
+
             // isocut
             SetPropertyBrowsableState(optObject, "IsoGCodeFileOutputExtension", isoCutROState);
             SetPropertyBrowsableState(optObject, "IsoFlipMode", isoCutROState);

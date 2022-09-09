@@ -1648,6 +1648,38 @@ namespace LineGrinder
 
         /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
         /// <summary>
+        /// Flags all of the ignore pin pads in the PadCenterPointList of this 
+        /// object 
+        /// </summary>
+        /// <param name="errStr">an error string</param>
+        /// <returns>z success, -ve err not reported, +ve err reported</returns>
+        public int SetIgnorePins(ref string errStr)
+        {
+            errStr = "";
+
+            LogMessage("SetIgnorePins called");
+
+            // can we find any ignore pins? The PadCenterPoint list will have these from the Gerber file
+            if (StateMachine.PadCenterPointList.Count == 0) return 0;
+
+            // ok we have some pads have we got any of the required size?
+            List<GerberPad> refPadsList = new List<GerberPad>();
+            foreach (GerberPad padObj in StateMachine.PadCenterPointList)
+            {
+                //DebugMessage("padObj.PadDiameter = " + padObj.PadDiameter.ToString());
+                // reset it 
+                padObj.IgnoreDueToSize = false;
+                // test it, round to 3 decimals that should be sufficent
+                if (Math.Round(padObj.PadDiameter, 3) != Math.Round(StateMachine.GerberFileManager.IgnorePadDiameter, 3)) continue;
+                // mark it
+                padObj.IgnoreDueToSize = true;
+            }
+            LogMessage("SetIgnorePins successful completion");
+            return 0;
+        }
+
+        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+        /// <summary>
         /// Gets/Sets the current X Coord Origin Adjust value. These are compensating
         /// values we apply to the current coordinates in order to make the
         /// smallest X coordinate specified in the plot approximately zero but 

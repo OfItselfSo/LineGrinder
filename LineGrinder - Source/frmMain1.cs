@@ -4872,9 +4872,16 @@ namespace LineGrinder
 
             LogMessage("GerberFile newXMax=" + tmpXMax.ToString() + ", newYMax=" + tmpYMax.ToString() + ", newXMin=" + tmpXMin.ToString() + ", newYMin=" + tmpYMin);
 
-            // in certain operation modes we might have a set of reference pins
+            // in certain operation modes we might have a set of reference pins or ignore pins
             if (outputGerberFile.GerberFileManager.OperationMode == FileManager.OperationModeEnum.IsolationCut)
             {
+                // now ignore pins
+                if (outputGerberFile.GerberFileManager.IgnorePadEnabled == true)
+                {
+                    outputGerberFile.SetIgnorePins(ref errStr);
+                }
+
+                // now reference pins
                 if (outputGerberFile.GerberFileManager.ReferencePinGCodeEnabled == true)
                 {
                     retInt = outputGerberFile.SetReferencePins(ref errStr);
@@ -6047,7 +6054,9 @@ namespace LineGrinder
                     {
                         // we do not do reference pins
                         if (padObj.IsRefPin == true) continue;
-                        // generate the code, the hard coded TOUCHDOWN_HOLE_DIAMETER is just for display
+                        // we do not do ignore pins
+                        if (padObj.IgnoreDueToSize == true) continue;
+                        // generate the code
                         int tmpX = (int)(gerberFileToConvert.ConvertXCoordToOriginCompensatedFlipped(padObj.X0) * gerberFileToConvert.StateMachine.IsoPlotPointsPerAppUnit);
                         int tmpY = (int)(gerberFileToConvert.ConvertYCoordToOriginCompensatedFlipped(padObj.Y0) * gerberFileToConvert.StateMachine.IsoPlotPointsPerAppUnit);
 

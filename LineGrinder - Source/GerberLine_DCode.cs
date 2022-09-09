@@ -1204,6 +1204,11 @@ namespace LineGrinder
                 {
                     // skip it, we do not isolation route refpin pads
                 }
+                // are we on one of the ignore pads? - we do not isocut these
+                else if (stateMachine.IsThisAnIgnorePad(DCodeCoord_X, DCodeCoord_Y, stateMachine.CurrentAperture.GetApertureDimension()) == true)
+                {
+                    // skip it, we do not isolation route ignore pads
+                }
                 else
                 {
                     // we only flash if not contour drawing, should never see flashes in a contour 
