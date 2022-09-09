@@ -495,6 +495,7 @@ namespace LineGrinder
         private void SetPropertyStateAppropriateToOperationMode(FileManager optObject)
         {
             bool isoCutROState = false;
+            bool isoCutRefPinROState = false;
             bool edgeMillROState = false;
             bool excellonROState = false;
             //      bool textLabelROState = false;
@@ -513,30 +514,35 @@ namespace LineGrinder
             {
                 case FileManager.OperationModeEnum.IsolationCut:
                     isoCutROState = false;
+                    isoCutRefPinROState = false;
                     edgeMillROState = true;
                     excellonROState = true;
                //     textLabelROState = true;
                     break;
                 case FileManager.OperationModeEnum.BoardEdgeMill:
                     isoCutROState = true;
+                    isoCutRefPinROState = true;
                     edgeMillROState = false;
                     excellonROState = true;
                     //textLabelROState = true;
                     break;
                 case FileManager.OperationModeEnum.TextAndLabels:
                     isoCutROState = true;
+                    isoCutRefPinROState = true;
                     edgeMillROState = true;
                     excellonROState = true;
                     //    textLabelROState = false;
                     break;
                 case FileManager.OperationModeEnum.Excellon:
                     isoCutROState = true;
+                    isoCutRefPinROState = true;
                     edgeMillROState = true;
                     excellonROState = false;
                     //    textLabelROState = false;
                     break;
                 default:
                     isoCutROState = false;
+                    isoCutRefPinROState = false;
                     edgeMillROState = false;
                     excellonROState = false;
                 //    textLabelROState = false;
@@ -581,14 +587,14 @@ namespace LineGrinder
             SetPropertyBrowsableState(optObject, "BedFlatteningMargin", edgeMillROState);
 
             // reference pins
-            SetPropertyBrowsableState(optObject, "ReferencePinGCodeEnabled", isoCutROState);
-            SetPropertyBrowsableState(optObject, "ReferencePinsGCodeFileOutputExtension", isoCutROState);
-            SetPropertyBrowsableState(optObject, "ReferencePinsZDrillDepth", isoCutROState);
-            SetPropertyBrowsableState(optObject, "ReferencePinsZClearLevel", isoCutROState);
-            SetPropertyBrowsableState(optObject, "ReferencePinsZFeedRate", isoCutROState);
-            SetPropertyBrowsableState(optObject, "ReferencePinsXYFeedRate", isoCutROState);
-            SetPropertyBrowsableState(optObject, "ReferencePinsMaxNumber", isoCutROState);
-            SetPropertyBrowsableState(optObject, "ReferencePinPadDiameter", isoCutROState);
+            SetPropertyBrowsableState(optObject, "ReferencePinGCodeEnabled", isoCutRefPinROState);
+            SetPropertyBrowsableState(optObject, "ReferencePinsGCodeFileOutputExtension", isoCutRefPinROState);
+            SetPropertyBrowsableState(optObject, "ReferencePinsZDrillDepth", isoCutRefPinROState);
+            SetPropertyBrowsableState(optObject, "ReferencePinsZClearLevel", isoCutRefPinROState);
+            SetPropertyBrowsableState(optObject, "ReferencePinsZFeedRate", isoCutRefPinROState);
+            SetPropertyBrowsableState(optObject, "ReferencePinsXYFeedRate", isoCutRefPinROState);
+            SetPropertyBrowsableState(optObject, "ReferencePinsMaxNumber", isoCutRefPinROState);
+            SetPropertyBrowsableState(optObject, "ReferencePinPadDiameter", isoCutRefPinROState);
 
             // excellon
             SetPropertyBrowsableState(optObject, "DrillingCoordinateZerosMode", excellonROState);
@@ -599,7 +605,10 @@ namespace LineGrinder
             SetPropertyBrowsableState(optObject, "DrillingZFeedRate", excellonROState);
             SetPropertyBrowsableState(optObject, "DrillingXYFeedRate", excellonROState);
             SetPropertyBrowsableState(optObject, "DrillingGCodeEnabled", excellonROState);
-            
+            SetPropertyBrowsableState(optObject, "DrillingReferencePinsEnabled", excellonROState);
+            SetPropertyBrowsableState(optObject, "DrillingReferencePinDiameter", excellonROState);
+            SetPropertyBrowsableState(optObject, "DrillingReferencePinsMaxNumber", excellonROState);
+           
             // text and labels
             return;
         }

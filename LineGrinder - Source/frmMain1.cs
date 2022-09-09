@@ -5278,6 +5278,11 @@ namespace LineGrinder
             // always give it the flip Axis
             gcFile.GCodeMirrorAxisPlotCoord_X = excellonFile.MidPlotXCoord;
 
+            // are we actually flipping 
+   //         DebugTODO("remove this");
+            //      gcFile.MirrorOnConversionToGCode = gerberFile.FlipMode;
+       //     gcFile.MirrorOnConversionToGCode = IsoFlipModeEnum.X_Flip;
+
             // get absolute offsets
             float absoluteOffset_X = 0;
             float absoluteOffset_Y = 0;

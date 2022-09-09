@@ -263,25 +263,6 @@ namespace LineGrinder
             }
         }
 
-/*
-        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
-        /// <summary>
-        /// Gets/Sets the pad center point list. Never get/sets a null value
-        /// </summary>
-        public List<GCodePad> PadCenterPointList
-        {
-            get
-            {
-                if (padCenterPointList == null) padCenterPointList = new List<GCodePad>();
-                return padCenterPointList;
-            }
-            set
-            {
-                padCenterPointList = value;
-                if (padCenterPointList == null) padCenterPointList = new List<GCodePad>();
-            }
-        }
-*/
         /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
         /// <summary>
         /// Resets the gcode file to the defaults necessary for emitting the GCode file
