@@ -499,6 +499,7 @@ namespace LineGrinder
             bool edgeMillROState = false;
             bool excellonROState = false;
             bool ignorePadROState = false;
+            bool ignoreDrillROState = false;
             //      bool textLabelROState = false;
 
             if (optObject == null) return;
@@ -516,6 +517,7 @@ namespace LineGrinder
                 case FileManager.OperationModeEnum.IsolationCut:
                     isoCutROState = false;
                     ignorePadROState = false;
+                    ignoreDrillROState = true;
                     isoCutRefPinROState = false;
                     edgeMillROState = true;
                     excellonROState = true;
@@ -524,6 +526,7 @@ namespace LineGrinder
                 case FileManager.OperationModeEnum.BoardEdgeMill:
                     isoCutROState = true;
                     ignorePadROState = true;
+                    ignoreDrillROState = true;
                     isoCutRefPinROState = true;
                     edgeMillROState = false;
                     excellonROState = true;
@@ -532,6 +535,7 @@ namespace LineGrinder
                 case FileManager.OperationModeEnum.TextAndLabels:
                     isoCutROState = true;
                     ignorePadROState = true;
+                    ignoreDrillROState = true;
                     isoCutRefPinROState = true;
                     edgeMillROState = true;
                     excellonROState = true;
@@ -539,7 +543,8 @@ namespace LineGrinder
                     break;
                 case FileManager.OperationModeEnum.Excellon:
                     isoCutROState = true;
-                    ignorePadROState = false;
+                    ignorePadROState = true;
+                    ignoreDrillROState = false;
                     isoCutRefPinROState = true;
                     edgeMillROState = true;
                     excellonROState = false;
@@ -548,6 +553,7 @@ namespace LineGrinder
                 default:
                     isoCutROState = false;
                     ignorePadROState = true;
+                    ignoreDrillROState = true;
                     isoCutRefPinROState = false;
                     edgeMillROState = false;
                     excellonROState = false;
@@ -558,6 +564,10 @@ namespace LineGrinder
             // ignore pad
             SetPropertyBrowsableState(optObject, "IgnorePadEnabled", ignorePadROState);
             SetPropertyBrowsableState(optObject, "IgnorePadDiameter", ignorePadROState);
+
+            // ignore drill
+            SetPropertyBrowsableState(optObject, "IgnoreDrillEnabled", ignoreDrillROState);
+            SetPropertyBrowsableState(optObject, "IgnoreDrillDiameter", ignoreDrillROState);
 
             // isocut
             SetPropertyBrowsableState(optObject, "IsoGCodeFileOutputExtension", isoCutROState);

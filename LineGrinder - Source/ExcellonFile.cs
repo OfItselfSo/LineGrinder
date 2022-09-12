@@ -923,8 +923,42 @@ namespace LineGrinder
             // OK, everything looks good, the reference pin pads seem to be setup correctly
             LogMessage("SetReferencePins successful completion");
             return 0;
-
         }
+
+        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+        /// <summary>
+        /// Flags the tools that are ignored due to user settings
+        /// </summary>
+        /// <param name="errStr">an error string</param>
+        /// <returns>z success, -ve err not reported, +ve err reported</returns>
+        public int SetIgnoreTools(ref string errStr)
+        {
+            errStr = "";
+
+            LogMessage("SetIgnoreTools called");
+
+            // can we find any tools? 
+            if (StateMachine.ToolCollection.Count == 0) return 0;
+
+            // ok we have some tools have we got any of the required size?
+            List<GerberPad> refPadsList = new List<GerberPad>();
+            foreach (ExcellonLine_ToolTable toolObj in StateMachine.ToolCollection)
+            {
+                //DebugMessage("padObj.PadDiameter = " + padObj.PadDiameter.ToString());
+                // reset it 
+                toolObj.SkipThisTool = false;
+                if (StateMachine.ExcellonFileManager.IgnoreDrillEnabled == true)
+                {
+                    // test it, round to 3 decimals that should be sufficent
+                    if (Math.Round(toolObj.DrillDiameter, 3) != Math.Round(StateMachine.ExcellonFileManager.IgnoreDrillDiameter, 3)) continue;
+                    // mark it
+                    toolObj.SkipThisTool = true;
+                }
+            }
+            LogMessage("SetIgnoreTools successful completion");
+            return 0;
+        }
+
         /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
         /// <summary>
         /// Gets/Sets the current X Coord Origin Adjust value. These are compensating

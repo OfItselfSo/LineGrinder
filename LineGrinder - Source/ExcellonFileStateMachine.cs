@@ -75,6 +75,9 @@ namespace LineGrinder
         // our collection of tool definitions
         List<ExcellonLine_ToolTable> toolCollection = new List<ExcellonLine_ToolTable>();
 
+        // the last tool used
+        private ExcellonLine_ToolTable currentTool = null;
+
         // this is the color of the Excellon Plot lines
         private Color plotLineColor = ApplicationColorManager.DEFAULT_EXCELLONPLOT_LINE_COLOR;
 
@@ -93,6 +96,22 @@ namespace LineGrinder
         /// </summary>
         public ExcellonFileStateMachine()
         {
+        }
+
+        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+        /// <summary>
+        /// Gets/Sets the last tool used. Can be null
+        /// </summary>
+        public ExcellonLine_ToolTable CurrentTool
+        {
+            get
+            {
+                return currentTool;
+            }
+            set
+            {
+                currentTool = value;
+            }
         }
 
         /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=

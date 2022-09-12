@@ -140,16 +140,22 @@ namespace LineGrinder
         public override int GetGCodeCmd(ExcellonFileStateMachine stateMachine, out List<GCodeCmd> gcLineList)
         {
             GCodeCmd_ToolChange tcLine;
-            ExcellonLine_ToolTable toolTabObj = null;
             string commentStr = null;
 
             // see if we can find the tool table object for this change
-            toolTabObj = stateMachine.GetToolTableObjectByToolNumber(toolNumber);
-            if (toolTabObj != null)
+            stateMachine.CurrentTool = stateMachine.GetToolTableObjectByToolNumber(toolNumber);
+            if (stateMachine.CurrentTool != null)
             {
-                commentStr = "ToolChange, ToolNum: "+toolNumber.ToString()+ ", Drill Dia:"+toolTabObj.DrillDiameter.ToString();
+
+                if (stateMachine.CurrentTool.SkipThisTool == true)
+                {
+                    gcLineList = new List<GCodeCmd>();
+                    return 0;
+                }
+
+                commentStr = "ToolChange, ToolNum: "+toolNumber.ToString()+ ", Drill Dia:"+ stateMachine.CurrentTool.DrillDiameter.ToString();
                 // also remember this
-                stateMachine.LastDrillWidth = toolTabObj.DrillDiameter;
+                stateMachine.LastDrillWidth = stateMachine.CurrentTool.DrillDiameter;
             }
             gcLineList = new List<GCodeCmd>();
             tcLine = new GCodeCmd_ToolChange(toolNumber);

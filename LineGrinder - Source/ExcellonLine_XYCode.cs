@@ -300,6 +300,16 @@ namespace LineGrinder
             GCodeCmd_RapidMove rmLine = null;
             gcLineList = new List<GCodeCmd>();
 
+            if (stateMachine.CurrentTool != null)
+            {
+                if (stateMachine.CurrentTool.SkipThisTool==true)
+                {
+                    gcLineList = new List<GCodeCmd>();
+                    return 0;
+                }
+            }
+
+
             int x0 = GetIsoPlotCoordOriginCompensated_X(stateMachine);
             int y0 = GetIsoPlotCoordOriginCompensated_Y(stateMachine);
 

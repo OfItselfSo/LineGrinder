@@ -33,6 +33,7 @@ namespace LineGrinder
 
         private int toolNumber = 0;
         private float drillDiameter = 0;
+        private bool skipThisTool = false;
 
         /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
         /// <summary>
@@ -47,7 +48,23 @@ namespace LineGrinder
 
         /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
         /// <summary>
-        /// Gets/Sets the current D Code value
+        /// Gets/Sets the skp this tool flag
+        /// </summary>
+        public bool SkipThisTool
+        {
+            get
+            {
+                return skipThisTool;
+            }
+            set
+            {
+                skipThisTool = value;
+            }
+        }
+
+        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+        /// <summary>
+        /// Gets/Sets the current tool number
         /// </summary>
         public int ToolNumber
         {

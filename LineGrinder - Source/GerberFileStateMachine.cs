@@ -464,7 +464,6 @@ namespace LineGrinder
             return false;
         }
 
-
         /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
         /// <summary>
         /// Gets/Sets the  gerber plot line/foreground color.

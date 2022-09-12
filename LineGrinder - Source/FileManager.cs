@@ -149,6 +149,23 @@ namespace LineGrinder
         #endregion 
 
         // ####################################################################
+        // ##### Ignore Drill category variables
+        // ####################################################################
+        #region Ignore Drill category variables
+
+        // this determines whether we ignore certain types of drill
+        public const bool DEFAULT_IGNOREDRILL_ENABLED = false;
+        [DataMember]
+        private bool ignoreDrillEnabled = DEFAULT_IGNOREDRILL_ENABLED;
+
+        // We ignore drillss with apertures of this size
+        public const float DEFAULT_IGNOREDRILL_DIA = 0.005f;
+        [DataMember]
+        private float ignoreDrillDiameter = DEFAULT_IGNOREDRILL_DIA;
+
+        #endregion 
+
+        // ####################################################################
         // ##### Isolation Cut category variables
         // ####################################################################
         #region Isolation Cut category variables
@@ -594,6 +611,10 @@ namespace LineGrinder
             if (ignorePadEnabled != DEFAULT_IGNOREPAD_ENABLED) return false;
             if (ignorePadDiameter != DEFAULT_IGNOREPAD_DIA) return false;
 
+            // ignore drill
+            if (ignoreDrillEnabled != DEFAULT_IGNOREDRILL_ENABLED) return false;
+            if (ignoreDrillDiameter != DEFAULT_IGNOREDRILL_DIA) return false;
+
             // iso cuts
             if (isoGCodeFileOutputExtension != DEFAULT_ISOGCODEFILE_OUTPUTEXTENSION) return false;
             if (isoFlipMode != DEFAULT_ISOFLIP_MODE) return false;
@@ -685,6 +706,10 @@ namespace LineGrinder
             // ignore pad
             ignorePadEnabled = DEFAULT_IGNOREPAD_ENABLED;
             ignorePadDiameter = DEFAULT_IGNOREPAD_DIA;
+
+            // ignore drill
+            ignoreDrillEnabled = DEFAULT_IGNOREDRILL_ENABLED;
+            ignoreDrillDiameter = DEFAULT_IGNOREDRILL_DIA;
 
             // isocuts
             isoFlipMode = DEFAULT_ISOFLIP_MODE;
@@ -792,6 +817,10 @@ namespace LineGrinder
             // n/a ignorePadEnabled
             ignorePadDiameter = (ignorePadDiameter * INCHTOMMSCALERx10) / 10;
 
+            // ignore drill
+            // n/a ignoreDrillEnabled
+            ignoreDrillDiameter = (ignoreDrillDiameter * INCHTOMMSCALERx10) / 10;
+
             //isocuts
             // n/a isoGCodeFileOutputExtension 
             // n/a isoFlipMode 
@@ -877,6 +906,10 @@ namespace LineGrinder
             // ignore pad
             // n/a ignorePadEnabled
             ignorePadDiameter = (ignorePadDiameter * 10) / INCHTOMMSCALERx10;
+
+            // ignore drill
+            // n/a ignoreDrillEnabled
+            ignoreDrillDiameter = (ignoreDrillDiameter * 10) / INCHTOMMSCALERx10;
 
             //isocuts
             // n/a isoGCodeFileOutputExtension 
@@ -1640,7 +1673,7 @@ namespace LineGrinder
         #endregion
 
         // ####################################################################
-        // ##### Isolation Cut category items
+        // ##### Ignore Pad category items
         // ####################################################################
         #region Ignore Pad category items
 
@@ -1681,6 +1714,53 @@ namespace LineGrinder
             set
             {
                 ignorePadDiameter = value;
+            }
+        }
+
+        #endregion
+
+        // ####################################################################
+        // ##### Ignore Drill category items
+        // ####################################################################
+        #region Ignore Drill category items
+
+        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+        /// <summary>
+        /// Gets/Sets the ignore pad flag 
+        /// </summary>
+        [DescriptionAttribute("This option indicates that the software will ignore drill operations based on certain criteria.")]
+        [CategoryAttribute("Ignore Drill")]
+        [ReadOnlyAttribute(false)]
+        [BrowsableAttribute(true)]
+        public bool IgnoreDrillEnabled
+        {
+            get
+            {
+                return ignoreDrillEnabled;
+            }
+            set
+            {
+                ignoreDrillEnabled = value;
+            }
+        }
+
+        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+        /// <summary>
+        /// Gets/Sets the ignoreDrillDiameter. 
+        /// </summary>
+        [DescriptionAttribute("Drills of this diameter will be ignored and will not be present in the GCode.")]
+        [CategoryAttribute("Ignore Drill")]
+        [ReadOnlyAttribute(false)]
+        [BrowsableAttribute(true)]
+        public float IgnoreDrillDiameter
+        {
+            get
+            {
+                return ignoreDrillDiameter;
+            }
+            set
+            {
+                ignoreDrillDiameter = value;
             }
         }
 

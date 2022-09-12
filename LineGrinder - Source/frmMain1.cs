@@ -4610,6 +4610,9 @@ namespace LineGrinder
 
             outputExcellonFile.SetPadCenterPointList();
 
+            // set the ignore pins
+            outputExcellonFile.SetIgnoreTools(ref errStr);
+
             // find the mid point now before margin adjustments, If we have reference pins this point will later be set with a better value
             outputExcellonFile.MidDCodeXCoord = 0 + (outputExcellonFile.MaxDCodeXCoord + outputExcellonFile.MinDCodeXCoord) / 2;  // the origin is always zero
             outputExcellonFile.MidDCodeYCoord = 0 + (outputExcellonFile.MaxDCodeYCoord + outputExcellonFile.MinDCodeYCoord) / 2;  // the origin is always zero
@@ -4642,6 +4645,7 @@ namespace LineGrinder
 
             if (outputExcellonFile.ExcellonFileManager.DrillingReferencePinsEnabled == true)
             {
+
                 retInt = outputExcellonFile.SetReferencePins(ref errStr);
                 if (retInt != 0)
                 {
