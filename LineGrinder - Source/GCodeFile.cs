@@ -324,7 +324,7 @@ namespace LineGrinder
             if (AreXYMaxMinOk() == false) return false;
             // test these
             if (xMinValue == xMaxValue) return false;
-            if (xMaxValue == yMaxValue) return false;
+            if (yMinValue == yMaxValue) return false;
             return true;
         }
 
