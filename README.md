@@ -1,10 +1,10 @@
 # Line Grinder
 Line Grinder can generate isolation routing GCode from the Gerber format plot files output by most PCB design programs. The GCode Line Grinder produces, if run sequentially, should also provide a method for reliably producing nicely aligned, double sided isolation routed PCBs including the cutting of border outlines and the drilling of pad holes and vias. It is intended to be a one-stop-shop GCode generator and methodology which will produce consistent results when cutting circuit boards. 
 
-### Latest Version: 02.01
+### Latest Version: 03.01 as of 16 Sept. 2022
 
 ### Note
-As of Dec 12, 2021 LineGrinder is back under active development. Aperture Macros are not yet supported but they are being worked on. The Gerber X2 Spec is partially supported but further work needs to be done.
+As of Dec 12, 2021 LineGrinder is back under active development. Aperture Macros now work. The Gerber X2 Spec is partially supported but further work needs to be done.
 
 ## Capabilities
 
@@ -16,7 +16,7 @@ As of Dec 12, 2021 LineGrinder is back under active development. Aperture Macros
     * Will interpret Excellon drill files and produce GCode suitable for drilling pad holes and vias.
     * Has a nice plot view mode which visually displays the Gerber and GCode files.
     * Is extremely configurable with a variety of options to control cutting depths and toolhead speeds for each of the various types of output GCode.
-    * Runs on Windows 2000 or higher.
+    * Runs on Windows 10 or higher.
     * The software was written in C# and a Visual Studio 2019 solution and project are included with the source code. 
 
 ## What Line Grinder Does Not Do
