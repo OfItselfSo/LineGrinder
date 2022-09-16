@@ -178,7 +178,7 @@ namespace LineGrinder
         /// This is is what indicates if we should output GCode mirror flipped around 
         /// the vertical center axis
         /// </summary>
-        public IsoFlipModeEnum MirrorOnConversionToGCode
+        public FlipModeEnum MirrorOnConversionToGCode
         {
             get
             {

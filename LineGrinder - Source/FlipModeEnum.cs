@@ -27,7 +27,7 @@ namespace LineGrinder
     /// this determines the method used to flip the display
     /// so that bottom copper isolation modes can be cut
     /// </summary>
-    public enum IsoFlipModeEnum
+    public enum FlipModeEnum
     {
         No_Flip,
         X_Flip,

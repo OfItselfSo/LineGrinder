@@ -69,7 +69,7 @@
     <Compile Include="GerberMacroPrimitive_Polygon.cs" />
     <Compile Include="GerberMacroPrimitive_VectorLine.cs" />
     <Compile Include="GerberMacroVariablePair.cs" />
-    <Compile Include="IsoFlipModeEnum.cs" />
+    <Compile Include="FlipModeEnum.cs" />
     <Compile Include="GCodeCmd_ArcDirectionEnum.cs" />
     <Compile Include="GerberAperture_Macro.cs" />
     <Compile Include="GerberMacroPrimitive_CenterLine.cs" />

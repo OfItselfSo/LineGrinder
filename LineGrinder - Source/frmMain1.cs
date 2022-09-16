@@ -4072,7 +4072,7 @@ namespace LineGrinder
             // now create the bottom copper
             mgrObj = FileManager.DeepClone(defMgrObj);
             mgrObj.OperationMode = FileManager.OperationModeEnum.IsolationCut;
-            mgrObj.IsoFlipMode = IsoFlipModeEnum.X_Flip;
+            mgrObj.IsoFlipMode = FlipModeEnum.X_Flip;
             mgrObj.ReferencePinGCodeEnabled = false;
             mgrObj.FilenamePattern = FileManager.KNOWN_EXT_BOTCOPPER_DSPARK;
             mgrObj.Description = "DesignSpark Bottom Layer";
@@ -4081,7 +4081,7 @@ namespace LineGrinder
             // now create the top copper
             mgrObj = FileManager.DeepClone(defMgrObj);
             mgrObj.OperationMode = FileManager.OperationModeEnum.IsolationCut;
-            mgrObj.IsoFlipMode = IsoFlipModeEnum.No_Flip;
+            mgrObj.IsoFlipMode = FlipModeEnum.No_Flip;
             mgrObj.FilenamePattern = FileManager.KNOWN_EXT_TOPCOPPER_DSPARK;
             mgrObj.Description = "DesignSpark Top Layer";
             ctlFileManagersDisplay1.AddFileManager(mgrObj);
@@ -4089,7 +4089,7 @@ namespace LineGrinder
             // now create the board outline
             mgrObj = FileManager.DeepClone(defMgrObj);
             mgrObj.OperationMode = FileManager.OperationModeEnum.BoardEdgeMill;
-            mgrObj.IsoFlipMode = IsoFlipModeEnum.No_Flip;
+            mgrObj.IsoFlipMode = FlipModeEnum.No_Flip;
             mgrObj.FilenamePattern = FileManager.KNOWN_EXT_EDGECUT_DSPARK;
             mgrObj.Description = "DesignSpark Board Outline: This plot must be manually added in DesignSpark";
             ctlFileManagersDisplay1.AddFileManager(mgrObj);
@@ -4097,7 +4097,7 @@ namespace LineGrinder
             // now create the excellon
             mgrObj = FileManager.DeepClone(defMgrObj);
             mgrObj.OperationMode = FileManager.OperationModeEnum.Excellon;
-            mgrObj.IsoFlipMode = IsoFlipModeEnum.No_Flip;
+            mgrObj.IsoFlipMode = FlipModeEnum.No_Flip;
             mgrObj.FilenamePattern = FileManager.KNOWN_EXT_EXEL_DRILL_DSPARK;
             mgrObj.DrillingNumberOfDecimalPlaces = 0;
             mgrObj.Description = "DesignSpark Excellon Drill file.";
@@ -4122,7 +4122,7 @@ namespace LineGrinder
             // now create the bottom copper
             mgrObj = FileManager.DeepClone(defMgrObj);
             mgrObj.OperationMode = FileManager.OperationModeEnum.IsolationCut;
-            mgrObj.IsoFlipMode = IsoFlipModeEnum.X_Flip;
+            mgrObj.IsoFlipMode = FlipModeEnum.X_Flip;
             mgrObj.ReferencePinGCodeEnabled = false;
             mgrObj.FilenamePattern = "copper_bottom.gbr";
             mgrObj.Description = "Eagle Bottom Layer";
@@ -4131,7 +4131,7 @@ namespace LineGrinder
             // now create the top copper
             mgrObj = FileManager.DeepClone(defMgrObj);
             mgrObj.OperationMode = FileManager.OperationModeEnum.IsolationCut;
-            mgrObj.IsoFlipMode = IsoFlipModeEnum.No_Flip;
+            mgrObj.IsoFlipMode = FlipModeEnum.No_Flip;
             mgrObj.FilenamePattern = "copper_top.gbr";
             mgrObj.Description = "Eagle Top Layer";
             ctlFileManagersDisplay1.AddFileManager(mgrObj);
@@ -4139,7 +4139,7 @@ namespace LineGrinder
             // now create the board outline
             mgrObj = FileManager.DeepClone(defMgrObj);
             mgrObj.OperationMode = FileManager.OperationModeEnum.BoardEdgeMill;
-            mgrObj.IsoFlipMode = IsoFlipModeEnum.No_Flip;
+            mgrObj.IsoFlipMode = FlipModeEnum.No_Flip;
             mgrObj.FilenamePattern = "profile.gbr";
             mgrObj.Description = "Eagle Board Outline";
             ctlFileManagersDisplay1.AddFileManager(mgrObj);
@@ -4147,7 +4147,7 @@ namespace LineGrinder
             // now create the excellon
             mgrObj = FileManager.DeepClone(defMgrObj);
             mgrObj.OperationMode = FileManager.OperationModeEnum.Excellon;
-            mgrObj.IsoFlipMode = IsoFlipModeEnum.No_Flip;
+            mgrObj.IsoFlipMode = FlipModeEnum.No_Flip;
             mgrObj.FilenamePattern = ".xln";
             mgrObj.Description = "Eagle Excellon Drill file.";
             mgrObj.DrillingCoordinateZerosMode = FileManager.ExcellonDrillingCoordinateZerosModeEnum.FixedDecimalPoint;
@@ -4172,7 +4172,7 @@ namespace LineGrinder
             // now create the bottom copper
             mgrObj = FileManager.DeepClone(defMgrObj);
             mgrObj.OperationMode = FileManager.OperationModeEnum.IsolationCut;
-            mgrObj.IsoFlipMode = IsoFlipModeEnum.X_Flip;
+            mgrObj.IsoFlipMode = FlipModeEnum.X_Flip;
             mgrObj.ReferencePinGCodeEnabled = false;
             mgrObj.FilenamePattern = FileManager.KNOWN_EXT_BOTCOPPER_KICAD;
             mgrObj.Description = "KiCad Bottom Layer";
@@ -4181,7 +4181,7 @@ namespace LineGrinder
             // now create the top copper
             mgrObj = FileManager.DeepClone(defMgrObj);
             mgrObj.OperationMode = FileManager.OperationModeEnum.IsolationCut;
-            mgrObj.IsoFlipMode = IsoFlipModeEnum.No_Flip;
+            mgrObj.IsoFlipMode = FlipModeEnum.No_Flip;
             mgrObj.ReferencePinGCodeEnabled = false;
             mgrObj.FilenamePattern = FileManager.KNOWN_EXT_TOPCOPPER_KICAD;
             mgrObj.Description = "KiCad Top Layer";
@@ -4190,7 +4190,7 @@ namespace LineGrinder
             // now create the board outline
             mgrObj = FileManager.DeepClone(defMgrObj);
             mgrObj.OperationMode = FileManager.OperationModeEnum.BoardEdgeMill;
-            mgrObj.IsoFlipMode = IsoFlipModeEnum.No_Flip;
+            mgrObj.IsoFlipMode = FlipModeEnum.No_Flip;
             mgrObj.FilenamePattern = FileManager.KNOWN_EXT_EDGECUT_KICAD;
             mgrObj.Description = "KiCad Board Outline";
             ctlFileManagersDisplay1.AddFileManager(mgrObj);
@@ -4198,7 +4198,7 @@ namespace LineGrinder
             // now create the excellon for plated holes
             mgrObj = FileManager.DeepClone(defMgrObj);
             mgrObj.OperationMode = FileManager.OperationModeEnum.Excellon;
-            mgrObj.IsoFlipMode = IsoFlipModeEnum.No_Flip;
+            mgrObj.IsoFlipMode = FlipModeEnum.No_Flip;
             mgrObj.FilenamePattern = FileManager.KNOWN_EXT_EXEL_DRILL_PTH_KICAD;
             mgrObj.Description = "KiCad Excellon Plated Drill file.";
             mgrObj.DrillingNumberOfDecimalPlaces = 0;
@@ -4207,7 +4207,7 @@ namespace LineGrinder
             // now create the excellon for nonplated holes
             mgrObj = FileManager.DeepClone(defMgrObj);
             mgrObj.OperationMode = FileManager.OperationModeEnum.Excellon;
-            mgrObj.IsoFlipMode = IsoFlipModeEnum.No_Flip;
+            mgrObj.IsoFlipMode = FlipModeEnum.No_Flip;
             mgrObj.FilenamePattern = FileManager.KNOWN_EXT_EXEL_DRILL_NPTH_KICAD;
             mgrObj.Description = "KiCad Excellon non-Plated Drill file.";
             mgrObj.DrillingNumberOfDecimalPlaces = 0;
@@ -4216,7 +4216,7 @@ namespace LineGrinder
             // now create the excellon for plated and nonplated holes
             mgrObj = FileManager.DeepClone(defMgrObj);
             mgrObj.OperationMode = FileManager.OperationModeEnum.Excellon;
-            mgrObj.IsoFlipMode = IsoFlipModeEnum.No_Flip;
+            mgrObj.IsoFlipMode = FlipModeEnum.No_Flip;
             mgrObj.FilenamePattern = FileManager.KNOWN_EXT_EXEL_DRILL_KICAD;
             mgrObj.Description = "KiCad Excellon Generic Drill file.";
             mgrObj.DrillingNumberOfDecimalPlaces = 0;
@@ -5290,9 +5290,7 @@ namespace LineGrinder
             gcFile.GCodeMirrorAxisPlotCoord_X = excellonFile.MidPlotXCoord;
 
             // are we actually flipping 
-   //         DebugTODO("remove this");
-            //      gcFile.MirrorOnConversionToGCode = gerberFile.FlipMode;
-       //     gcFile.MirrorOnConversionToGCode = IsoFlipModeEnum.X_Flip;
+            gcFile.MirrorOnConversionToGCode = excellonFile.FlipMode;
 
             // get absolute offsets
             float absoluteOffset_X = 0;

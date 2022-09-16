@@ -91,7 +91,7 @@ namespace LineGrinder
         private float absoluteOffset_Y = 0;
 
         // determines if we want to mirror about an axis
-        private IsoFlipModeEnum mirrorOnConversionToGCode = IsoFlipModeEnum.No_Flip;
+        private FlipModeEnum mirrorOnConversionToGCode = FlipModeEnum.No_Flip;
 
         // this is the X coord of the vertical axis around which we mirror if we are flipping.
         private float gCodeMirrorAxisPlotCoord_X = 0;
@@ -141,7 +141,7 @@ namespace LineGrinder
         /// This is is what indicates if we should output GCode mirror flipped around 
         /// the vertical center axis
         /// </summary>
-        public IsoFlipModeEnum MirrorOnConversionToGCode
+        public FlipModeEnum MirrorOnConversionToGCode
         {
             get
             {

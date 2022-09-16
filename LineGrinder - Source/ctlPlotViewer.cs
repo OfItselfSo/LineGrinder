@@ -732,11 +732,16 @@ namespace LineGrinder
                     // if this is true, we are done, screen is automatically cleared
                     if (DisplayMode == DisplayModeEnum.DisplayMode_NONE) return;
 
-
-                    if ((GerberFileToDisplay.IsPopulated==true) && (GerberFileToDisplay.FlipMode == IsoFlipModeEnum.X_Flip))
+                    if ((GerberFileToDisplay.IsPopulated == true) && (GerberFileToDisplay.FlipMode == FlipModeEnum.X_Flip))
                     {
                         // yes, we do want to flip about the Y axis. We will need to adjust some things on the display
                         flipXCompensator = (int)(gerberFileToDisplay.MaxPlotXCoord * isoPlotPointsPerAppUnit);
+                        matrixXFlipInitiator = -1;
+                    }
+                    else if ((ExcellonFileToDisplay.IsPopulated == true) && (ExcellonFileToDisplay.FlipMode == FlipModeEnum.X_Flip))
+                    {
+                        // yes, we do want to flip about the Y axis. We will need to adjust some things on the display
+                        flipXCompensator = (int)(excellonFileToDisplay.MaxPlotXCoord * isoPlotPointsPerAppUnit);
                         matrixXFlipInitiator = -1;
                     }
                     else { } // leave everyting at defaults

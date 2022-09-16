@@ -163,7 +163,7 @@ namespace LineGrinder
             }
 
             // we need to reverse the direction if we are flipping
-            if(stateMachine.MirrorOnConversionToGCode == IsoFlipModeEnum.X_Flip)
+            if(stateMachine.MirrorOnConversionToGCode == FlipModeEnum.X_Flip)
             {
                 gcodeWordArcDirection = GetReversedArcDirection(gcodeWordArcDirection);
             }

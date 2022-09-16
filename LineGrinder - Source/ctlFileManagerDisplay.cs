@@ -618,6 +618,7 @@ namespace LineGrinder
             SetPropertyBrowsableState(optObject, "ReferencePinPadDiameter", isoCutRefPinROState);
 
             // excellon
+            SetPropertyBrowsableState(optObject, "DrillFlipMode", excellonROState);
             SetPropertyBrowsableState(optObject, "DrillingCoordinateZerosMode", excellonROState);
             SetPropertyBrowsableState(optObject, "DrillingNumberOfDecimalPlaces", excellonROState);
             SetPropertyBrowsableState(optObject, "DrillingGCodeFileOutputExtension", excellonROState);

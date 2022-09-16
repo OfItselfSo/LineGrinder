@@ -199,7 +199,7 @@ namespace LineGrinder
             float interimX = (xCoordToConvert / stateMachine.IsoPlotPointsPerAppUnit) - stateMachine.GCodeOutputPlotOriginAdjust_X + (stateMachine.AbsoluteOffset_X / stateMachine.IsoPlotPointsPerAppUnit);
 
             // are we mirroring around a veritical axis?
-            if(stateMachine.MirrorOnConversionToGCode == IsoFlipModeEnum.X_Flip)
+            if(stateMachine.MirrorOnConversionToGCode == FlipModeEnum.X_Flip)
             {
                 interimX = (interimX * -1);
                 // if we are not offsetting the X origin this means the origin must be at 0,0. After mirroring our 

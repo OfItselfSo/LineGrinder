@@ -406,6 +406,21 @@ namespace LineGrinder
 
         /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
         /// <summary>
+        /// Gets the currently set flip mode. There is no set this comes out of the 
+        /// current file manager.
+        /// </summary>
+        public FlipModeEnum FlipMode
+        {
+            get
+            {
+                // this is safe to do. None of these properties return null
+                return StateMachine.ExcellonFileManager.DrillFlipMode;
+            }
+        }
+
+
+        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+        /// <summary>
         /// Gets/Sets state machine. Will never set or get a null value.
         /// </summary>
         public ExcellonFileStateMachine StateMachine

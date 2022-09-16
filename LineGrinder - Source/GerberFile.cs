@@ -716,7 +716,7 @@ namespace LineGrinder
         /// Gets the currently set flip mode. There is no set this comes out of the 
         /// current file manager.
         /// </summary>
-        public IsoFlipModeEnum FlipMode
+        public FlipModeEnum FlipMode
         {
             get
             {

@@ -174,9 +174,9 @@ namespace LineGrinder
         [DataMember]
         private string isoGCodeFileOutputExtension = DEFAULT_ISOGCODEFILE_OUTPUTEXTENSION;
 
-        public const IsoFlipModeEnum DEFAULT_ISOFLIP_MODE = IsoFlipModeEnum.No_Flip;
+        public const FlipModeEnum DEFAULT_ISOFLIP_MODE = FlipModeEnum.No_Flip;
         [DataMember]
-        private IsoFlipModeEnum isoFlipMode = DEFAULT_ISOFLIP_MODE;
+        private FlipModeEnum isoFlipMode = DEFAULT_ISOFLIP_MODE;
 
         // this determines whether we generate isocut GCodes
         public const bool DEFAULT_ISOCUTGCODE_ENABLED = true;
@@ -440,6 +440,10 @@ namespace LineGrinder
         [DataMember]
         private bool drillingReferencePinsEnabled = DEFAULT_DRILLINGREFERENCEPINS_ENABLED;
 
+        public const FlipModeEnum DEFAULT_DRILLFLIP_MODE = FlipModeEnum.No_Flip;
+        [DataMember]
+        private FlipModeEnum drillFlipMode = DEFAULT_DRILLFLIP_MODE;
+
         // this determines the method used to deal with leading zeros in the excellon file
         public enum ExcellonDrillingCoordinateZerosModeEnum
         {
@@ -639,6 +643,7 @@ namespace LineGrinder
             if (referencePinPadDiameter != DEFAULT_REFERENCEPINSPADDIAMETER) return false;
 
             // excellon
+            if (drillFlipMode != DEFAULT_DRILLFLIP_MODE) return false;
             if (drillingDrillingCoordinateZerosMode != DEFAULT_DRILLING_COORDINATEZEROS_MODE) return false;
             if (drillingNumberOfDecimalPlaces != DRILLING_NUMBER_OF_DECIMAL_PLACES) return false;
             if (drillingGCodeFileOutputExtension != DEFAULT_DRILLINGGCODEFILE_OUTPUTEXTENSION) return false;
@@ -735,6 +740,7 @@ namespace LineGrinder
             referencePinPadDiameter = DEFAULT_REFERENCEPINSPADDIAMETER;
 
             // excellon
+            drillFlipMode = DEFAULT_DRILLFLIP_MODE;
             drillingDrillingCoordinateZerosMode = DEFAULT_DRILLING_COORDINATEZEROS_MODE;
             drillingNumberOfDecimalPlaces = DRILLING_NUMBER_OF_DECIMAL_PLACES;
             drillingGCodeFileOutputExtension = DEFAULT_DRILLINGGCODEFILE_OUTPUTEXTENSION;
@@ -845,6 +851,7 @@ namespace LineGrinder
             referencePinPadDiameter = (referencePinPadDiameter * INCHTOMMSCALERx10) / 10;
 
             //excellon
+            // n/a drillFlipMode 
             // n/a drillingDrillingCoordinateZerosMode
             // n/a drillingNumberOfDecimalPlaces
             // n/a drillingGCodeFileOutputExtension
@@ -935,6 +942,7 @@ namespace LineGrinder
             referencePinPadDiameter = (referencePinPadDiameter * 10) / INCHTOMMSCALERx10;
 
             //excellon
+            // n/a drillFlipMode 
             // n/a drillingDrillingCoordinateZerosMode
             // n/a drillingNumberOfDecimalPlaces
             // n/a drillingGCodeFileOutputExtension
@@ -1824,7 +1832,7 @@ namespace LineGrinder
         [CategoryAttribute("Isolation Cuts")]
         [ReadOnlyAttribute(false)]
         [BrowsableAttribute(true)]
-        public IsoFlipModeEnum IsoFlipMode
+        public FlipModeEnum IsoFlipMode
         {
             get
             {
@@ -2194,6 +2202,28 @@ namespace LineGrinder
         // ##### Excellon category items
         // ####################################################################
         #region Excellon category items
+
+        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+        /// <summary>
+        /// Gets/Sets the drillFlipMode value. This determines how we flip the x or y
+        /// coordinates so that we can drill holes.
+        /// </summary>
+        [DescriptionAttribute("This determines how we flip the X or Y coordinate so that holes can be drilled on the bottom layer. Usually this is No_Flip and you set up to drill on the top layer. If you have only a bottom layer set this to X_Flip and drill on the bottom layer.")]
+        [CategoryAttribute("Excellon Drilling")]
+        [ReadOnlyAttribute(false)]
+        [BrowsableAttribute(true)]
+        public FlipModeEnum DrillFlipMode
+        {
+            get
+            {
+                return drillFlipMode;
+            }
+            set
+            {
+                drillFlipMode = value;
+            }
+        }
+
 
         /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
         /// <summary>
