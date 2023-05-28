@@ -74,9 +74,10 @@ namespace LineGrinder
 
         public const string RS274_MO_CMD = @"MO";
 
-        public const string RS274_M00_CMD = @"MO0";
-        public const string RS274_M01_CMD = @"MO1";
+        public const string RS274_M00_CMD = @"M00";
+        public const string RS274_M01_CMD = @"M01";
         public const string RS274_M02_CMD = @"M02";
+        public const string RS274_M30_CMD = @"M30";
 
         public const string RS274_OF_CMD = @"OF";
         public const string RS274_SF_CMD = @"SF";
@@ -911,6 +912,7 @@ namespace LineGrinder
                 else if (workingLine1.StartsWith(RS274_M00_CMD) == true) gerberCommandLineList.Add(new GerberCommandSourceLines(workingLine1, lineNumber));
                 else if (workingLine1.StartsWith(RS274_M01_CMD) == true) gerberCommandLineList.Add(new GerberCommandSourceLines(workingLine1, lineNumber));
                 else if (workingLine1.StartsWith(RS274_M02_CMD) == true) gerberCommandLineList.Add(new GerberCommandSourceLines(workingLine1, lineNumber));
+                else if (workingLine1.StartsWith(RS274_M30_CMD) == true) gerberCommandLineList.Add(new GerberCommandSourceLines(workingLine1, lineNumber));
                 else if (workingLine1.StartsWith(RS274_CMD_DELIMITER + RS274_OF_CMD) == true) gerberCommandLineList.Add(new GerberCommandSourceLines(workingLine1, lineNumber));
                 else if (workingLine1.StartsWith(RS274_CMD_DELIMITER + RS274_SF_CMD) == true) gerberCommandLineList.Add(new GerberCommandSourceLines(workingLine1, lineNumber));
                 else if (workingLine1.StartsWith(RS274_CMD_DELIMITER + RS274_SR_CMD) == true) gerberCommandLineList.Add(new GerberCommandSourceLines(workingLine1, lineNumber));
@@ -1160,7 +1162,9 @@ namespace LineGrinder
                     }
                     // it is good, add it
                     sourceLines.Add(gObj);
-                    continue;
+                    // this is program terminiation. We do not process further same as m02
+                    break;
+                    //continue;
                 }
                 // are we a M01 code
                 else if (tmpLine1.StartsWith(RS274_M01_CMD) == true)
@@ -1190,7 +1194,26 @@ namespace LineGrinder
                     }
                     // it is good, add it
                     sourceLines.Add(gObj);
-                    continue;
+                    // this is program terminiation. We do not process further
+                    break;
+                    //continue;
+                }
+                // are we a M30 code
+                else if (tmpLine1.StartsWith(RS274_M30_CMD) == true)
+                {
+                    // we are a M30 Code
+                    GerberLine_M30Code gObj = new GerberLine_M30Code(lineStr, tmpLine1, lineNumber);
+                    retInt = gObj.ParseLine(tmpLine1, StateMachine);
+                    if (retInt != 0)
+                    {
+                        LogMessage("lineStr(M30), call to ParseLine returned " + retInt.ToString() + " Error on line " + lineNumber.ToString());
+                        return 545;
+                    }
+                    // it is good, add it
+                    sourceLines.Add(gObj);
+                    // this is program terminiation. We do not process further
+                    break;
+                    //continue;
                 }
                 // Are we a G01 Code? These can start with G01
                 else if (tmpLine1.StartsWith(RS274_G01_CMD) == true)

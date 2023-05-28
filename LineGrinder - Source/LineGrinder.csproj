@@ -65,6 +65,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="GCodeCmd_SetPosition.cs" />
+    <Compile Include="GerberLine_M30Code.cs" />
     <Compile Include="GerberMacroPrimitive_Outline.cs" />
     <Compile Include="GerberMacroPrimitive_Polygon.cs" />
     <Compile Include="GerberMacroPrimitive_VectorLine.cs" />

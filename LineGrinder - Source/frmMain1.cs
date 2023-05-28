@@ -57,7 +57,7 @@ namespace LineGrinder
 
         // app constants
         private const string APPLICATION_NAME = "Line Grinder";
-        private const string APPLICATION_VERSION = "03.01";
+        private const string APPLICATION_VERSION = "03.02";
         private const string APPLICATION_HOME = @"http://www.OfItselfSo.com/LineGrinder/LineGrinder.php";
 
         private const string WARN01="The Line Grinder software is released under the MIT License. There";
