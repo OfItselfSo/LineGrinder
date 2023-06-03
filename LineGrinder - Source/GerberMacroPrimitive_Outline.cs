@@ -66,7 +66,7 @@ namespace LineGrinder
         /// <summary>
         /// Sets the numVertexes 
         /// </summary>
-        /// <param name="numVertexesStr">a string defining the degrees rotation</param>
+        /// <param name="numVertexesStr">a string defining the number of vertexes</param>
         public void SetNumVertexes(string numVertexesStr)
         {
             if ((numVertexesStr == null) || (numVertexesStr == "")) numVertexes = new GerberMacroVariable();
@@ -351,7 +351,6 @@ namespace LineGrinder
 
                 // create a new point and stuff it in the array
                 vertexPoints[i] = new PointF(effectiveDrawPoint_X, effectiveDrawPoint_Y);
-                //DebugMessage("  vertexPoint=" + vertexPoints[i].ToString());
             }
 
             if (GetApertureIsOn(varArray)==true)
@@ -452,6 +451,20 @@ namespace LineGrinder
             ptUR = new PointF(maxX, maxY);
             ptLL = new PointF(minX, minY);
             return true;
+        }
+
+        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+        /// <summary>
+        /// Dumps the current coordinates for the macro
+        /// <param name="variableArray">the variable array</param>
+        /// </summary>
+        public override void DumpMacroCoordsToLog(GerberMacroVariableArray variableArray)
+        {
+            PointF[] tmpPointArray = GetPointArrayAsPointFArray(variableArray);
+            for(int i=0; i< tmpPointArray.Length; i++)
+            {
+                LogMessage("Outline: "+ tmpPointArray[i].ToString());
+            }
         }
 
 

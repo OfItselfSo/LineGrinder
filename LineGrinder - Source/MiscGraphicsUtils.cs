@@ -1038,6 +1038,35 @@ namespace LineGrinder
             if (Math.Round(AB,numDecimals) == Math.Round((AP + PB),numDecimals)) return true;
             return false;
         }
+
+        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+        /// <summary>
+        /// Applies compensation to a point by moving it away from a center point
+        /// along the line between them. 
+        /// Credit: https://math.stackexchange.com/questions/175896/finding-a-point-along-a-line-a-certain-distance-away-from-another-point
+        /// <param name="xyComp">the distance to move</param>
+        /// <param name="centerCoord">the center coordinate</param>
+        /// <param name="coordToMove">the coord to move</param>
+        /// </summary>
+        public static PointF ApplyCompensationToPointAwayFromCenter(float xyComp, PointF centerCoord, PointF coordToMove)
+        {
+            // get the distance
+            float dist = (float)Math.Sqrt(((centerCoord.X - coordToMove.X) * (centerCoord.X - coordToMove.X)) + ((centerCoord.Y - coordToMove.Y) * (centerCoord.Y - coordToMove.Y)));
+            // just return the coord - don't know what else to do
+            if (dist == 0) return coordToMove;
+            // get the distance ratio
+            float distRatio = xyComp / dist;
+            // if the distRatio is less than 0 we move away from the center point
+            distRatio = distRatio * -1;
+
+            float newX = (((1 - distRatio) * coordToMove.X) + (distRatio * centerCoord.X));
+            float newY = (((1 - distRatio) * coordToMove.Y) + (distRatio * centerCoord.Y));
+
+            PointF newPoint = new PointF(newX, newY);
+            return newPoint;
+        }
+
+
     }
 }
 

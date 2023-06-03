@@ -310,6 +310,19 @@ namespace LineGrinder
             return true;
         }
 
+        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+        /// <summary>
+        /// Dumps the current coordinates for the macro
+        /// <param name="varArray">the variable array</param>
+        /// </summary>
+        public override void DumpMacroCoordsToLog(GerberMacroVariableArray varArray)
+        {
+            float centerX = GetXCenterCoord(varArray);
+            float centerY = GetYCenterCoord(varArray);
+            float workingDiameter = GetDiameter(varArray);
+            LogMessage("Circle: ("+ centerX.ToString()+","+ centerY.ToString()+"), diameter="+ workingDiameter.ToString());
+        }
+
 
     }
 }

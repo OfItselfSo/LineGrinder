@@ -302,6 +302,15 @@ namespace LineGrinder
         /// <returns>true the coords are set with values, false they are not</returns>
         public abstract bool GetMaxMinXAndYValuesForPrimitive(GerberMacroVariableArray varArray, out PointF ptUR, out PointF ptLL);
 
+        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+        /// <summary>
+        /// Dumps the current coordinates for the macro
+        /// </summary>
+        /// <param name="variableArray">the variable array</param>
+        public virtual void DumpMacroCoordsToLog(GerberMacroVariableArray variableArray)
+        {
+            // must be overridden in the child classes if you want this
+        }
     }
 }
 

@@ -107,7 +107,6 @@ namespace LineGrinder
         {
             if ((startXCoordStr == null) || (startXCoordStr == "")) xStartCoord = new GerberMacroVariable();
             else xStartCoord = new GerberMacroVariable(startXCoordStr);
-
         }
 
         /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
@@ -253,7 +252,6 @@ namespace LineGrinder
         /// <param name="varArray">the array to get the numbered variables from</param>
         public PointF GetCenterPoint(GerberMacroVariableArray varArray)
         {
-
             // get the start coords
             float start_x = GetXStartCoord(varArray);
             float start_y = GetYStartCoord(varArray);
@@ -364,6 +362,8 @@ namespace LineGrinder
 
             float workingWidth = GetWidth(varArray);
             int lineWidthInScreenCoords = (int)Math.Round(workingWidth * stateMachine.IsoPlotPointsPerAppUnit);
+            
+            //DebugMessage("workingWidth=" + workingWidth.ToString());
 
             // we will need the start and end point coords 
             float primStartPointInScreenCoords_X = GetXStartCoord(varArray) * stateMachine.IsoPlotPointsPerAppUnit;
@@ -387,7 +387,7 @@ namespace LineGrinder
 
         /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
         /// <summary>
-        /// Flash a macro primitive for a CLine on a GCode Plot
+        /// Flash a macro primitive for a VLine on a GCode Plot
         /// </summary>
         /// <param name="isoPlotBuilder">the builder opbject</param>
         /// <param name="stateMachine">the statemachine</param>
@@ -409,10 +409,8 @@ namespace LineGrinder
             // figure out width and height
             float workingWidth = GetWidth(varArray);
             int lineWidthInScreenCoords = (int)Math.Round(workingWidth * stateMachine.IsoPlotPointsPerAppUnit);
-            float workingHeight = GetLineLength(varArray);
-            int lineHeightInScreenCoords = (int)Math.Round(workingHeight * stateMachine.IsoPlotPointsPerAppUnit);
 
-            //DebugMessage("efc_X=" + effectiveCenter_X.ToString() + ", " + "efc_Y=" + effectiveCenter_Y.ToString());
+            //DebugMessage("workingWidth=" + workingWidth.ToString());
 
             // figure out the xyComp in plot coords, it comes in as screen coords here
             // we need it to feed into the rotation calculations
@@ -431,8 +429,8 @@ namespace LineGrinder
                 int effectiveCenter_Y = y1 + primCenterPointInScreenCoords_Y;
 
                 // get the center points 
-                PointF centerPointLeft = this.GetLeftCenterCoord(varArray, xyCompInPlotCoords, true);
-                PointF centerPointRight = this.GetRightCenterCoord(varArray, xyCompInPlotCoords, true);
+                PointF centerPointLeft = this.GetStartCenterCoord(varArray, xyCompInPlotCoords);
+                PointF centerPointRight = this.GetEndCenterCoord(varArray, xyCompInPlotCoords);
                 // convert them to screen coords
                 int leftCenterPointInScreenCoords_X = (int)(centerPointLeft.X * stateMachine.IsoPlotPointsPerAppUnit);
                 int leftCenterPointInScreenCoords_Y = (int)(centerPointLeft.Y * stateMachine.IsoPlotPointsPerAppUnit);
@@ -444,11 +442,11 @@ namespace LineGrinder
                 int effectiveRightCenterPoint_X = x1 + rightCenterPointInScreenCoords_X;
                 int effectiveRightCenterPoint_Y = y1 + rightCenterPointInScreenCoords_Y;
 
-                // adjust the line height for the XY comp, the width was compensated earlier
-                int lineHeightInScreenCoordsXYCompensated = lineHeightInScreenCoords - (xyComp);
+                // adjust the line width for the XY comp
+                int lineWidthInScreenCoordsXYCompensated = lineWidthInScreenCoords - (xyComp);
 
                 // clear polarity
-                builderID =  isoPlotBuilder.DrawGSLineOutLine(IsoPlotUsageTagFlagEnum.IsoPlotUsageTagFlag_INVERTEDGE, effectiveLeftCenterPoint_X, effectiveLeftCenterPoint_Y, effectiveRightCenterPoint_X, effectiveRightCenterPoint_Y, lineHeightInScreenCoordsXYCompensated, stateMachine.BackgroundFillModeAccordingToPolarity);
+                builderID = isoPlotBuilder.DrawGSLineOutLine(IsoPlotUsageTagFlagEnum.IsoPlotUsageTagFlag_INVERTEDGE, effectiveLeftCenterPoint_X, effectiveLeftCenterPoint_Y, effectiveRightCenterPoint_X, effectiveRightCenterPoint_Y, lineWidthInScreenCoordsXYCompensated, stateMachine.BackgroundFillModeAccordingToPolarity);
 
                 // get the bounding box of this primitive
                 RectangleF primBoundingBox = GetMacroPrimitiveBoundingBox(varArray);
@@ -473,24 +471,24 @@ namespace LineGrinder
             else
             {
                 // get the center points 
-                PointF centerPointLeft = this.GetLeftCenterCoord(varArray, xyCompInPlotCoords, false);
-                PointF centerPointRight = this.GetRightCenterCoord(varArray, xyCompInPlotCoords, false);
+                PointF centerPointStart = this.GetStartCenterCoord(varArray, xyCompInPlotCoords);
+                PointF centerPointEnd = this.GetEndCenterCoord(varArray, xyCompInPlotCoords);
                 // convert them to screen coords
-                int leftCenterPointInScreenCoords_X = (int)(centerPointLeft.X * stateMachine.IsoPlotPointsPerAppUnit);
-                int leftCenterPointInScreenCoords_Y = (int)(centerPointLeft.Y * stateMachine.IsoPlotPointsPerAppUnit);
-                int rightCenterPointInScreenCoords_X = (int)(centerPointRight.X * stateMachine.IsoPlotPointsPerAppUnit);
-                int rightCenterPointInScreenCoords_Y = (int)(centerPointRight.Y * stateMachine.IsoPlotPointsPerAppUnit);
+                int startCenterPointInScreenCoords_X = (int)(centerPointStart.X * stateMachine.IsoPlotPointsPerAppUnit);
+                int startCenterPointInScreenCoords_Y = (int)(centerPointStart.Y * stateMachine.IsoPlotPointsPerAppUnit);
+                int endCenterPointInScreenCoords_X = (int)(centerPointEnd.X * stateMachine.IsoPlotPointsPerAppUnit);
+                int endCenterPointInScreenCoords_Y = (int)(centerPointEnd.Y * stateMachine.IsoPlotPointsPerAppUnit);
                 // now calc the effective draw points
-                int effectiveLeftCenterPoint_X = x1 + leftCenterPointInScreenCoords_X;
-                int effectiveLeftCenterPoint_Y = y1 + leftCenterPointInScreenCoords_Y;
-                int effectiveRightCenterPoint_X = x1 + rightCenterPointInScreenCoords_X;
-                int effectiveRightCenterPoint_Y = y1 + rightCenterPointInScreenCoords_Y;
+                int effectiveStartCenterPoint_X = x1 + startCenterPointInScreenCoords_X;
+                int effectiveStartCenterPoint_Y = y1 + startCenterPointInScreenCoords_Y;
+                int effectiveEndCenterPoint_X = x1 + endCenterPointInScreenCoords_X;
+                int effectiveEndCenterPoint_Y = y1 + endCenterPointInScreenCoords_Y;
 
-                // adjust the line height for the XY comp, the width was compensated earlier
-                int lineHeightInScreenCoordsXYCompensated = lineHeightInScreenCoords + (xyComp);
+                // adjust the line width for the XY comp
+                int lineWidthInScreenCoordsXYCompensated = lineWidthInScreenCoords + (xyComp);
 
                 // dark polarity
-                builderID = isoPlotBuilder.DrawGSLineOutLine(IsoPlotUsageTagFlagEnum.IsoPlotUsageTagFlag_NORMALEDGE, effectiveLeftCenterPoint_X, effectiveLeftCenterPoint_Y, effectiveRightCenterPoint_X, effectiveRightCenterPoint_Y, lineHeightInScreenCoordsXYCompensated, stateMachine.BackgroundFillModeAccordingToPolarity);
+                builderID = isoPlotBuilder.DrawGSLineOutLine(IsoPlotUsageTagFlagEnum.IsoPlotUsageTagFlag_NORMALEDGE, effectiveStartCenterPoint_X, effectiveStartCenterPoint_Y, effectiveEndCenterPoint_X, effectiveEndCenterPoint_Y, lineWidthInScreenCoordsXYCompensated, stateMachine.BackgroundFillModeAccordingToPolarity);
                 return builderID;
             }
         }
@@ -699,80 +697,59 @@ namespace LineGrinder
 
         /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
         /// <summary>
-        /// Gets the horizontal Left Center point. Note due to rotations this point may not be 
-        /// the actual Left Center point (or horizontal) - you have to check
+        /// Gets the horizontal start Center point. Note due to rotations this point may not be 
+        /// the actual start Center point (or horizontal) - you have to check
         /// </summary>
         /// <param name="varArray">the array to get the numbered variables from</param>
         /// <param name="xyCompInPlotCoords">the xy compensation in plot coordinates (Gerber not screen coords)</param>
-        /// <param name="wantInverseXYComp">if true we apply the xyComp in inverse</param>
-        public PointF GetLeftCenterCoord(GerberMacroVariableArray varArray, float xyCompInPlotCoords, bool wantInverseXYComp)
-        {
-
+        public PointF GetStartCenterCoord(GerberMacroVariableArray varArray, float xyCompInPlotCoords)
+        {            
+            // this is rotation compensated 
             PointF centerPoint = GetCenterPoint(varArray);
 
-            float workingXCenterCoord = centerPoint.X;
-            float workingYCenterCoord = centerPoint.Y; ;
-            float workingDegreesRotation = GetDegreesRotation(varArray);
-            float workingWidth = GetWidth(varArray);
-            //float workingHeight = GetHeight(varArray);
+            // calc this now, these are already rotated if necessary
+            float xCoord = GetXStartCoord(varArray);
+            float yCoord = GetYStartCoord(varArray);
 
-            // calc this now
-            float xCoord = 0;
-            if(wantInverseXYComp==true) xCoord = workingXCenterCoord - (workingWidth / 2) + xyCompInPlotCoords;
-            else xCoord = workingXCenterCoord - (workingWidth / 2) - xyCompInPlotCoords;
-            float yCoord = workingYCenterCoord;
-
-            // do we have a rotation
-            if (workingDegreesRotation != 0)
-            {
-                PointF pointToRotate = new PointF(xCoord, yCoord);
-                // do the math and return
-                return MiscGraphicsUtils.RotatePointAboutPointByDegrees(centerPoint, workingDegreesRotation, pointToRotate);
-            }
-            else
-            {
-                // no just return the existing value
-                return new PointF(xCoord, yCoord);
-            }
+            // now we have to figure out how to apply the xyComp - we always move away from the centerPoint
+            return MiscGraphicsUtils.ApplyCompensationToPointAwayFromCenter(xyCompInPlotCoords, centerPoint, new PointF(xCoord, yCoord));
         }
 
         /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
         /// <summary>
-        /// Gets the horizontal Right Center point. Note due to rotations this point may not be 
-        /// the actual Right Center point (or horizontal) - you have to check
+        /// Gets the horizontal end Center point. Note due to rotations this point may not be 
+        /// the actual end Center point (or horizontal) - you have to check
         /// </summary>
         /// <param name="varArray">the array to get the numbered variables from</param>
         /// <param name="xyCompInPlotCoords">the xy compensation in plot coordinates (Gerber not screen coords)</param>
-        /// <param name="wantInverseXYComp">if true we apply the xyComp in inverse</param>
-        public PointF GetRightCenterCoord(GerberMacroVariableArray varArray, float xyCompInPlotCoords, bool wantInverseXYComp)
+        public PointF GetEndCenterCoord(GerberMacroVariableArray varArray, float xyCompInPlotCoords)
         {
+            // this is rotation compensated 
             PointF centerPoint = GetCenterPoint(varArray);
 
-            float workingXCenterCoord = centerPoint.X;
-            float workingYCenterCoord = centerPoint.Y; ;
-            float workingDegreesRotation = GetDegreesRotation(varArray);
-            float workingWidth = GetWidth(varArray);
-            //float workingHeight = GetHeight(varArray);
+            // calc this now, these are already rotated if necessary
+            float xCoord = GetXEndCoord(varArray);
+            float yCoord = GetYEndCoord(varArray);
 
-            // calc this now
-            float xCoord = 0;
-            if (wantInverseXYComp == true) xCoord = workingXCenterCoord + (workingWidth / 2) - xyCompInPlotCoords;
-            else xCoord = workingXCenterCoord + (workingWidth / 2) + xyCompInPlotCoords;
-            float yCoord = workingYCenterCoord;
-
-            // do we have a rotation
-            if (workingDegreesRotation != 0)
-            {
-                PointF pointToRotate = new PointF(xCoord, yCoord);
-                // do the math and return
-                return MiscGraphicsUtils.RotatePointAboutPointByDegrees(centerPoint, workingDegreesRotation, pointToRotate);
-            }
-            else
-            {
-                // no just return the existing value
-                return new PointF(xCoord, yCoord);
-            }
+            // now we have to figure out how to apply the xyComp - we always move away from the centerPoint
+            return MiscGraphicsUtils.ApplyCompensationToPointAwayFromCenter(xyCompInPlotCoords, centerPoint, new PointF(xCoord, yCoord));
         }
+
+        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+        /// <summary>
+        /// Dumps the current coordinates for the macro
+        /// <param name="varArray">the variable array</param>
+        /// </summary>
+        public override void DumpMacroCoordsToLog(GerberMacroVariableArray varArray)
+        {
+            float start_x = GetXStartCoord(varArray);
+            float start_y = GetYStartCoord(varArray);
+            float end_x = GetXEndCoord(varArray);
+            float end_y = GetYEndCoord(varArray);
+            float workingWidth = GetWidth(varArray);
+            LogMessage("VLine: (" + start_x.ToString() + "," + start_y.ToString() + "), (" + end_x.ToString() + "," + end_y.ToString() + "), width=" + workingWidth.ToString());
+        }
+
     }
 }
 
