@@ -1,7 +1,10 @@
 # Line Grinder
 Line Grinder can generate isolation routing GCode from the Gerber format plot files output by most PCB design programs. The GCode Line Grinder produces, if run sequentially, should also provide a method for reliably producing nicely aligned, double sided isolation routed PCBs including the cutting of border outlines and the drilling of pad holes and vias. It is intended to be a one-stop-shop GCode generator and methodology which will produce consistent results when cutting circuit boards. 
 
-### Latest Version: 03.01 as of 16 Sept. 2022
+### Latest Version: 03.02 as of 02 June 2023
+
+### Home Page and Compiled Binary
+The home page for this project can be found at [http://www.OfItselfSo.com/LineGrinder/LineGrinder.php](http://www.OfItselfSo.com/LineGrinder/LineGrinder.php). A compiled binary is available in zipped format on the home page for those who do not wish to compile their own copy.
 
 ### Note
 As of Dec 12, 2021 LineGrinder is back under active development. Aperture Macros now work. The Gerber X2 Spec is partially supported but further work needs to be done.
@@ -19,15 +22,18 @@ As of Dec 12, 2021 LineGrinder is back under active development. Aperture Macros
     * Runs on Windows 10 or higher.
     * The software was written in C# and a Visual Studio 2019 solution and project are included with the source code. 
 
-## What Line Grinder Does Not Do
-
-Please be aware that the Line Grinder software is purely a code generator. In other words, if you feed it some Gerber or Excellon files you will get some GCode out. Where, how and when you run those GCode files is entirely up to you. Specifically, the Line Grinder software is not a machine controller (like EMC2, Mach3, TurboCNC or many others) and it cannot make your PC physically interact with a CNC mill.
+## Tutorial Videos
+Tutorial Videos are available on the OfItselfSo YouTube channel at: [https://www.youtube.com/@ofitselfso](https://www.youtube.com/@ofitselfso)
 
 ## Help Files and Manual
 
 The Online Manual (http://www.ofitselfso.com/LineGrinder/LineGrinderHelp/LineGrinderHelp_TableOfContents.html)  contains a set of help files which, when viewed in sequence, form a "Get Started Guide". There are also specific help files which discuss how to prepare and output suitable Gerber files from the Eagle and DesignSpark software. The Line Grinder software repository contains a complete set of these help files.
 
+## What Line Grinder Does Not Do
+
+Please be aware that the Line Grinder software is purely a code generator. In other words, if you feed it some Gerber or Excellon files you will get some GCode out. Where, how and when you run those GCode files is entirely up to you. Specifically, the Line Grinder software is not a machine controller (like EMC2, Mach3, TurboCNC or many others) and it cannot make your PC physically interact with a CNC mill.
+
 ## License
 
-The CS_LCD Library is open source and released under the MIT License. The home page for this project can be found at [http://www.OfItselfSo.com/LineGrinder/LineGrinder.php](http://www.OfItselfSo.com/LineGrinder/LineGrinder.php). A compiled binary is available in zipped format on the home page for those who do not wish to compile their own copy.
+The LineGrinder software is open source and released under the MIT License. 
 
