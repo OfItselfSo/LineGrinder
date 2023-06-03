@@ -6,9 +6,6 @@ Line Grinder can generate isolation routing GCode from the Gerber format plot fi
 ### Home Page and Compiled Binary
 The home page for this project can be found at [http://www.OfItselfSo.com/LineGrinder/LineGrinder.php](http://www.OfItselfSo.com/LineGrinder/LineGrinder.php). A compiled binary is available in zipped format on the home page for those who do not wish to compile their own copy.
 
-### Note
-As of Dec 12, 2021 LineGrinder is back under active development. Aperture Macros now work. The Gerber X2 Spec is partially supported but further work needs to be done.
-
 ## Capabilities
 
     * Converts Gerber format plot files into GCode files which will engrave isolation cuts around the PCB traces.
@@ -31,7 +28,7 @@ The Online Manual (http://www.ofitselfso.com/LineGrinder/LineGrinderHelp/LineGri
 
 ## What Line Grinder Does Not Do
 
-Please be aware that the Line Grinder software is purely a code generator. In other words, if you feed it some Gerber or Excellon files you will get some GCode out. Where, how and when you run those GCode files is entirely up to you. Specifically, the Line Grinder software is not a machine controller (like EMC2, Mach3, TurboCNC or many others) and it cannot make your PC physically interact with a CNC mill.
+Please be aware that the Line Grinder software is purely a code generator. In other words, if you feed it some Gerber or Excellon files you will get some GCode out. Where, how and when you run those GCode files is entirely up to you. Specifically, the Line Grinder software is not a machine controller (like LinuxCNC, Mach3, TurboCNC or many others) and it cannot make your PC physically interact with a CNC mill.
 
 ## License
 
