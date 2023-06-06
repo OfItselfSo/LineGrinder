@@ -115,7 +115,7 @@ namespace LineGrinder
         // the DEFAULT_MAGNIFICATION_LEVEL
         public const int DEFAULT_MAGNICATION_LEVEL_INDEX = 6;
         // these are the possible default scale levels, the user can specify values between these manually
-        public static float[] DEFAULT_MAGNIFICATION_LEVELS = {0.25f, 0.33f, 0.50f, 0.66f, 0.75f, 0.87f, 1.00f, 1.25f, 1.50f, 2.00f, 3.00f, 4.00f, 5.00f, 6.00f, 7.00f, 8.00f, 10.00f, 12.00f, 16.00f };
+        public static float[] DEFAULT_MAGNIFICATION_LEVELS = {0.25f, 0.33f, 0.50f, 0.66f, 0.75f, 0.87f, 1.00f, 1.25f, 1.50f, 2.00f, 3.00f, 4.00f, 5.00f, 6.00f, 7.00f, 8.00f, 10.00f, 12.00f, 16.00f, 20.00f, 30.00f, 40.00f };
         // this is the currently operational level of magnification
         private float magnificationLevel = DEFAULT_MAGNIFICATION_LEVEL;
 
