@@ -116,6 +116,7 @@ namespace LineGrinder
             Unknown,
             KICAD,
             DESIGN_SPARK,
+            EASY_EDA,
         }
 
         // some known filename extensions
@@ -125,6 +126,13 @@ namespace LineGrinder
         public const string KNOWN_EXT_EXEL_DRILL_KICAD = ".drl";
         public const string KNOWN_EXT_EXEL_DRILL_PTH_KICAD = "-PTH.drl";
         public const string KNOWN_EXT_EXEL_DRILL_NPTH_KICAD = "-NPTH.drl";
+
+        public const string KNOWN_EXT_TOPCOPPER_EASYEDA = "_TopLayer.GTL";
+        public const string KNOWN_EXT_BOTCOPPER_EASYEDA = "_BottomLayer.GBL";
+        public const string KNOWN_EXT_EDGECUT_EASYEDA = "_BoardOutlineLayer.GKO";
+        public const string KNOWN_EXT_EXEL_DRILL_EASYEDA = "_PTH_Through_Via.DRL";
+        public const string KNOWN_EXT_EXEL_DRILL_PTH_EASYEDA = "_PTH_Through.DRL";
+        public const string KNOWN_EXT_EXEL_DRILL_NPTH_EASYEDA = "_NPTH_Through.DRL";
 
         public const string KNOWN_EXT_TOPCOPPER_DSPARK = "- Top Copper.gbr";
         public const string KNOWN_EXT_BOTCOPPER_DSPARK = "- Bottom Copper.gbr";
@@ -1003,6 +1011,14 @@ namespace LineGrinder
             if (filenameIn.EndsWith(KNOWN_EXT_EXEL_DRILL_KICAD) == true) if (outList.Contains(KnownDesignTool.KICAD) == false) outList.Add(KnownDesignTool.KICAD);
             if (filenameIn.EndsWith(KNOWN_EXT_EXEL_DRILL_PTH_KICAD) == true) if (outList.Contains(KnownDesignTool.KICAD) == false) outList.Add(KnownDesignTool.KICAD);
             if (filenameIn.EndsWith(KNOWN_EXT_EXEL_DRILL_NPTH_KICAD) == true) if (outList.Contains(KnownDesignTool.KICAD) == false) outList.Add(KnownDesignTool.KICAD);
+
+            // check EasyEDA
+            if (filenameIn.EndsWith(KNOWN_EXT_TOPCOPPER_EASYEDA) == true) if (outList.Contains(KnownDesignTool.EASY_EDA) == false) outList.Add(KnownDesignTool.EASY_EDA);
+            if (filenameIn.EndsWith(KNOWN_EXT_BOTCOPPER_EASYEDA) == true) if (outList.Contains(KnownDesignTool.EASY_EDA) == false) outList.Add(KnownDesignTool.EASY_EDA);
+            if (filenameIn.EndsWith(KNOWN_EXT_EDGECUT_EASYEDA) == true) if (outList.Contains(KnownDesignTool.EASY_EDA) == false) outList.Add(KnownDesignTool.EASY_EDA);
+            if (filenameIn.EndsWith(KNOWN_EXT_EXEL_DRILL_EASYEDA) == true) if (outList.Contains(KnownDesignTool.EASY_EDA) == false) outList.Add(KnownDesignTool.EASY_EDA);
+            if (filenameIn.EndsWith(KNOWN_EXT_EXEL_DRILL_PTH_EASYEDA) == true) if (outList.Contains(KnownDesignTool.EASY_EDA) == false) outList.Add(KnownDesignTool.EASY_EDA);
+            if (filenameIn.EndsWith(KNOWN_EXT_EXEL_DRILL_NPTH_EASYEDA) == true) if (outList.Contains(KnownDesignTool.EASY_EDA) == false) outList.Add(KnownDesignTool.EASY_EDA);
 
             // later do others
 

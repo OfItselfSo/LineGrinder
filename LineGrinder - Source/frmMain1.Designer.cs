@@ -96,6 +96,7 @@ namespace LineGrinder
             this.buttonRemoveSelectedFileManager = new System.Windows.Forms.Button();
             this.buttonRemoveAllFileManagers = new System.Windows.Forms.Button();
             this.groupBoxQuickFileManagerSetup = new System.Windows.Forms.GroupBox();
+            this.buttonQuickSetupEasyEDA = new System.Windows.Forms.Button();
             this.buttonQuickSetupKiCad = new System.Windows.Forms.Button();
             this.buttonQuickSetupEagle = new System.Windows.Forms.Button();
             this.buttonQuickSetupDesignSpark = new System.Windows.Forms.Button();
@@ -864,7 +865,7 @@ namespace LineGrinder
             this.groupBoxOutputUnits.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.groupBoxOutputUnits.Controls.Add(this.radioButtonOutputUnitsAreMM);
             this.groupBoxOutputUnits.Controls.Add(this.radioButtonOutputUnitsAreIN);
-            this.groupBoxOutputUnits.Location = new System.Drawing.Point(748, 163);
+            this.groupBoxOutputUnits.Location = new System.Drawing.Point(748, 157);
             this.groupBoxOutputUnits.Name = "groupBoxOutputUnits";
             this.groupBoxOutputUnits.Size = new System.Drawing.Size(200, 58);
             this.groupBoxOutputUnits.TabIndex = 17;
@@ -898,7 +899,7 @@ namespace LineGrinder
             this.labelConfigChangesDisabled.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.labelConfigChangesDisabled.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.labelConfigChangesDisabled.ForeColor = System.Drawing.Color.DarkRed;
-            this.labelConfigChangesDisabled.Location = new System.Drawing.Point(749, 238);
+            this.labelConfigChangesDisabled.Location = new System.Drawing.Point(749, 215);
             this.labelConfigChangesDisabled.Name = "labelConfigChangesDisabled";
             this.labelConfigChangesDisabled.Size = new System.Drawing.Size(199, 72);
             this.labelConfigChangesDisabled.TabIndex = 16;
@@ -909,7 +910,7 @@ namespace LineGrinder
             // buttonAddNewFileManager
             // 
             this.buttonAddNewFileManager.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-            this.buttonAddNewFileManager.Location = new System.Drawing.Point(759, 314);
+            this.buttonAddNewFileManager.Location = new System.Drawing.Point(759, 291);
             this.buttonAddNewFileManager.Name = "buttonAddNewFileManager";
             this.buttonAddNewFileManager.Size = new System.Drawing.Size(176, 23);
             this.buttonAddNewFileManager.TabIndex = 15;
@@ -920,7 +921,7 @@ namespace LineGrinder
             // buttonRemoveSelectedFileManager
             // 
             this.buttonRemoveSelectedFileManager.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-            this.buttonRemoveSelectedFileManager.Location = new System.Drawing.Point(759, 340);
+            this.buttonRemoveSelectedFileManager.Location = new System.Drawing.Point(759, 317);
             this.buttonRemoveSelectedFileManager.Name = "buttonRemoveSelectedFileManager";
             this.buttonRemoveSelectedFileManager.Size = new System.Drawing.Size(176, 23);
             this.buttonRemoveSelectedFileManager.TabIndex = 14;
@@ -931,7 +932,7 @@ namespace LineGrinder
             // buttonRemoveAllFileManagers
             // 
             this.buttonRemoveAllFileManagers.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-            this.buttonRemoveAllFileManagers.Location = new System.Drawing.Point(760, 366);
+            this.buttonRemoveAllFileManagers.Location = new System.Drawing.Point(760, 343);
             this.buttonRemoveAllFileManagers.Name = "buttonRemoveAllFileManagers";
             this.buttonRemoveAllFileManagers.Size = new System.Drawing.Size(176, 23);
             this.buttonRemoveAllFileManagers.TabIndex = 13;
@@ -942,15 +943,26 @@ namespace LineGrinder
             // groupBoxQuickFileManagerSetup
             // 
             this.groupBoxQuickFileManagerSetup.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
+            this.groupBoxQuickFileManagerSetup.Controls.Add(this.buttonQuickSetupEasyEDA);
             this.groupBoxQuickFileManagerSetup.Controls.Add(this.buttonQuickSetupKiCad);
             this.groupBoxQuickFileManagerSetup.Controls.Add(this.buttonQuickSetupEagle);
             this.groupBoxQuickFileManagerSetup.Controls.Add(this.buttonQuickSetupDesignSpark);
-            this.groupBoxQuickFileManagerSetup.Location = new System.Drawing.Point(749, 413);
+            this.groupBoxQuickFileManagerSetup.Location = new System.Drawing.Point(749, 393);
             this.groupBoxQuickFileManagerSetup.Name = "groupBoxQuickFileManagerSetup";
-            this.groupBoxQuickFileManagerSetup.Size = new System.Drawing.Size(199, 106);
+            this.groupBoxQuickFileManagerSetup.Size = new System.Drawing.Size(199, 133);
             this.groupBoxQuickFileManagerSetup.TabIndex = 8;
             this.groupBoxQuickFileManagerSetup.TabStop = false;
             this.groupBoxQuickFileManagerSetup.Text = "Quick File Manager Setup";
+            // 
+            // buttonQuickSetupEasyEDA
+            // 
+            this.buttonQuickSetupEasyEDA.Location = new System.Drawing.Point(10, 105);
+            this.buttonQuickSetupEasyEDA.Name = "buttonQuickSetupEasyEDA";
+            this.buttonQuickSetupEasyEDA.Size = new System.Drawing.Size(176, 23);
+            this.buttonQuickSetupEasyEDA.TabIndex = 3;
+            this.buttonQuickSetupEasyEDA.Text = "Add Managers for EasyEDA...";
+            this.buttonQuickSetupEasyEDA.UseVisualStyleBackColor = true;
+            this.buttonQuickSetupEasyEDA.Click += new System.EventHandler(this.buttonQuickSetupEasyEDA_Click);
             // 
             // buttonQuickSetupKiCad
             // 
@@ -1139,6 +1151,7 @@ namespace LineGrinder
             this.ctlFileManagersDisplay1.Location = new System.Drawing.Point(4, 101);
             this.ctlFileManagersDisplay1.Name = "ctlFileManagersDisplay1";
             this.ctlFileManagersDisplay1.OptionsChanged = false;
+            this.ctlFileManagersDisplay1.OutputApplicationUnits = LineGrinder.ApplicationUnitsEnum.INCHES;
             this.ctlFileManagersDisplay1.Size = new System.Drawing.Size(730, 486);
             this.ctlFileManagersDisplay1.TabIndex = 6;
             // 
@@ -1387,7 +1400,7 @@ namespace LineGrinder
             this.Controls.Add(this.buttonRecentFiles);
             this.Controls.Add(this.tabControl1);
             this.Location = new System.Drawing.Point(0, 0);
-            this.MinimumSize = new System.Drawing.Size(800, 600);
+            this.MinimumSize = new System.Drawing.Size(1140, 695);
             this.Name = "frmMain1";
             this.SizeGripStyle = System.Windows.Forms.SizeGripStyle.Show;
             this.Text = "Line Grinder";
@@ -1531,6 +1544,7 @@ namespace LineGrinder
         private System.Windows.Forms.RadioButton radioButtonOutputUnitsAreMM;
         private System.Windows.Forms.RadioButton radioButtonOutputUnitsAreIN;
         private System.Windows.Forms.BindingSource bindingSource1;
+        private System.Windows.Forms.Button buttonQuickSetupEasyEDA;
     }
 }
 

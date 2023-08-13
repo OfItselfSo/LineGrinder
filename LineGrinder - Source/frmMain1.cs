@@ -2998,6 +2998,11 @@ namespace LineGrinder
                             // simulate a press on this button
                             buttonQuickSetupKiCad_Click(this, new EventArgs());
                         }
+                        else if ((currentTool is FileManager.KnownDesignTool.EASY_EDA) == true)
+                        {
+                            // simulate a press on this button
+                            buttonQuickSetupEasyEDA_Click(this, new EventArgs());
+                        }
                         else
                         {
                             // should never happen
@@ -4155,6 +4160,76 @@ namespace LineGrinder
             ctlFileManagersDisplay1.AddFileManager(mgrObj);
 
             OISMessageBox("Template File Managers suitable for Eagle  have been added.\n\nThe parameters will be at their default settings. You should check them to be sure they are set appropriate to your requirements.");
+        }
+
+        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+        /// <summary>
+        /// Handles a press on the Quick Setup (EasyEDA) button
+        /// </summary>
+        private void buttonQuickSetupEasyEDA_Click(object sender, EventArgs e)
+        {
+            FileManager mgrObj;
+            FileManager defMgrObj;
+
+            // get the default manager
+            defMgrObj = ctlFileManagersDisplay1.GetDefaultFileManagerObject();
+
+            // now create the bottom copper
+            mgrObj = FileManager.DeepClone(defMgrObj);
+            mgrObj.OperationMode = FileManager.OperationModeEnum.IsolationCut;
+            mgrObj.IsoFlipMode = FlipModeEnum.X_Flip;
+            mgrObj.ReferencePinGCodeEnabled = false;
+            mgrObj.FilenamePattern = "_BottomLayer.GBL";
+            mgrObj.Description = "EasyEDA Bottom Layer";
+            ctlFileManagersDisplay1.AddFileManager(mgrObj);
+
+            // now create the top copper
+            mgrObj = FileManager.DeepClone(defMgrObj);
+            mgrObj.OperationMode = FileManager.OperationModeEnum.IsolationCut;
+            mgrObj.IsoFlipMode = FlipModeEnum.No_Flip;
+            mgrObj.FilenamePattern = "_TopLayer.GTL";
+            mgrObj.Description = "EasyEDA Top Layer";
+            ctlFileManagersDisplay1.AddFileManager(mgrObj);
+
+            // now create the board outline
+            mgrObj = FileManager.DeepClone(defMgrObj);
+            mgrObj.OperationMode = FileManager.OperationModeEnum.BoardEdgeMill;
+            mgrObj.IsoFlipMode = FlipModeEnum.No_Flip;
+            mgrObj.FilenamePattern = "_BoardOutlineLayer.GKO";
+            mgrObj.Description = "EasyEDA Board Outline";
+            ctlFileManagersDisplay1.AddFileManager(mgrObj);
+
+            // now create the excellon file
+            mgrObj = FileManager.DeepClone(defMgrObj);
+            mgrObj.OperationMode = FileManager.OperationModeEnum.Excellon;
+            mgrObj.IsoFlipMode = FlipModeEnum.No_Flip;
+            mgrObj.FilenamePattern = "_NPTH_Through.DRL";
+            mgrObj.DrillingCoordinateZerosMode = FileManager.ExcellonDrillingCoordinateZerosModeEnum.FixedDecimalPoint;
+            mgrObj.DrillingNumberOfDecimalPlaces = 3;
+            mgrObj.Description = "EasyEDA Excellon Drill file.";
+            ctlFileManagersDisplay1.AddFileManager(mgrObj);
+
+            // now create the excellon file
+            mgrObj = FileManager.DeepClone(defMgrObj);
+            mgrObj.OperationMode = FileManager.OperationModeEnum.Excellon;
+            mgrObj.IsoFlipMode = FlipModeEnum.No_Flip;
+            mgrObj.FilenamePattern = "_PTH_Through.DRL";
+            mgrObj.DrillingCoordinateZerosMode = FileManager.ExcellonDrillingCoordinateZerosModeEnum.FixedDecimalPoint;
+            mgrObj.DrillingNumberOfDecimalPlaces = 3;
+            mgrObj.Description = "EasyEDA Excellon Drill file.";
+            ctlFileManagersDisplay1.AddFileManager(mgrObj);
+
+            // now create the excellon file
+            mgrObj = FileManager.DeepClone(defMgrObj);
+            mgrObj.OperationMode = FileManager.OperationModeEnum.Excellon;
+            mgrObj.IsoFlipMode = FlipModeEnum.No_Flip;
+            mgrObj.FilenamePattern = "_PTH_Through_Via.DRL";
+            mgrObj.DrillingCoordinateZerosMode = FileManager.ExcellonDrillingCoordinateZerosModeEnum.FixedDecimalPoint;
+            mgrObj.DrillingNumberOfDecimalPlaces = 3;
+            mgrObj.Description = "EasyEDA Excellon Drill file.";
+            ctlFileManagersDisplay1.AddFileManager(mgrObj);
+
+            OISMessageBox("Template File Managers suitable for EasyEDA  have been added.\n\nThe parameters will be at their default settings. You should check them to be sure they are set appropriate to your requirements.");
         }
 
         /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
