@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Text;
+using OISCommon;
 
 /// +------------------------------------------------------------------------------------------------------------------------------+
 /// ¦                                TERMS OF USE: GNU General Public License version 3                                            ¦
@@ -72,7 +73,7 @@ namespace LineGrinder
 
     #endregion
 
-    public class MathParser
+    public class MathParser : OISObjBase
     {
         #region Fields
 
@@ -200,6 +201,7 @@ namespace LineGrinder
         /// <returns>Result</returns>
         public double Parse(string expression, bool isRadians = true)
         {
+
             this.isRadians = isRadians;
 
             try

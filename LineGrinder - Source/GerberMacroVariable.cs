@@ -159,8 +159,14 @@ namespace LineGrinder
             {
                 // do we need to process further?
                 if (stringToFill.Contains("$") == false) return stringToFill;
+
+                // must have some variables
+                if (varArray.Count() == 0) return stringToFill;
+
                 // yes we do, we could figure out which ones are in there but this is easier
-                for(int index=0; index<varArray.Count(); index++)
+                //  for (int index = 0; index < varArray.Count(); index++)
+                // we do the replace in reverse order. Replacing $1 before we replace $11 really messes things up.
+                for (int index = varArray.Count() - 1; index >= 0; index--)
                 {
                     // do the replace for every variable
                     // for example $4 will get replaced with "(<variableString>)" in the stringToFill. If the VariableString also 
