@@ -131,7 +131,7 @@ namespace LineGrinder
                 LogMessage("Exception creating array. ex=" + ex.Message + ", isoPlotWidth="+ isoPlotWidth.ToString() + ", isoPlotHeight=" + isoPlotHeight.ToString());
                 if ((ex is OutOfMemoryException)==true)
                 {
-                    OISMessageBox("The isoplot array is too large. Consider reducing the IsoPlotUnitsPerUnit value on the Settings Tab./n/nPlease see the logs");
+                    OISMessageBox("The isoplot array is too large. Consider reducing the IsoPlotUnitsPerUnit value on the Settings Tab.\n\nPlease see the log file for more details.");
                 }
                 // rethrow it
                 throw ex;
