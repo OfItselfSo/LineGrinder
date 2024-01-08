@@ -234,6 +234,11 @@ namespace LineGrinder
         [DataMember]
         private bool isoPadTouchDownsWanted = DEFAULT_ISOPADTOUCHDOWNS_WANTED;
 
+        // this will cause background fill to be ignored
+        public const bool DEFAULT_IGNORE_FILL_AREAS = true;
+        [DataMember]
+        private bool ignoreFillAreas = DEFAULT_IGNORE_FILL_AREAS;
+
         // this is essentially the distance into the work the isolation milling bit moves
         // when performing pad touchdowns.
         private const float DEFAULT_ISOPADTOUCHDOWN_ZLEVEL = -0.005f;
@@ -639,6 +644,7 @@ namespace LineGrinder
             if (isoPadTouchDownsWanted != DEFAULT_ISOPADTOUCHDOWNS_WANTED) return false;
             if (isoPadTouchDownZLevel != DEFAULT_ISOPADTOUCHDOWN_ZLEVEL) return false;
             if (isoCutGCodeEnabled != DEFAULT_ISOCUTGCODE_ENABLED) return false;
+            if (ignoreFillAreas != DEFAULT_IGNORE_FILL_AREAS) return false;
 
             // ref pins
             if (referencePinGCodeEnabled != DEFAULT_REFERENCEPINGCODE_ENABLED) return false;
@@ -736,6 +742,7 @@ namespace LineGrinder
             isoPadTouchDownsWanted = DEFAULT_ISOPADTOUCHDOWNS_WANTED;
             isoPadTouchDownZLevel = DEFAULT_ISOPADTOUCHDOWN_ZLEVEL;
             isoCutGCodeEnabled = DEFAULT_ISOCUTGCODE_ENABLED;
+            ignoreFillAreas = DEFAULT_IGNORE_FILL_AREAS;
 
             // ref pins
             referencePinGCodeEnabled = DEFAULT_REFERENCEPINGCODE_ENABLED;
@@ -847,6 +854,7 @@ namespace LineGrinder
             // n/a isoPadTouchDownsWanted 
             isoPadTouchDownZLevel = (isoPadTouchDownZLevel * INCHTOMMSCALERx10) / 10;
             // n/a isoCutGCodeEnabled
+            // n/a ignoreFillAreas
 
             //refpins
             // n/a referencePinGCodeEnabled 
@@ -938,6 +946,7 @@ namespace LineGrinder
             // n/a isoPadTouchDownsWanted 
             isoPadTouchDownZLevel = (isoPadTouchDownZLevel * 10) / INCHTOMMSCALERx10;
             // n/a isoCutGCodeEnabled
+            // n/a ignoreFillAreas
 
             //refpins
             // n/a referencePinGCodeEnabled 
@@ -1968,8 +1977,7 @@ namespace LineGrinder
 
         /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
         /// <summary>
-        /// Gets/Sets the isoCutWidth. Will never get or set a negative
-        /// or xyero value. 
+        /// Gets/Sets the isoCutWidth. Will never get or set a negative or zero
         /// </summary>
         [DescriptionAttribute("This is the width of the line the isolation milling bit cuts when at the IsoZCutLevel.")]
         [CategoryAttribute("Isolation Cuts")]
@@ -1991,8 +1999,27 @@ namespace LineGrinder
 
         /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
         /// <summary>
+        /// Gets/Sets the ignoreFillAreas
+        /// </summary>
+        [DescriptionAttribute("This causes the background fill code to be ignored. Usually this is the ground plane and in this case there is no need to isolation route it since the copper of the board is the fill.")]
+        [CategoryAttribute("Isolation Cuts")]
+        [ReadOnlyAttribute(false)]
+        [BrowsableAttribute(true)]
+        public bool IgnoreFillAreas
+        {
+            get
+            {
+                return ignoreFillAreas;
+            }
+            set
+            {
+                ignoreFillAreas = value;
+            }
+        }
+
+        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+        /// <summary>
         /// Gets/Sets the isoPadTouchDownsWanted
-        /// or xyero value. 
         /// </summary>
         [DescriptionAttribute("This causes the isolation milling bit to touch down in the center of each pad to a distance of IsoPadTouchDownZLevel and hence provides a centering point for manual drilling.")]
         [CategoryAttribute("Isolation Cuts")]
@@ -2012,8 +2039,7 @@ namespace LineGrinder
 
         /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
         /// <summary>
-        /// Gets/Sets the isoPadTouchDownsWanted
-        /// or xyero value. 
+        /// Gets/Sets the isoPadTouchDownZLevel
         /// </summary>
         [DescriptionAttribute("This is the distance into the work the isolation milling bit moves when creating pad touchdowns and should be negative because it is below the surface of the PCB. It is intended to provide a centering point for the manual drilling of through holes.")]
         [CategoryAttribute("Isolation Cuts")]

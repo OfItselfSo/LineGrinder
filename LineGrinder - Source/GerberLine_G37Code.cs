@@ -60,20 +60,26 @@ namespace LineGrinder
             // means fill the existing contour object .
             if ((stateMachine.ContourDrawingModeEnabled == true) && (stateMachine.ComplexObjectList_DCode.Count != 0))
             {
-                // we have an existing complex object, we process it there
+                // do we wish to ignore this kind of object?
+                if(stateMachine.GerberFileManager.IgnoreFillAreas==false)
+                {
+                    // we do not wish to ignore
+                    // we have an existing complex object, we process it here
 
-                // Create solid brush.
-                SolidBrush fillBrush = (SolidBrush)stateMachine.GerberContourFillBrush; 
-                // Get the bounding box
-                Rectangle boundingRect = stateMachine.GetBoundingRectangleFromComplexObjectList_DCode();
-                // get a graphics path defining this object
-                GraphicsPath gPath = stateMachine.GetGraphicsPathFromComplexObjectList_DCode();
-                MiscGraphicsUtils.FillRectangleUsingGraphicsPath(graphicsObj, gPath, boundingRect, fillBrush);
+                    // Create solid brush.
+                    SolidBrush fillBrush = (SolidBrush)stateMachine.GerberContourFillBrush; 
+                    // Get the bounding box
+                    Rectangle boundingRect = stateMachine.GetBoundingRectangleFromComplexObjectList_DCode();
+                    // get a graphics path defining this object
+                    GraphicsPath gPath = stateMachine.GetGraphicsPathFromComplexObjectList_DCode();
+                    MiscGraphicsUtils.FillRectangleUsingGraphicsPath(graphicsObj, gPath, boundingRect, fillBrush);
+                }
+
                 // reset the complex object list
                 stateMachine.ComplexObjectList_DCode = new List<GerberLine_DCode>();
             }
 
-            // enable contour drawing mode
+            // disable contour drawing mode
             stateMachine.ContourDrawingModeEnabled = false;
             return GerberLine.PlotActionEnum.PlotAction_Continue;
         }
@@ -95,25 +101,30 @@ namespace LineGrinder
             // means fill the existing contour object .
             if ((stateMachine.ContourDrawingModeEnabled == true) && (stateMachine.ComplexObjectList_DCode.Count != 0))
             {
-                // process the complex object by drawing in the background 
-                
-                // Get the bounding box
-                Rectangle boundingRect = stateMachine.GetBoundingRectangleFromComplexObjectList_DCode();
-                // get a list of builderIDs in the complex object list
-                List<int> builderIDList = stateMachine.GetListOfIsoPlotBuilderIDsFromComplexObjectList_DCode();
-                if(builderIDList.Count>0)
+                // do we wish to ignore this kind of object?
+                if (stateMachine.GerberFileManager.IgnoreFillAreas == false)
                 {
-                    if (stateMachine.BackgroundFillModeAccordingToPolarity == GSFillModeEnum.FillMode_BACKGROUND)
+                    // we do not wish to ignore
+                    // process the complex object by drawing in the background 
+
+                    // Get the bounding box
+                    Rectangle boundingRect = stateMachine.GetBoundingRectangleFromComplexObjectList_DCode();
+                    // get a list of builderIDs in the complex object list
+                    List<int> builderIDList = stateMachine.GetListOfIsoPlotBuilderIDsFromComplexObjectList_DCode();
+                    if (builderIDList.Count > 0)
                     {
-                        // Normal Dark polarity. Just fill it in with a backgroundpixel
-                        isoPlotBuilder.BackgroundFillGSRegionComplex(builderIDList, builderIDList[0], boundingRect.X, boundingRect.Y, boundingRect.X + boundingRect.Width, boundingRect.Y + boundingRect.Height, -1);
+                        if (stateMachine.BackgroundFillModeAccordingToPolarity == GSFillModeEnum.FillMode_BACKGROUND)
+                        {
+                            // Normal Dark polarity. Just fill it in with a backgroundpixel
+                            isoPlotBuilder.BackgroundFillGSRegionComplex(builderIDList, builderIDList[0], boundingRect.X, boundingRect.Y, boundingRect.X + boundingRect.Width, boundingRect.Y + boundingRect.Height, -1);
+                        }
+                        else if (stateMachine.BackgroundFillModeAccordingToPolarity == GSFillModeEnum.FillMode_ERASE)
+                        {
+                            // we have reverse polarity. The object we just drew must be cleaned out and everything underneath it removed
+                            isoPlotBuilder.BackgroundFillGSByBoundaryComplexVert(builderIDList, IsoPlotObject.DEFAULT_ISOPLOTOBJECT_ID, boundingRect.X, boundingRect.Y, boundingRect.X + boundingRect.Width, boundingRect.Y + boundingRect.Height, -1);
+                        }
                     }
-                    else if (stateMachine.BackgroundFillModeAccordingToPolarity == GSFillModeEnum.FillMode_ERASE)
-                    {
-                        // we have reverse polarity. The object we just drew must be cleaned out and everything underneath it removed
-                        isoPlotBuilder.BackgroundFillGSByBoundaryComplexVert(builderIDList, IsoPlotObject.DEFAULT_ISOPLOTOBJECT_ID, boundingRect.X, boundingRect.Y, boundingRect.X + boundingRect.Width, boundingRect.Y + boundingRect.Height, -1);
-                    }
-                }
+                } //bottom of if (stateMachine.GerberFileManager.IgnoreFillAreas == false)
             }
             // reset, we have processed the complex list
             stateMachine.ComplexObjectList_DCode = new List<GerberLine_DCode>();

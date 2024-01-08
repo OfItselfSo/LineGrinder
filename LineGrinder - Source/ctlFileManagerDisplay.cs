@@ -495,6 +495,7 @@ namespace LineGrinder
         private void SetPropertyStateAppropriateToOperationMode(FileManager optObject)
         {
             bool isoCutROState = false;
+            bool ignoreFillState = false;
             bool isoCutRefPinROState = false;
             bool edgeMillROState = false;
             bool excellonROState = false;
@@ -518,6 +519,7 @@ namespace LineGrinder
                     isoCutROState = false;
                     ignorePadROState = false;
                     ignoreDrillROState = true;
+                    ignoreFillState = false;
                     isoCutRefPinROState = false;
                     edgeMillROState = true;
                     excellonROState = true;
@@ -527,6 +529,7 @@ namespace LineGrinder
                     isoCutROState = true;
                     ignorePadROState = true;
                     ignoreDrillROState = true;
+                    ignoreFillState = true;
                     isoCutRefPinROState = true;
                     edgeMillROState = false;
                     excellonROState = true;
@@ -536,6 +539,7 @@ namespace LineGrinder
                     isoCutROState = true;
                     ignorePadROState = true;
                     ignoreDrillROState = true;
+                    ignoreFillState = true;
                     isoCutRefPinROState = true;
                     edgeMillROState = true;
                     excellonROState = true;
@@ -545,6 +549,7 @@ namespace LineGrinder
                     isoCutROState = true;
                     ignorePadROState = true;
                     ignoreDrillROState = false;
+                    ignoreFillState = true;
                     isoCutRefPinROState = true;
                     edgeMillROState = true;
                     excellonROState = false;
@@ -554,6 +559,7 @@ namespace LineGrinder
                     isoCutROState = false;
                     ignorePadROState = true;
                     ignoreDrillROState = true;
+                    ignoreFillState = true;
                     isoCutRefPinROState = false;
                     edgeMillROState = false;
                     excellonROState = false;
@@ -579,6 +585,7 @@ namespace LineGrinder
             SetPropertyBrowsableState(optObject, "IsoXYFeedRate", isoCutROState);
             SetPropertyBrowsableState(optObject, "IsoCutWidth", isoCutROState);
             SetPropertyBrowsableState(optObject, "IsoPadTouchDownsWanted", isoCutROState);
+            SetPropertyBrowsableState(optObject, "IgnoreFillAreas", ignoreFillState);
             SetPropertyBrowsableState(optObject, "IsoPadTouchDownZLevel", isoCutROState);
             SetPropertyBrowsableState(optObject, "IsoCutGCodeEnabled", isoCutROState);
 
