@@ -153,6 +153,7 @@ namespace LineGrinder
         /// <summary>
         /// Gets/Sets the control we use to display the mouse cursor position
         /// </summary>
+        [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
         public TextBox MouseCursorDisplayControl
         {
             get
@@ -183,6 +184,7 @@ namespace LineGrinder
         /// <summary>
         /// Gets/Sets whether we show the GCode cut lines when plotting GCodes
         /// </summary>
+        [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
         public bool ShowGerberOnGCode
         {
             get
@@ -199,6 +201,7 @@ namespace LineGrinder
         /// <summary>
         /// Gets/Sets whether we show the (0,0) origin on the display
         /// </summary>
+        [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
         public bool ShowOrigin
         {
             get
@@ -215,6 +218,7 @@ namespace LineGrinder
         /// <summary>
         /// Gets/Sets whether we show the GCode origin on the display
         /// </summary>
+        [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
         public bool ShowGCodeOrigin
         {
             get
@@ -227,11 +231,11 @@ namespace LineGrinder
             }
         }
 
-
         /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
         /// <summary>
         /// Gets/Sets whether we show the GCode origin in the center of the plot
         /// </summary>
+        [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
         public bool GcodeOriginAtCenter
         {
             get
@@ -248,6 +252,7 @@ namespace LineGrinder
         /// <summary>
         /// Gets/Sets whether we show the FlipAxis on the display
         /// </summary>
+        [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
         public bool ShowFlipAxis
         {
             get
@@ -267,6 +272,7 @@ namespace LineGrinder
         [Browsable(false)]
         [DefaultValue(null)]
         [ReadOnlyAttribute(true)]
+        [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
         public GerberFile GerberFileToDisplay
         {
             set
@@ -288,6 +294,7 @@ namespace LineGrinder
         [Browsable(false)]
         [DefaultValue(null)]
         [ReadOnlyAttribute(true)]
+        [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
         public ExcellonFile ExcellonFileToDisplay
         {
             set
@@ -309,6 +316,7 @@ namespace LineGrinder
         [BrowsableAttribute(false)]
         [DefaultValue(null)]
         [ReadOnlyAttribute(true)]
+        [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
         public IsoPlotBuilder IsoPlotBuilderToDisplay
         {
             get
@@ -328,6 +336,7 @@ namespace LineGrinder
         [BrowsableAttribute(false)]
         [DefaultValue(null)]
         [ReadOnlyAttribute(true)]
+        [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
         public GCodeFile GCodeFileToDisplay
         {
             get
@@ -347,6 +356,7 @@ namespace LineGrinder
         [Browsable(false)]
         [DefaultValue(null)]
         [ReadOnlyAttribute(true)]
+        [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
         public Bitmap BackgroundBitmap
         {
             get
@@ -372,6 +382,7 @@ namespace LineGrinder
         [Browsable(false)]
         [DefaultValue(null)]
         [ReadOnlyAttribute(true)]
+        [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
         public DisplayModeEnum BitmapMode
         {
             get
@@ -387,6 +398,7 @@ namespace LineGrinder
         [Browsable(false)]
         [DefaultValue(null)]
         [ReadOnlyAttribute(true)]
+        [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
         public DisplayModeEnum DisplayMode
         {
             get
@@ -434,6 +446,7 @@ namespace LineGrinder
         [Browsable(false)]
         [DefaultValue(null)]
         [ReadOnlyAttribute(true)]
+        [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
         public Size VirtualPlotSize
         {
             get
@@ -451,6 +464,7 @@ namespace LineGrinder
         /// Gets/Sets the currently set Screen Units as an enum
         /// </summary>
         [Browsable(false)]
+        [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
         public ApplicationUnitsEnum ScreenUnits
         {
             get
@@ -471,6 +485,7 @@ namespace LineGrinder
         [Browsable(false)]
         [DefaultValue(null)]
         [ReadOnlyAttribute(true)]
+        [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
         public float IsoPlotPointsPerAppUnit
         {
             get
@@ -521,6 +536,7 @@ namespace LineGrinder
         /// Gets/sets the current magnification level. Will never get/set a value less
         /// than zero.
         /// </summary>
+        [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
         public float MagnificationLevel
         {
             get
@@ -541,6 +557,7 @@ namespace LineGrinder
         /// plot origin in order to find the true origin of the plot display. This 
         /// is the (0,0) origin actually used in the Gerber or Excellon file
         /// </summary>
+        [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
         public float PlotXOriginLocation
         {
             get
@@ -559,6 +576,7 @@ namespace LineGrinder
         /// plot origin in order to find the true origin of the plot display. This 
         /// is the (0,0) origin actually used in the Gerber or Excellon file
         /// </summary>
+        [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
         public float PlotYOriginLocation
         {
             get
@@ -1071,6 +1089,7 @@ namespace LineGrinder
         /// app units are inches this is the screen resolution in dpi. Otherwise
         /// this is the dpmm
         /// </summary>
+        [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
         private float DotsPerAppUnitX
         {
             get
@@ -1092,6 +1111,7 @@ namespace LineGrinder
         /// app units are inches this is the screen resolution in dpi. Otherwise
         /// this is the dpmm
         /// </summary>
+        [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
         private float DotsPerAppUnitY
         {
             get

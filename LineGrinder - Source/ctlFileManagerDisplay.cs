@@ -66,6 +66,7 @@ namespace LineGrinder
         /// Gets/Sets the currently set Default Application Units as an enum
         /// </summary>
         [Browsable(false)]
+        [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
         public ApplicationUnitsEnum DefaultApplicationUnits
         {
             get
@@ -83,6 +84,7 @@ namespace LineGrinder
         /// Gets/Sets the currently set Output Application Units as an enum
         /// </summary>
         [Browsable(false)]
+        [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
         public ApplicationUnitsEnum OutputApplicationUnits
         {
             get
@@ -141,6 +143,7 @@ namespace LineGrinder
         [Browsable(false)]
         [DefaultValue(null)]
         [ReadOnlyAttribute(true)]
+        [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
         public BindingList<FileManager> FileManagersList
         {
             get
@@ -217,6 +220,7 @@ namespace LineGrinder
         /// Gets/sets the optionsChanged flag
         /// </summary>
         [Browsable(false)]
+        [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
         public bool OptionsChanged
         {
             get

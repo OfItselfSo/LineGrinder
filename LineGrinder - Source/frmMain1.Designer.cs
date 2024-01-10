@@ -494,18 +494,8 @@ namespace LineGrinder
             this.ctlPlotViewer1.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.ctlPlotViewer1.GcodeOriginAtCenter = true;
             this.ctlPlotViewer1.Location = new System.Drawing.Point(133, 2);
-            this.ctlPlotViewer1.MagnificationLevel = 1F;
-            this.ctlPlotViewer1.MouseCursorDisplayControl = null;
             this.ctlPlotViewer1.Name = "ctlPlotViewer1";
-            this.ctlPlotViewer1.PlotXOriginLocation = 0F;
-            this.ctlPlotViewer1.PlotYOriginLocation = 0F;
-            this.ctlPlotViewer1.ScreenUnits = LineGrinder.ApplicationUnitsEnum.INCHES;
-            this.ctlPlotViewer1.ShowFlipAxis = false;
-            this.ctlPlotViewer1.ShowGCodeOrigin = false;
-            this.ctlPlotViewer1.ShowGerberOnGCode = false;
-            this.ctlPlotViewer1.ShowOrigin = false;
             this.ctlPlotViewer1.Size = new System.Drawing.Size(823, 588);
             this.ctlPlotViewer1.TabIndex = 2;
             // 
@@ -1147,11 +1137,8 @@ namespace LineGrinder
             this.ctlFileManagersDisplay1.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.ctlFileManagersDisplay1.DefaultApplicationUnits = LineGrinder.ApplicationUnitsEnum.INCHES;
             this.ctlFileManagersDisplay1.Location = new System.Drawing.Point(4, 101);
             this.ctlFileManagersDisplay1.Name = "ctlFileManagersDisplay1";
-            this.ctlFileManagersDisplay1.OptionsChanged = false;
-            this.ctlFileManagersDisplay1.OutputApplicationUnits = LineGrinder.ApplicationUnitsEnum.INCHES;
             this.ctlFileManagersDisplay1.Size = new System.Drawing.Size(730, 486);
             this.ctlFileManagersDisplay1.TabIndex = 6;
             // 
@@ -1213,7 +1200,7 @@ namespace LineGrinder
             // buttonSaveIsolationGCodeAs
             // 
             this.buttonSaveIsolationGCodeAs.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.buttonSaveIsolationGCodeAs.Location = new System.Drawing.Point(974, 355);
+            this.buttonSaveIsolationGCodeAs.Location = new System.Drawing.Point(974, 356);
             this.buttonSaveIsolationGCodeAs.Name = "buttonSaveIsolationGCodeAs";
             this.buttonSaveIsolationGCodeAs.Size = new System.Drawing.Size(148, 23);
             this.buttonSaveIsolationGCodeAs.TabIndex = 19;
@@ -1280,7 +1267,7 @@ namespace LineGrinder
             // buttonSaveEdgeMillGCodeAs
             // 
             this.buttonSaveEdgeMillGCodeAs.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.buttonSaveEdgeMillGCodeAs.Location = new System.Drawing.Point(974, 401);
+            this.buttonSaveEdgeMillGCodeAs.Location = new System.Drawing.Point(974, 402);
             this.buttonSaveEdgeMillGCodeAs.Name = "buttonSaveEdgeMillGCodeAs";
             this.buttonSaveEdgeMillGCodeAs.Size = new System.Drawing.Size(148, 23);
             this.buttonSaveEdgeMillGCodeAs.TabIndex = 27;
@@ -1302,7 +1289,7 @@ namespace LineGrinder
             // buttonSaveBedFlatteningGCodeAs
             // 
             this.buttonSaveBedFlatteningGCodeAs.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.buttonSaveBedFlatteningGCodeAs.Location = new System.Drawing.Point(974, 424);
+            this.buttonSaveBedFlatteningGCodeAs.Location = new System.Drawing.Point(974, 425);
             this.buttonSaveBedFlatteningGCodeAs.Name = "buttonSaveBedFlatteningGCodeAs";
             this.buttonSaveBedFlatteningGCodeAs.Size = new System.Drawing.Size(148, 23);
             this.buttonSaveBedFlatteningGCodeAs.TabIndex = 29;
@@ -1324,7 +1311,7 @@ namespace LineGrinder
             // buttonSaveRefPinGCodeAs
             // 
             this.buttonSaveRefPinGCodeAs.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.buttonSaveRefPinGCodeAs.Location = new System.Drawing.Point(974, 378);
+            this.buttonSaveRefPinGCodeAs.Location = new System.Drawing.Point(974, 379);
             this.buttonSaveRefPinGCodeAs.Name = "buttonSaveRefPinGCodeAs";
             this.buttonSaveRefPinGCodeAs.Size = new System.Drawing.Size(148, 23);
             this.buttonSaveRefPinGCodeAs.TabIndex = 31;
@@ -1357,7 +1344,7 @@ namespace LineGrinder
             // buttonSaveDrillGCodeAs
             // 
             this.buttonSaveDrillGCodeAs.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.buttonSaveDrillGCodeAs.Location = new System.Drawing.Point(974, 447);
+            this.buttonSaveDrillGCodeAs.Location = new System.Drawing.Point(974, 448);
             this.buttonSaveDrillGCodeAs.Name = "buttonSaveDrillGCodeAs";
             this.buttonSaveDrillGCodeAs.Size = new System.Drawing.Size(148, 23);
             this.buttonSaveDrillGCodeAs.TabIndex = 33;
