@@ -252,6 +252,10 @@ namespace LineGrinder
         // ####################################################################
         #region Edge Mill category variables
 
+        public const FlipModeEnum DEFAULT_EDGEMILLFLIP_MODE = FlipModeEnum.No_Flip;
+        [DataMember]
+        private FlipModeEnum edgeMillFlipMode = DEFAULT_EDGEMILLFLIP_MODE;
+
         // this determines whether we generate EdgeMill GCodes
         public const bool DEFAULT_EDGEMILLINGGCODE_ENABLED = true;
         [DataMember]
@@ -610,6 +614,7 @@ namespace LineGrinder
             if (edgeMillCutWidth != DEFAULT_EDGEMILLCUT_WIDTH) return false;
             if (edgeMillNumTabs != DEFAULT_EDGEMILLNUM_TABS) return false;
             if (edgeMillTabWidth != DEFAULT_EDGEMILLTAB_WIDTH) return false;
+            if (edgeMillFlipMode != DEFAULT_EDGEMILLFLIP_MODE) return false;
 
             // bed flattening
             if (bedFlatteningSizeMode != DEFAULT_BEDFLATTENINGSIZE_MODE) return false;
@@ -707,6 +712,7 @@ namespace LineGrinder
             edgeMillCutWidth = DEFAULT_EDGEMILLCUT_WIDTH;
             edgeMillNumTabs = DEFAULT_EDGEMILLNUM_TABS;
             edgeMillTabWidth = DEFAULT_EDGEMILLTAB_WIDTH;
+            edgeMillFlipMode = DEFAULT_EDGEMILLFLIP_MODE;
 
             // bed flattening
             bedFlatteningSizeMode = DEFAULT_BEDFLATTENINGSIZE_MODE;
@@ -820,6 +826,7 @@ namespace LineGrinder
             edgeMillCutWidth = (edgeMillCutWidth * INCHTOMMSCALERx10) / 10;
             // n/a edgeMillNumTabs
             edgeMillTabWidth = (edgeMillTabWidth * INCHTOMMSCALERx10) / 10;
+            // n/a edgeMillFlipMode 
 
             //bedflattening
             // n/a bedFlatteningSizeMode
@@ -912,6 +919,7 @@ namespace LineGrinder
             edgeMillCutWidth = (edgeMillCutWidth * 10) / INCHTOMMSCALERx10;
             // n/a edgeMillNumTabs
             edgeMillTabWidth = (edgeMillTabWidth * 10) / INCHTOMMSCALERx10;
+            // n/a edgeMillFlipMode 
 
             //bedflattening
             // n/a bedFlatteningSizeMode
@@ -1235,6 +1243,27 @@ namespace LineGrinder
         // ##### Board Edge Mill category items
         // ####################################################################
         #region Board Edge Mill category items
+
+        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+        /// <summary>
+        /// Gets/Sets the edgeMillFlipMode value. This determines how we flip the x or y
+        /// coordinates so that we can make edge cuts on the bottom copper.
+        /// </summary>
+        [DescriptionAttribute("This determines how we flip the X or Y coordinates so that edge cuts made with the bottom layer upwards line up with the top layer. Usually this is No_Flip for the top layer and X_Flip for bottom layers.")]
+        [CategoryAttribute("Board Edge Milling")]
+        [ReadOnlyAttribute(false)]
+        [BrowsableAttribute(true)]
+        public FlipModeEnum EdgeMillFlipMode
+        {
+            get
+            {
+                return edgeMillFlipMode;
+            }
+            set
+            {
+                edgeMillFlipMode = value;
+            }
+        }
 
         /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
         /// <summary>

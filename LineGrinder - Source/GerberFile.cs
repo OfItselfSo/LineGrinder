@@ -722,7 +722,11 @@ namespace LineGrinder
             get
             {
                 // this is safe to do. None of these properties return null
-                return StateMachine.GerberFileManager.IsoFlipMode;
+                if(StateMachine.GerberFileManager.OperationMode == FileManager.OperationModeEnum.BoardEdgeMill)
+                {
+                    return StateMachine.GerberFileManager.EdgeMillFlipMode;
+                }
+                else return StateMachine.GerberFileManager.IsoFlipMode;
             }
         }
 

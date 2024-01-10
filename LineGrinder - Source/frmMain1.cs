@@ -4095,6 +4095,7 @@ namespace LineGrinder
             mgrObj = FileManager.DeepClone(defMgrObj);
             mgrObj.OperationMode = FileManager.OperationModeEnum.BoardEdgeMill;
             mgrObj.IsoFlipMode = FlipModeEnum.No_Flip;
+            mgrObj.EdgeMillFlipMode = FlipModeEnum.No_Flip;
             mgrObj.FilenamePattern = FileManager.KNOWN_EXT_EDGECUT_DSPARK;
             mgrObj.Description = "DesignSpark Board Outline: This plot must be manually added in DesignSpark";
             ctlFileManagersDisplay1.AddFileManager(mgrObj);
@@ -4145,6 +4146,7 @@ namespace LineGrinder
             mgrObj = FileManager.DeepClone(defMgrObj);
             mgrObj.OperationMode = FileManager.OperationModeEnum.BoardEdgeMill;
             mgrObj.IsoFlipMode = FlipModeEnum.No_Flip;
+            mgrObj.EdgeMillFlipMode = FlipModeEnum.No_Flip;
             mgrObj.FilenamePattern = "profile.gbr";
             mgrObj.Description = "Eagle Board Outline";
             ctlFileManagersDisplay1.AddFileManager(mgrObj);
@@ -4195,6 +4197,7 @@ namespace LineGrinder
             mgrObj = FileManager.DeepClone(defMgrObj);
             mgrObj.OperationMode = FileManager.OperationModeEnum.BoardEdgeMill;
             mgrObj.IsoFlipMode = FlipModeEnum.No_Flip;
+            mgrObj.EdgeMillFlipMode = FlipModeEnum.No_Flip;
             mgrObj.FilenamePattern = "_BoardOutlineLayer.GKO";
             mgrObj.Description = "EasyEDA Board Outline";
             ctlFileManagersDisplay1.AddFileManager(mgrObj);
@@ -4266,6 +4269,7 @@ namespace LineGrinder
             mgrObj = FileManager.DeepClone(defMgrObj);
             mgrObj.OperationMode = FileManager.OperationModeEnum.BoardEdgeMill;
             mgrObj.IsoFlipMode = FlipModeEnum.No_Flip;
+            mgrObj.EdgeMillFlipMode = FlipModeEnum.No_Flip;
             mgrObj.FilenamePattern = FileManager.KNOWN_EXT_EDGECUT_KICAD;
             mgrObj.Description = "KiCad Board Outline";
             ctlFileManagersDisplay1.AddFileManager(mgrObj);

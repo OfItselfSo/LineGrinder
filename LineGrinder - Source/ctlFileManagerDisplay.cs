@@ -600,6 +600,7 @@ namespace LineGrinder
             SetPropertyBrowsableState(optObject, "EdgeMillingGCodeEnabled", edgeMillROState);
             SetPropertyBrowsableState(optObject, "EdgeMillNumTabs", edgeMillROState);
             SetPropertyBrowsableState(optObject, "EdgeMillTabWidth", edgeMillROState);
+            SetPropertyBrowsableState(optObject, "EdgeMillFlipMode", edgeMillROState);
 
             // bed flattening
             SetPropertyBrowsableState(optObject, "BedFlatteningSizeMode", edgeMillROState);
