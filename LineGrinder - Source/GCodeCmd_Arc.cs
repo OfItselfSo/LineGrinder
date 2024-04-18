@@ -224,47 +224,47 @@ namespace LineGrinder
                     sb.Append(stateMachine.LineTerminator);
                 }
 
-                // now move the tool head, cutting as we go
-                if (stateMachine.GCodeFileManager.ShowGCodeCmdNumbers == true) sb.Append(stateMachine.BuildNextLineNumberString() + " ");
-                // we must calc our offsets to the center, the g?CenterOffsetCompensated_Rounded are actually the center coordinates
-                xCenterOffset = gXCenterOffsetCompensated_Rounded - gX0OffsetCompensated_Rounded;
-                yCenterOffset = gYCenterOffsetCompensated_Rounded - gY0OffsetCompensated_Rounded;
+                //// now move the tool head, cutting as we go
+                //if (stateMachine.GCodeFileManager.ShowGCodeCmdNumbers == true) sb.Append(stateMachine.BuildNextLineNumberString() + " ");
+                //// we must calc our offsets to the center, the g?CenterOffsetCompensated_Rounded are actually the center coordinates
+                //xCenterOffset = gXCenterOffsetCompensated_Rounded - gX0OffsetCompensated_Rounded;
+                //yCenterOffset = gYCenterOffsetCompensated_Rounded - gY0OffsetCompensated_Rounded;
 
-                // The way the G02,G03 commands work is they have a start point, an offset to the center
-                // and the endpoint of the arc. It must be true that the endpoint of the arc is actually on
-                // the arc itself. If this is not the case then most machine controllers will throw an error.
+                //// The way the G02,G03 commands work is they have a start point, an offset to the center
+                //// and the endpoint of the arc. It must be true that the endpoint of the arc is actually on
+                //// the arc itself. If this is not the case then most machine controllers will throw an error.
 
-                // Given the new chain calculation method this problem does not appear to exist. If needed 
-                // the commented out code below tells what to do
+                //// Given the new chain calculation method this problem does not appear to exist. If needed 
+                //// the commented out code below tells what to do
 
-                // assume the true endpoints are the ones we got
-                xTrueEndPoint = gX1OffsetCompensated_Rounded;
-                yTrueEndPoint = gY1OffsetCompensated_Rounded;
+                //// assume the true endpoints are the ones we got
+                //xTrueEndPoint = gX1OffsetCompensated_Rounded;
+                //yTrueEndPoint = gY1OffsetCompensated_Rounded;
 
-/* not operational any more, and did not work well 
-                // The endpoint error can happen due to the way we interpolate things that our endpoint is a bit off the arc
-                // so we calculate the best endpoint actually on the arc and use that in the G02/G03 command
-                // then we add a little compensating linear move (at the same Z position) to get us to the 
-                // point we need to end at. Usually this little "step" in the arc etc is so small it is invisible
+                ///* not operational any more, and did not work well 
+                //                // The endpoint error can happen due to the way we interpolate things that our endpoint is a bit off the arc
+                //                // so we calculate the best endpoint actually on the arc and use that in the G02/G03 command
+                //                // then we add a little compensating linear move (at the same Z position) to get us to the 
+                //                // point we need to end at. Usually this little "step" in the arc etc is so small it is invisible
 
-                // we need the radius, calculated off the start point
-                radius = MiscGraphicsUtils.GetDistanceBetweenTwoPoints(gX0OffsetCompensated_Raw, gY0OffsetCompensated_Raw, gXCenterOffsetCompensated_Rounded, gYCenterOffsetCompensated_Rounded);
-*/
+                //                // we need the radius, calculated off the start point
+                //                radius = MiscGraphicsUtils.GetDistanceBetweenTwoPoints(gX0OffsetCompensated_Raw, gY0OffsetCompensated_Raw, gXCenterOffsetCompensated_Rounded, gYCenterOffsetCompensated_Rounded);
+                //*/
 
-                // now emit the GCode with the true endpoint
-                sb.Append(gcodeWordArcDirection + " " + GCODEWORD_XAXIS + xTrueEndPoint.ToString() + " " + GCODEWORD_YAXIS + yTrueEndPoint.ToString() + " " + GCODEWORD_XARCCENTER + xCenterOffset.ToString() + " " + GCODEWORD_YARCCENTER + yCenterOffset.ToString());               
-                // do we need to adjust the feedrate?
-                if (stateMachine.LastFeedRate != stateMachine.CurrentXYFeedrate)
-                {
-                    // yes we do 
-                    sb.Append(" " + GCODEWORD_FEEDRATE+ ConvertCoordToDesiredUnitSystem(stateMachine.CurrentXYFeedrate, stateMachine.SourceUnits, stateMachine.OutputUnits).ToString());
-                    // remember this now
-                    stateMachine.LastFeedRate = stateMachine.CurrentXYFeedrate;
-                }
-                sb.Append(stateMachine.LineTerminator);
+                //// now emit the GCode with the true endpoint
+                //sb.Append(gcodeWordArcDirection + " " + GCODEWORD_XAXIS + xTrueEndPoint.ToString() + " " + GCODEWORD_YAXIS + yTrueEndPoint.ToString() + " " + GCODEWORD_XARCCENTER + xCenterOffset.ToString() + " " + GCODEWORD_YARCCENTER + yCenterOffset.ToString());
+                //// do we need to adjust the feedrate?
+                //if (stateMachine.LastFeedRate != stateMachine.CurrentXYFeedrate)
+                //{
+                //    // yes we do 
+                //    sb.Append(" " + GCODEWORD_FEEDRATE + ConvertCoordToDesiredUnitSystem(stateMachine.CurrentXYFeedrate, stateMachine.SourceUnits, stateMachine.OutputUnits).ToString());
+                //    // remember this now
+                //    stateMachine.LastFeedRate = stateMachine.CurrentXYFeedrate;
+                //}
+                //sb.Append(stateMachine.LineTerminator);
 
-                stateMachine.LastGCodeXCoord = gX1OffsetCompensated_Rounded;
-                stateMachine.LastGCodeYCoord = gY1OffsetCompensated_Rounded;
+                //stateMachine.LastGCodeXCoord = gX1OffsetCompensated_Rounded;
+                //stateMachine.LastGCodeYCoord = gY1OffsetCompensated_Rounded;
             }
             else
             {
@@ -292,7 +292,7 @@ namespace LineGrinder
                 stateMachine.LastGCodeXCoord = gX0OffsetCompensated_Rounded;
                 stateMachine.LastGCodeYCoord = gY0OffsetCompensated_Rounded;
                 sb.Append(stateMachine.LineTerminator);
-                
+
                 // now put our Z down to the cut depth
                 if (stateMachine.GCodeFileManager.ShowGCodeCmdNumbers == true) sb.Append(stateMachine.BuildNextLineNumberString() + " ");
                 sb.Append(GCODEWORD_MOVEINLINE + " " + GCODEWORD_ZAXIS + ConvertCoordToDesiredUnitSystem(stateMachine.ZCoordForCut, stateMachine.SourceUnits, stateMachine.OutputUnits).ToString());
@@ -307,70 +307,71 @@ namespace LineGrinder
                 }
                 sb.Append(stateMachine.LineTerminator);
 
-                // now move to the end of the arc, cutting as we go
-                if (stateMachine.GCodeFileManager.ShowGCodeCmdNumbers == true) sb.Append(stateMachine.BuildNextLineNumberString() + " ");
-                // we must calc our offsets to the center
-                xCenterOffset = (float)Math.Round(gXCenterOffsetCompensated_Rounded - stateMachine.LastGCodeXCoord, 4);
-                yCenterOffset = (float)Math.Round(gYCenterOffsetCompensated_Rounded - stateMachine.LastGCodeYCoord, 4);
-
-                // The way the G02,G03 commands work is they have a start point, an offset to the center
-                // and the endpoint of the arc. It must be true that the endpoint of the arc is actually on
-                // the arc itself. If this is not the case then most machine controllers will throw an error
-                // it can happen, due to the way we interpolate things that our endpoint is a bit off the arc
-                // so we calculate the best endpoint actually on the arc and use that in the G02/G03 command
-                // then we add a little compensating linear move (at the same Z position) to get us to the 
-                // point we need to end at. Usually this little "step" in the arc etc is so small it is invisible
-
-                // we need the radius
-                radius = Math.Sqrt((xCenterOffset * xCenterOffset) + (yCenterOffset * yCenterOffset));
-
-                // we need the xdistance and ydistances of the end point to the center
-                xEndDistance = (float)Math.Round(gX1OffsetCompensated_Rounded - gXCenterOffsetCompensated_Rounded, 4);
-                yEndDistance = (float)Math.Round(gY1OffsetCompensated_Rounded - gYCenterOffsetCompensated_Rounded, 4);
-
-                if (xEndDistance != 0)
-                {
-                    // we need the angle
-                    theta = Math.Atan2(yEndDistance, xEndDistance);
-                    // calc the true end points
-                    xTrueEndPoint = (float)Math.Round(gXCenterOffsetCompensated_Rounded + (radius * Math.Cos(theta)), 4);
-                    yTrueEndPoint = (float)Math.Round(gYCenterOffsetCompensated_Rounded + (radius * Math.Sin(theta)), 4);
-                }
-                else
-                {
-                    // assume the true endpoints are the ones we got
-                    xTrueEndPoint = gX1OffsetCompensated_Rounded;
-                    yTrueEndPoint = gY1OffsetCompensated_Rounded;
-                }
-
-                // now emit the GCode with the true endpoint
-                sb.Append(gcodeWordArcDirection + " " + GCODEWORD_XAXIS + xTrueEndPoint.ToString() + " " + GCODEWORD_YAXIS + yTrueEndPoint.ToString() + " " + GCODEWORD_XARCCENTER + xCenterOffset.ToString() + " " + GCODEWORD_YARCCENTER + yCenterOffset.ToString());
-                // do we need to adjust the feedrate?
-                if (stateMachine.LastFeedRate != stateMachine.CurrentXYFeedrate)
-                {
-                    // yes we do 
-                    sb.Append(" " + GCODEWORD_FEEDRATE + ConvertCoordToDesiredUnitSystem(stateMachine.CurrentXYFeedrate, stateMachine.SourceUnits, stateMachine.OutputUnits).ToString());
-                    // remember this now
-                    stateMachine.LastFeedRate = stateMachine.CurrentXYFeedrate;
-                }
-                sb.Append(stateMachine.LineTerminator);
-
-                // now do we need to add a little linear run so we actually end up on the 
-                // true XY end point
-                if ((xTrueEndPoint != gX1OffsetCompensated_Rounded) || (yTrueEndPoint != gY1OffsetCompensated_Rounded))
-                {
-                    if (stateMachine.GCodeFileManager.ShowGCodeCmdNumbers == true) sb.Append(stateMachine.BuildNextLineNumberString() + " ");
-                    sb.Append(GCODEWORD_MOVEINLINE + " " + GCODEWORD_XAXIS + gX1OffsetCompensated_Rounded.ToString() + " " + GCODEWORD_YAXIS + gY1OffsetCompensated_Rounded.ToString());
-                    sb.Append(stateMachine.LineTerminator);
-                  //  DebugTODO("remove this line");
-                  //  sb.Append("(YYYYYY---->xCenter=" + X1CenterOffsetCompensated.ToString() + " Ycenter=" + Y1CenterOffsetCompensated.ToString()+")");
-                  //  sb.Append(stateMachine.LineTerminator);
-                  //  sb.Append("(YYYYYY---->AutoGenerated Compensation)");
-                  //  sb.Append(stateMachine.LineTerminator);
-                }
-                stateMachine.LastGCodeXCoord = gX1OffsetCompensated_Rounded;
-                stateMachine.LastGCodeYCoord = gY1OffsetCompensated_Rounded;
             }
+
+            // now move to the end of the arc, cutting as we go
+            if (stateMachine.GCodeFileManager.ShowGCodeCmdNumbers == true) sb.Append(stateMachine.BuildNextLineNumberString() + " ");
+            // we must calc our offsets to the center
+            xCenterOffset = (float)Math.Round(gXCenterOffsetCompensated_Rounded - stateMachine.LastGCodeXCoord, 4);
+            yCenterOffset = (float)Math.Round(gYCenterOffsetCompensated_Rounded - stateMachine.LastGCodeYCoord, 4);
+
+            // The way the G02,G03 commands work is they have a start point, an offset to the center
+            // and the endpoint of the arc. It must be true that the endpoint of the arc is actually on
+            // the arc itself. If this is not the case then most machine controllers will throw an error
+            // it can happen, due to the way we interpolate things that our endpoint is a bit off the arc
+            // so we calculate the best endpoint actually on the arc and use that in the G02/G03 command
+            // then we add a little compensating linear move (at the same Z position) to get us to the 
+            // point we need to end at. Usually this little "step" in the arc etc is so small it is invisible
+
+            // we need the radius
+            radius = Math.Sqrt((xCenterOffset * xCenterOffset) + (yCenterOffset * yCenterOffset));
+
+            // we need the xdistance and ydistances of the end point to the center
+            xEndDistance = (float)Math.Round(gX1OffsetCompensated_Rounded - gXCenterOffsetCompensated_Rounded, 4);
+            yEndDistance = (float)Math.Round(gY1OffsetCompensated_Rounded - gYCenterOffsetCompensated_Rounded, 4);
+
+            if ((xEndDistance != 0) || (yEndDistance != 0))
+            {
+                // we need the angle
+                theta = Math.Atan2(yEndDistance, xEndDistance);
+                // calc the true end points
+                xTrueEndPoint = (float)Math.Round(gXCenterOffsetCompensated_Rounded + (radius * Math.Cos(theta)), 4);
+                yTrueEndPoint = (float)Math.Round(gYCenterOffsetCompensated_Rounded + (radius * Math.Sin(theta)), 4);
+            }
+            else
+            {
+                // assume the true endpoints are the ones we got
+                xTrueEndPoint = gX1OffsetCompensated_Rounded;
+                yTrueEndPoint = gY1OffsetCompensated_Rounded;
+            }
+
+            // now emit the GCode with the true endpoint
+            sb.Append(gcodeWordArcDirection + " " + GCODEWORD_XAXIS + xTrueEndPoint.ToString() + " " + GCODEWORD_YAXIS + yTrueEndPoint.ToString() + " " + GCODEWORD_XARCCENTER + xCenterOffset.ToString() + " " + GCODEWORD_YARCCENTER + yCenterOffset.ToString());
+            // do we need to adjust the feedrate?
+            if (stateMachine.LastFeedRate != stateMachine.CurrentXYFeedrate)
+            {
+                // yes we do 
+                sb.Append(" " + GCODEWORD_FEEDRATE + ConvertCoordToDesiredUnitSystem(stateMachine.CurrentXYFeedrate, stateMachine.SourceUnits, stateMachine.OutputUnits).ToString());
+                // remember this now
+                stateMachine.LastFeedRate = stateMachine.CurrentXYFeedrate;
+            }
+            sb.Append(stateMachine.LineTerminator);
+
+            // now do we need to add a little linear run so we actually end up on the 
+            // true XY end point
+            if ((xTrueEndPoint != gX1OffsetCompensated_Rounded) || (yTrueEndPoint != gY1OffsetCompensated_Rounded))
+            {
+                if (stateMachine.GCodeFileManager.ShowGCodeCmdNumbers == true) sb.Append(stateMachine.BuildNextLineNumberString() + " ");
+                sb.Append(GCODEWORD_MOVEINLINE + " " + GCODEWORD_XAXIS + gX1OffsetCompensated_Rounded.ToString() + " " + GCODEWORD_YAXIS + gY1OffsetCompensated_Rounded.ToString());
+                sb.Append(stateMachine.LineTerminator);
+                //  DebugTODO("remove this line");
+                //  sb.Append("(YYYYYY---->xCenter=" + X1CenterOffsetCompensated.ToString() + " Ycenter=" + Y1CenterOffsetCompensated.ToString()+")");
+                //  sb.Append(stateMachine.LineTerminator);
+                //  sb.Append("(YYYYYY---->AutoGenerated Compensation)");
+                //  sb.Append(stateMachine.LineTerminator);
+            }
+            stateMachine.LastGCodeXCoord = gX1OffsetCompensated_Rounded;
+            stateMachine.LastGCodeYCoord = gY1OffsetCompensated_Rounded;
 
             //DebugTODO("for diagnostics only");
             //sb.Append(stateMachine.LineTerminator);
