@@ -776,7 +776,7 @@ namespace LineGrinder
         /// <summary>
         /// Handles a click on the ShowOrigin checkbox
         /// </summary>
-        private void checkBoxShowOrigin_CheckedChanged(object sender, EventArgs e)
+        private void checkBoxMarkPCBLowerLeft_CheckedChanged(object sender, EventArgs e)
         {
             SyncGCodePlotToRadioButtons();
             ctlPlotViewer1.Invalidate();
@@ -849,7 +849,7 @@ namespace LineGrinder
                 ctlPlotViewer1.GerberFileToDisplay = CurrentGerberFile;
                 if (checkBoxOnGCodePlotShowGerber.Checked == true) ctlPlotViewer1.ShowGerberOnGCode = true;
                 else ctlPlotViewer1.ShowGerberOnGCode = false;
-                if (checkBoxShowOrigin.Checked == true) ctlPlotViewer1.ShowOrigin = true;
+                if (checkBoxMarkPCBLowerLeft.Checked == true) ctlPlotViewer1.ShowOrigin = true;
                 else ctlPlotViewer1.ShowOrigin = false;
                 if (checkBoxShowGCodeOrigin.Checked == true) ctlPlotViewer1.ShowGCodeOrigin = true;
                 else ctlPlotViewer1.ShowGCodeOrigin = false;
@@ -866,7 +866,7 @@ namespace LineGrinder
                 ctlPlotViewer1.GerberFileToDisplay = CurrentGerberFile;
                 if (checkBoxOnGCodePlotShowGerber.Checked == true) ctlPlotViewer1.ShowGerberOnGCode = true;
                 else ctlPlotViewer1.ShowGerberOnGCode = false;
-                if (checkBoxShowOrigin.Checked == true) ctlPlotViewer1.ShowOrigin = true;
+                if (checkBoxMarkPCBLowerLeft.Checked == true) ctlPlotViewer1.ShowOrigin = true;
                 else ctlPlotViewer1.ShowOrigin = false;
                 if (checkBoxShowGCodeOrigin.Checked == true) ctlPlotViewer1.ShowGCodeOrigin = true;
                 else ctlPlotViewer1.ShowGCodeOrigin = false;
@@ -883,7 +883,7 @@ namespace LineGrinder
                 ctlPlotViewer1.GerberFileToDisplay = CurrentGerberFile;
                 if (checkBoxOnGCodePlotShowGerber.Checked == true) ctlPlotViewer1.ShowGerberOnGCode = true;
                 else ctlPlotViewer1.ShowGerberOnGCode = false;
-                if (checkBoxShowOrigin.Checked == true) ctlPlotViewer1.ShowOrigin = true;
+                if (checkBoxMarkPCBLowerLeft.Checked == true) ctlPlotViewer1.ShowOrigin = true;
                 else ctlPlotViewer1.ShowOrigin = false;
                 if (checkBoxShowGCodeOrigin.Checked == true) ctlPlotViewer1.ShowGCodeOrigin = true;
                 else ctlPlotViewer1.ShowGCodeOrigin = false;
@@ -900,7 +900,7 @@ namespace LineGrinder
                 ctlPlotViewer1.GerberFileToDisplay = CurrentGerberFile;
                 if (checkBoxOnGCodePlotShowGerber.Checked == true) ctlPlotViewer1.ShowGerberOnGCode = true;
                 else ctlPlotViewer1.ShowGerberOnGCode = false;
-                if (checkBoxShowOrigin.Checked == true) ctlPlotViewer1.ShowOrigin = true;
+                if (checkBoxMarkPCBLowerLeft.Checked == true) ctlPlotViewer1.ShowOrigin = true;
                 else ctlPlotViewer1.ShowOrigin = false;
                 if (checkBoxShowGCodeOrigin.Checked == true) ctlPlotViewer1.ShowGCodeOrigin = true;
                 else ctlPlotViewer1.ShowGCodeOrigin = false;
@@ -916,7 +916,7 @@ namespace LineGrinder
                 ctlPlotViewer1.GerberFileToDisplay = CurrentGerberFile;
                 if (checkBoxOnGCodePlotShowGerber.Checked == true) ctlPlotViewer1.ShowGerberOnGCode = true;
                 else ctlPlotViewer1.ShowGerberOnGCode = false;
-                if (checkBoxShowOrigin.Checked == true) ctlPlotViewer1.ShowOrigin = true;
+                if (checkBoxMarkPCBLowerLeft.Checked == true) ctlPlotViewer1.ShowOrigin = true;
                 else ctlPlotViewer1.ShowOrigin = false;
                 if (checkBoxShowGCodeOrigin.Checked == true) ctlPlotViewer1.ShowGCodeOrigin = true;
                 else ctlPlotViewer1.ShowGCodeOrigin = false;
@@ -932,7 +932,7 @@ namespace LineGrinder
                 ctlPlotViewer1.GerberFileToDisplay = CurrentGerberFile;
                 if (checkBoxOnGCodePlotShowGerber.Checked == true) ctlPlotViewer1.ShowGerberOnGCode = true;
                 else ctlPlotViewer1.ShowGerberOnGCode = false;
-                if (checkBoxShowOrigin.Checked == true) ctlPlotViewer1.ShowOrigin = true;
+                if (checkBoxMarkPCBLowerLeft.Checked == true) ctlPlotViewer1.ShowOrigin = true;
                 else ctlPlotViewer1.ShowOrigin = false;
                 if (checkBoxShowGCodeOrigin.Checked == true) ctlPlotViewer1.ShowGCodeOrigin = true;
                 else ctlPlotViewer1.ShowGCodeOrigin = false;
@@ -948,7 +948,7 @@ namespace LineGrinder
                 ctlPlotViewer1.GerberFileToDisplay = CurrentGerberFile;
                 if (checkBoxOnGCodePlotShowGerber.Checked == true) ctlPlotViewer1.ShowGerberOnGCode = true;
                 else ctlPlotViewer1.ShowGerberOnGCode = false;
-                if (checkBoxShowOrigin.Checked == true) ctlPlotViewer1.ShowOrigin = true;
+                if (checkBoxMarkPCBLowerLeft.Checked == true) ctlPlotViewer1.ShowOrigin = true;
                 else ctlPlotViewer1.ShowOrigin = false;
                 if (checkBoxShowGCodeOrigin.Checked == true) ctlPlotViewer1.ShowGCodeOrigin = true;
                 else ctlPlotViewer1.ShowGCodeOrigin = false;
@@ -965,7 +965,7 @@ namespace LineGrinder
                 ctlPlotViewer1.ExcellonFileToDisplay = CurrentExcellonFile;
                 if (checkBoxOnGCodePlotShowGerber.Checked == true) ctlPlotViewer1.ShowGerberOnGCode = true;
                 else ctlPlotViewer1.ShowGerberOnGCode = false;
-                if (checkBoxShowOrigin.Checked == true) ctlPlotViewer1.ShowOrigin = true;
+                if (checkBoxMarkPCBLowerLeft.Checked == true) ctlPlotViewer1.ShowOrigin = true;
                 else ctlPlotViewer1.ShowOrigin = false;
                 if (checkBoxShowGCodeOrigin.Checked == true) ctlPlotViewer1.ShowGCodeOrigin = true;
                 else ctlPlotViewer1.ShowGCodeOrigin = false;
@@ -983,7 +983,7 @@ namespace LineGrinder
                 ctlPlotViewer1.ShowGerberOnGCode = false;
                 ctlPlotViewer1.IsoPlotBuilderToDisplay = null;
                 ctlPlotViewer1.GCodeFileToDisplay = null;
-                if (checkBoxShowOrigin.Checked == true) ctlPlotViewer1.ShowOrigin = true;
+                if (checkBoxMarkPCBLowerLeft.Checked == true) ctlPlotViewer1.ShowOrigin = true;
                 else ctlPlotViewer1.ShowOrigin = false;
                 if (checkBoxShowGCodeOrigin.Checked == true) ctlPlotViewer1.ShowGCodeOrigin = true;
                 else ctlPlotViewer1.ShowGCodeOrigin = false;
@@ -992,7 +992,7 @@ namespace LineGrinder
             }
             else 
             {
-                if (checkBoxShowOrigin.Checked == true) ctlPlotViewer1.ShowOrigin = true;
+                if (checkBoxMarkPCBLowerLeft.Checked == true) ctlPlotViewer1.ShowOrigin = true;
                 else ctlPlotViewer1.ShowOrigin = false;
                 if (checkBoxShowGCodeOrigin.Checked == true) ctlPlotViewer1.ShowGCodeOrigin = true;
                 else ctlPlotViewer1.ShowGCodeOrigin = false;
@@ -1246,7 +1246,7 @@ namespace LineGrinder
             labelOnGerberPlots.Enabled = false;
             checkBoxShowGerberCenterLines.Enabled = false;
             checkBoxShowGerberApertures.Enabled = false;
-            checkBoxShowOrigin.Enabled = false;
+            checkBoxMarkPCBLowerLeft.Enabled = false;
             checkBoxShowGCodeOrigin.Enabled = false;
             checkBoxShowFlipAxis.Enabled = false;
             labelOnGCodePlots.Enabled = false;
@@ -1262,7 +1262,7 @@ namespace LineGrinder
                 labelOnGerberPlots.Enabled = true;
                 labelOnGerberPlots.Enabled = true;
                 checkBoxShowGerberCenterLines.Enabled = true;
-                checkBoxShowOrigin.Enabled = true;
+                checkBoxMarkPCBLowerLeft.Enabled = true;
                 checkBoxShowGCodeOrigin.Enabled = true;
                 checkBoxShowFlipAxis.Enabled = true;
                 checkBoxShowGCodeOrigin.Enabled = true;
@@ -1815,7 +1815,7 @@ namespace LineGrinder
 
             checkBoxShowGerberApertures.Checked = ImplicitUserSettings.ShowGerberApertures;
             checkBoxShowGerberCenterLines.Checked = ImplicitUserSettings.ShowGerberCenterLines;
-            checkBoxShowOrigin.Checked = ImplicitUserSettings.ShowOrigin;
+            checkBoxMarkPCBLowerLeft.Checked = ImplicitUserSettings.ShowOrigin;
             checkBoxShowGCodeOrigin.Checked = ImplicitUserSettings.ShowGCodeOrigin;
             checkBoxShowFlipAxis.Checked = ImplicitUserSettings.ShowFlipAxis;
             checkBoxOnGCodePlotShowGerber.Checked = ImplicitUserSettings.ShowGerberOnGCodePlots;
@@ -1864,7 +1864,7 @@ namespace LineGrinder
             ImplicitUserSettings.IsoPlotPointsPerAppUnitMM = IsoPlotPointsPerAppUnitMM;
             ImplicitUserSettings.ShowGerberApertures = checkBoxShowGerberApertures.Checked;
             ImplicitUserSettings.ShowGerberCenterLines = checkBoxShowGerberCenterLines.Checked;
-            ImplicitUserSettings.ShowOrigin = checkBoxShowOrigin.Checked;
+            ImplicitUserSettings.ShowOrigin = checkBoxMarkPCBLowerLeft.Checked;
             ImplicitUserSettings.ShowGCodeOrigin = checkBoxShowGCodeOrigin.Checked;
             ImplicitUserSettings.ShowFlipAxis = checkBoxShowFlipAxis.Checked;
             ImplicitUserSettings.ShowGerberOnGCodePlots = this.checkBoxOnGCodePlotShowGerber.Checked;

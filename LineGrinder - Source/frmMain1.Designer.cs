@@ -42,7 +42,7 @@ namespace LineGrinder
             this.checkBoxShowFlipAxis = new System.Windows.Forms.CheckBox();
             this.checkBoxShowGCodeOrigin = new System.Windows.Forms.CheckBox();
             this.labelOnAllPlots = new System.Windows.Forms.Label();
-            this.checkBoxShowOrigin = new System.Windows.Forms.CheckBox();
+            this.checkBoxMarkPCBLowerLeft = new System.Windows.Forms.CheckBox();
             this.radioButtonNoPlot = new System.Windows.Forms.RadioButton();
             this.radioButtonMainViewDrillGCode = new System.Windows.Forms.RadioButton();
             this.radioButtonMainViewReferencePinsGCode = new System.Windows.Forms.RadioButton();
@@ -261,7 +261,7 @@ namespace LineGrinder
             this.groupBox1.Controls.Add(this.checkBoxShowFlipAxis);
             this.groupBox1.Controls.Add(this.checkBoxShowGCodeOrigin);
             this.groupBox1.Controls.Add(this.labelOnAllPlots);
-            this.groupBox1.Controls.Add(this.checkBoxShowOrigin);
+            this.groupBox1.Controls.Add(this.checkBoxMarkPCBLowerLeft);
             this.groupBox1.Controls.Add(this.radioButtonNoPlot);
             this.groupBox1.Controls.Add(this.radioButtonMainViewDrillGCode);
             this.groupBox1.Controls.Add(this.radioButtonMainViewReferencePinsGCode);
@@ -315,16 +315,16 @@ namespace LineGrinder
             this.labelOnAllPlots.TabIndex = 18;
             this.labelOnAllPlots.Text = "On All plots...";
             // 
-            // checkBoxShowOrigin
+            // checkBoxMarkPCBLowerLeft
             // 
-            this.checkBoxShowOrigin.AutoSize = true;
-            this.checkBoxShowOrigin.Location = new System.Drawing.Point(9, 218);
-            this.checkBoxShowOrigin.Name = "checkBoxShowOrigin";
-            this.checkBoxShowOrigin.Size = new System.Drawing.Size(107, 17);
-            this.checkBoxShowOrigin.TabIndex = 17;
-            this.checkBoxShowOrigin.Text = "Show (0,0) Origin";
-            this.checkBoxShowOrigin.UseVisualStyleBackColor = true;
-            this.checkBoxShowOrigin.CheckedChanged += new System.EventHandler(this.checkBoxShowOrigin_CheckedChanged);
+            this.checkBoxMarkPCBLowerLeft.AutoSize = true;
+            this.checkBoxMarkPCBLowerLeft.Location = new System.Drawing.Point(9, 218);
+            this.checkBoxMarkPCBLowerLeft.Name = "checkBoxMarkPCBLowerLeft";
+            this.checkBoxMarkPCBLowerLeft.Size = new System.Drawing.Size(118, 17);
+            this.checkBoxMarkPCBLowerLeft.TabIndex = 17;
+            this.checkBoxMarkPCBLowerLeft.Text = "Mark PCB Low Left";
+            this.checkBoxMarkPCBLowerLeft.UseVisualStyleBackColor = true;
+            this.checkBoxMarkPCBLowerLeft.CheckedChanged += new System.EventHandler(this.checkBoxMarkPCBLowerLeft_CheckedChanged);
             // 
             // radioButtonNoPlot
             // 
@@ -1509,7 +1509,7 @@ namespace LineGrinder
         private System.Windows.Forms.Button buttonSaveDrillGCode;
         private System.Windows.Forms.Button buttonSaveDrillGCodeAs;
         private System.Windows.Forms.Button buttonViewLogfile;
-        private System.Windows.Forms.CheckBox checkBoxShowOrigin;
+        private System.Windows.Forms.CheckBox checkBoxMarkPCBLowerLeft;
         private System.Windows.Forms.Label labelOnAllPlots;
         private System.Windows.Forms.GroupBox groupBoxDefaultApplicationUnits;
         private System.Windows.Forms.RadioButton radioButtonDefaultUnitsAreIN;
