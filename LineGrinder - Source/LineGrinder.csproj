@@ -64,6 +64,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="FlipAxisFoundByEnum.cs" />
     <Compile Include="GCodeCmd_SetPosition.cs" />
     <Compile Include="GerberLine_M30Code.cs" />
     <Compile Include="GerberMacroPrimitive_Outline.cs" />

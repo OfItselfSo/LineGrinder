@@ -186,6 +186,10 @@ namespace LineGrinder
         [DataMember]
         private FlipModeEnum isoFlipMode = DEFAULT_ISOFLIP_MODE;
 
+        public const FlipAxisFoundByEnum DEFAULT_ISOFLIPAXISFOUNDBY_MODE = FlipAxisFoundByEnum.CalculateFromBoard;
+        [DataMember]
+        private FlipAxisFoundByEnum isoFlipAxisFoundBy = DEFAULT_ISOFLIPAXISFOUNDBY_MODE;
+
         // this determines whether we generate isocut GCodes
         public const bool DEFAULT_ISOCUTGCODE_ENABLED = true;
         [DataMember]
@@ -255,6 +259,10 @@ namespace LineGrinder
         public const FlipModeEnum DEFAULT_EDGEMILLFLIP_MODE = FlipModeEnum.No_Flip;
         [DataMember]
         private FlipModeEnum edgeMillFlipMode = DEFAULT_EDGEMILLFLIP_MODE;
+
+        public const FlipAxisFoundByEnum DEFAULT_EDGEMILLFLIPAXISFOUNDBY_MODE = FlipAxisFoundByEnum.CalculateFromBoard;
+        [DataMember]
+        private FlipAxisFoundByEnum edgeMillFlipAxisFoundBy = DEFAULT_EDGEMILLFLIPAXISFOUNDBY_MODE;
 
         // this determines whether we generate EdgeMill GCodes
         public const bool DEFAULT_EDGEMILLINGGCODE_ENABLED = true;
@@ -461,6 +469,10 @@ namespace LineGrinder
         [DataMember]
         private FlipModeEnum drillFlipMode = DEFAULT_DRILLFLIP_MODE;
 
+        public const FlipAxisFoundByEnum DEFAULT_DRILLFLIPAXISFOUNDBY_MODE = FlipAxisFoundByEnum.CalculateFromBoard;
+        [DataMember]
+        private FlipAxisFoundByEnum drillFlipAxisFoundBy = DEFAULT_DRILLFLIPAXISFOUNDBY_MODE;
+
         // this determines the method used to deal with leading zeros in the excellon file
         public enum ExcellonDrillingCoordinateZerosModeEnum
         {
@@ -615,6 +627,7 @@ namespace LineGrinder
             if (edgeMillNumTabs != DEFAULT_EDGEMILLNUM_TABS) return false;
             if (edgeMillTabWidth != DEFAULT_EDGEMILLTAB_WIDTH) return false;
             if (edgeMillFlipMode != DEFAULT_EDGEMILLFLIP_MODE) return false;
+            if (edgeMillFlipAxisFoundBy != DEFAULT_EDGEMILLFLIPAXISFOUNDBY_MODE) return false;
 
             // bed flattening
             if (bedFlatteningSizeMode != DEFAULT_BEDFLATTENINGSIZE_MODE) return false;
@@ -640,6 +653,7 @@ namespace LineGrinder
             // iso cuts
             if (isoGCodeFileOutputExtension != DEFAULT_ISOGCODEFILE_OUTPUTEXTENSION) return false;
             if (isoFlipMode != DEFAULT_ISOFLIP_MODE) return false;
+            if (isoFlipAxisFoundBy != DEFAULT_ISOFLIPAXISFOUNDBY_MODE) return false;
             if (isoZCutLevel != DEFAULT_ISOZCUTLEVEL) return false;
             if (isoZMoveLevel != DEFAULT_ISOZMOVELEVEL) return false;
             if (isoZClearLevel != DEFAULT_ISOZCLEARLEVEL) return false;
@@ -663,6 +677,7 @@ namespace LineGrinder
 
             // excellon
             if (drillFlipMode != DEFAULT_DRILLFLIP_MODE) return false;
+            if (drillFlipAxisFoundBy != DEFAULT_DRILLFLIPAXISFOUNDBY_MODE) return false;
             if (drillingDrillingCoordinateZerosMode != DEFAULT_DRILLING_COORDINATEZEROS_MODE) return false;
             if (drillingNumberOfDecimalPlaces != DRILLING_NUMBER_OF_DECIMAL_PLACES) return false;
             if (drillingGCodeFileOutputExtension != DEFAULT_DRILLINGGCODEFILE_OUTPUTEXTENSION) return false;
@@ -713,6 +728,7 @@ namespace LineGrinder
             edgeMillNumTabs = DEFAULT_EDGEMILLNUM_TABS;
             edgeMillTabWidth = DEFAULT_EDGEMILLTAB_WIDTH;
             edgeMillFlipMode = DEFAULT_EDGEMILLFLIP_MODE;
+            edgeMillFlipAxisFoundBy = DEFAULT_EDGEMILLFLIPAXISFOUNDBY_MODE;
 
             // bed flattening
             bedFlatteningSizeMode = DEFAULT_BEDFLATTENINGSIZE_MODE;
@@ -738,6 +754,7 @@ namespace LineGrinder
 
             // isocuts
             isoFlipMode = DEFAULT_ISOFLIP_MODE;
+            isoFlipAxisFoundBy = DEFAULT_ISOFLIPAXISFOUNDBY_MODE;
             isoZCutLevel = DEFAULT_ISOZCUTLEVEL;
             isoGCodeFileOutputExtension = DEFAULT_ISOGCODEFILE_OUTPUTEXTENSION;
             isoZMoveLevel = DEFAULT_ISOZMOVELEVEL;
@@ -762,6 +779,7 @@ namespace LineGrinder
 
             // excellon
             drillFlipMode = DEFAULT_DRILLFLIP_MODE;
+            drillFlipAxisFoundBy = DEFAULT_DRILLFLIPAXISFOUNDBY_MODE;
             drillingDrillingCoordinateZerosMode = DEFAULT_DRILLING_COORDINATEZEROS_MODE;
             drillingNumberOfDecimalPlaces = DRILLING_NUMBER_OF_DECIMAL_PLACES;
             drillingGCodeFileOutputExtension = DEFAULT_DRILLINGGCODEFILE_OUTPUTEXTENSION;
@@ -827,6 +845,7 @@ namespace LineGrinder
             // n/a edgeMillNumTabs
             edgeMillTabWidth = (edgeMillTabWidth * INCHTOMMSCALERx10) / 10;
             // n/a edgeMillFlipMode 
+            // n/a edgeMillFlipAxisFoundBy 
 
             //bedflattening
             // n/a bedFlatteningSizeMode
@@ -852,6 +871,7 @@ namespace LineGrinder
             //isocuts
             // n/a isoGCodeFileOutputExtension 
             // n/a isoFlipMode 
+            // n/a isoFlipAxisFoundBy 
             isoZCutLevel = (isoZCutLevel * INCHTOMMSCALERx10) / 10;
             isoZMoveLevel = (isoZMoveLevel * INCHTOMMSCALERx10) / 10;
             isoZClearLevel = (isoZClearLevel * INCHTOMMSCALERx10) / 10;
@@ -875,6 +895,7 @@ namespace LineGrinder
 
             //excellon
             // n/a drillFlipMode 
+            // n/a drillFlipAxisFoundBy 
             // n/a drillingDrillingCoordinateZerosMode
             // n/a drillingNumberOfDecimalPlaces
             // n/a drillingGCodeFileOutputExtension
@@ -920,6 +941,7 @@ namespace LineGrinder
             // n/a edgeMillNumTabs
             edgeMillTabWidth = (edgeMillTabWidth * 10) / INCHTOMMSCALERx10;
             // n/a edgeMillFlipMode 
+            // n/a edgeMillFlipAxisFoundBy 
 
             //bedflattening
             // n/a bedFlatteningSizeMode
@@ -945,6 +967,7 @@ namespace LineGrinder
             //isocuts
             // n/a isoGCodeFileOutputExtension 
             // n/a isoFlipMode 
+            // n/a isoFlipAxisFoundBy 
             isoZCutLevel = (isoZCutLevel * 10) / INCHTOMMSCALERx10;
             isoZMoveLevel = (isoZMoveLevel * 10) / INCHTOMMSCALERx10;
             isoZClearLevel = (isoZClearLevel * 10) / INCHTOMMSCALERx10;
@@ -968,6 +991,7 @@ namespace LineGrinder
 
             //excellon
             // n/a drillFlipMode 
+            // n/a drillFlipAxisFoundBy 
             // n/a drillingDrillingCoordinateZerosMode
             // n/a drillingNumberOfDecimalPlaces
             // n/a drillingGCodeFileOutputExtension
@@ -1262,6 +1286,27 @@ namespace LineGrinder
             set
             {
                 edgeMillFlipMode = value;
+            }
+        }
+
+        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+        /// <summary>
+        /// Gets/Sets the edgeFlipAxisFoundBy value. This determines how we find the 
+        /// flip axis so that we can cut edges from the bottom.
+        /// </summary>
+        [DescriptionAttribute("This determines how we find the vertical flip axis so that we can align the board outline cut to the board contents. If your Gerber origin is set dead center in the board you can use GerberOriginIsAtCenter otherwise use CalculateFromBoard and the flip axis will be calculated from the reference pins (preferred) or derived from the board traces and pads.")]
+        [CategoryAttribute("Board Edge Milling")]
+        [ReadOnlyAttribute(false)]
+        [BrowsableAttribute(true)]
+        public FlipAxisFoundByEnum EdgeMillFlipAxisFoundBy
+        {
+            get
+            {
+                return edgeMillFlipAxisFoundBy;
+            }
+            set
+            {
+                edgeMillFlipAxisFoundBy = value;
             }
         }
 
@@ -1900,6 +1945,27 @@ namespace LineGrinder
 
         /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
         /// <summary>
+        /// Gets/Sets the isoFlipAxisFoundBy value. This determines how we find the 
+        /// flip axis so that we can cut bottom copper isolation traces.
+        /// </summary>
+        [DescriptionAttribute("This determines how we find the vertical flip axis so that bottom layer isolation traces line up with the ones cut on the top layer. If your Gerber origin is set dead center in the board you can use GerberOriginIsAtCenter otherwise use CalculateFromBoard and the flip axis will be calculated from the reference pins (preferred) or derived from the board traces and pads.")]
+        [CategoryAttribute("Isolation Cuts")]
+        [ReadOnlyAttribute(false)]
+        [BrowsableAttribute(true)]
+        public FlipAxisFoundByEnum IsoFlipAxisFoundBy
+        {
+            get
+            {
+                return isoFlipAxisFoundBy;
+            }
+            set
+            {
+                isoFlipAxisFoundBy = value;
+            }
+        }
+
+        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+        /// <summary>
         /// Gets/Sets the isoZCutLevel. 
         /// </summary>
         [DescriptionAttribute("This is the distance into the material we cut defined in application units (inches,mm). The value should be negative as zero is traditionally the surface of the pcb being cut.")]
@@ -2292,6 +2358,27 @@ namespace LineGrinder
             set
             {
                 drillFlipMode = value;
+            }
+        }
+
+        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+        /// <summary>
+        /// Gets/Sets the drillFlipAxisFoundBy value. This determines how we find the 
+        /// flip axis so that we can cut bottom copper isolation traces.
+        /// </summary>
+        [DescriptionAttribute("This determines how we find the vertical flip axis so that we can drill on the bottom side of the board. If your Gerber origin is set dead center in the board you can use GerberOriginIsAtCenter otherwise use CalculateFromBoard and the flip axis will be calculated from the reference pins (preferred) or derived from the board traces and pads.")]
+        [CategoryAttribute("Excellon Drilling")]
+        [ReadOnlyAttribute(false)]
+        [BrowsableAttribute(true)]
+        public FlipAxisFoundByEnum DrillFlipAxisFoundBy
+        {
+            get
+            {
+                return drillFlipAxisFoundBy;
+            }
+            set
+            {
+                drillFlipAxisFoundBy = value;
             }
         }
 

@@ -732,6 +732,24 @@ namespace LineGrinder
 
         /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
         /// <summary>
+        /// Gets the currently set flip axis found by mode. There is no set this comes out of the 
+        /// current file manager.
+        /// </summary>
+        public FlipAxisFoundByEnum FlipAxisFoundBy
+        {
+            get
+            {
+                // this is safe to do. None of these properties return null
+                if (StateMachine.GerberFileManager.OperationMode == FileManager.OperationModeEnum.BoardEdgeMill)
+                {
+                    return StateMachine.GerberFileManager.EdgeMillFlipAxisFoundBy;
+                }
+                else return StateMachine.GerberFileManager.IsoFlipAxisFoundBy;
+            }
+        }
+
+        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+        /// <summary>
         /// Gets a flag indicating the current GCode origin. There is no set this comes out of the 
         /// current file manager.
         /// </summary>

@@ -582,6 +582,7 @@ namespace LineGrinder
             // isocut
             SetPropertyBrowsableState(optObject, "IsoGCodeFileOutputExtension", isoCutROState);
             SetPropertyBrowsableState(optObject, "IsoFlipMode", isoCutROState);
+            SetPropertyBrowsableState(optObject, "IsoFlipAxisFoundBy", isoCutROState);
             SetPropertyBrowsableState(optObject, "IsoZCutLevel", isoCutROState);
             SetPropertyBrowsableState(optObject, "IsoZMoveLevel", isoCutROState);
             SetPropertyBrowsableState(optObject, "IsoZClearLevel", isoCutROState);
@@ -605,6 +606,7 @@ namespace LineGrinder
             SetPropertyBrowsableState(optObject, "EdgeMillNumTabs", edgeMillROState);
             SetPropertyBrowsableState(optObject, "EdgeMillTabWidth", edgeMillROState);
             SetPropertyBrowsableState(optObject, "EdgeMillFlipMode", edgeMillROState);
+            SetPropertyBrowsableState(optObject, "EdgeMillFlipAxisFoundBy", edgeMillROState);
 
             // bed flattening
             SetPropertyBrowsableState(optObject, "BedFlatteningSizeMode", edgeMillROState);
@@ -631,6 +633,7 @@ namespace LineGrinder
 
             // excellon
             SetPropertyBrowsableState(optObject, "DrillFlipMode", excellonROState);
+            SetPropertyBrowsableState(optObject, "DrillFlipAxisFoundBy", excellonROState);
             SetPropertyBrowsableState(optObject, "DrillingCoordinateZerosMode", excellonROState);
             SetPropertyBrowsableState(optObject, "DrillingNumberOfDecimalPlaces", excellonROState);
             SetPropertyBrowsableState(optObject, "DrillingGCodeFileOutputExtension", excellonROState);
