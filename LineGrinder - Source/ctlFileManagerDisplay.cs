@@ -623,6 +623,7 @@ namespace LineGrinder
 
             // reference pins
             SetPropertyBrowsableState(optObject, "ReferencePinGCodeEnabled", isoCutRefPinROState);
+            SetPropertyBrowsableState(optObject, "ReferencePinsAreIsoRouted", isoCutRefPinROState);
             SetPropertyBrowsableState(optObject, "ReferencePinsGCodeFileOutputExtension", isoCutRefPinROState);
             SetPropertyBrowsableState(optObject, "ReferencePinsZDrillDepth", isoCutRefPinROState);
             SetPropertyBrowsableState(optObject, "ReferencePinsZClearLevel", isoCutRefPinROState);

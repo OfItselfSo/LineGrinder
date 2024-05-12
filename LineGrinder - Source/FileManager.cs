@@ -404,6 +404,11 @@ namespace LineGrinder
         [DataMember]
         private bool referencePinGCodeEnabled = DEFAULT_REFERENCEPINGCODE_ENABLED;
 
+        // this determines whether we iso route reference pins GCodes
+        public const bool DEFAULT_REFERENCEPINAREISOROUTED_ENABLED = false;
+        [DataMember]
+        private bool referencePinsAreIsoRouted = DEFAULT_REFERENCEPINAREISOROUTED_ENABLED;
+
         // this is the output file name extension for the bed flattening GCode file
         public const string DEFAULT_REFERENCEPINSGCODEFILE_OUTPUTEXTENSION = "_REFPINS_GCODE.ngc";
         [DataMember]
@@ -667,6 +672,7 @@ namespace LineGrinder
 
             // ref pins
             if (referencePinGCodeEnabled != DEFAULT_REFERENCEPINGCODE_ENABLED) return false;
+            if (referencePinsAreIsoRouted != DEFAULT_REFERENCEPINAREISOROUTED_ENABLED) return false;
             if (referencePinsGCodeFileOutputExtension != DEFAULT_REFERENCEPINSGCODEFILE_OUTPUTEXTENSION) return false;
             if (referencePinsZDrillDepth != DEFAULT_REFERENCEPINSZDRILLDEPTH) return false;
             if (referencePinsZClearLevel != DEFAULT_REFERENCEPINSZCLEARLEVEL) return false;
@@ -769,6 +775,7 @@ namespace LineGrinder
 
             // ref pins
             referencePinGCodeEnabled = DEFAULT_REFERENCEPINGCODE_ENABLED;
+            referencePinsAreIsoRouted = DEFAULT_REFERENCEPINAREISOROUTED_ENABLED;
             referencePinsGCodeFileOutputExtension = DEFAULT_REFERENCEPINSGCODEFILE_OUTPUTEXTENSION;
             referencePinsZDrillDepth = DEFAULT_REFERENCEPINSZDRILLDEPTH;
             referencePinsZClearLevel = DEFAULT_REFERENCEPINSZCLEARLEVEL;
@@ -885,6 +892,7 @@ namespace LineGrinder
 
             //refpins
             // n/a referencePinGCodeEnabled 
+            // n/a referencePinsAreIsoRouted 
             // n/a referencePinsGCodeFileOutputExtension 
             referencePinsZDrillDepth = (referencePinsZDrillDepth * INCHTOMMSCALERx10) / 10;
             referencePinsZClearLevel = (referencePinsZClearLevel * INCHTOMMSCALERx10) / 10;
@@ -981,6 +989,7 @@ namespace LineGrinder
 
             //refpins
             // n/a referencePinGCodeEnabled 
+            // n/a referencePinsAreIsoRouted 
             // n/a referencePinsGCodeFileOutputExtension 
             referencePinsZDrillDepth = (referencePinsZDrillDepth * 10) / INCHTOMMSCALERx10;
             referencePinsZClearLevel = (referencePinsZClearLevel * 10) / INCHTOMMSCALERx10;
@@ -2176,6 +2185,26 @@ namespace LineGrinder
             set
             {
                 referencePinGCodeEnabled = value;
+            }
+        }
+
+        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+        /// <summary>
+        /// Gets/Sets thereferencePinsAreIsoRouted. 
+        /// </summary>
+        [DescriptionAttribute("If true the ReferencePin pads are iso routed, if false they are ignored.")]
+        [CategoryAttribute("Reference Pins")]
+        [ReadOnlyAttribute(false)]
+        [BrowsableAttribute(true)]
+        public bool ReferencePinsAreIsoRouted
+        {
+            get
+            {
+                return referencePinsAreIsoRouted;
+            }
+            set
+            {
+                referencePinsAreIsoRouted = value;
             }
         }
 

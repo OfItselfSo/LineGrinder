@@ -1200,9 +1200,10 @@ namespace LineGrinder
                 int x1 = workingXCoord;
                 int y1 = workingYCoord;
                 // are we on one of the refpin pads? - we do not isocut these
-                if (stateMachine.IsThisARefPinPad(DCodeCoord_X, DCodeCoord_Y, stateMachine.CurrentAperture.GetApertureDimension()) == true)
+                if ((stateMachine.IsThisARefPinPad(DCodeCoord_X, DCodeCoord_Y, stateMachine.CurrentAperture.GetApertureDimension()) == true) &&
+                    (stateMachine.ReferencePinsAreIsoRouted==false))
                 {
-                    // skip it, we do not isolation route refpin pads
+                    // skip it, we do not want to isolation route refpin pads
                 }
                 // are we on one of the ignore pads? - we do not isocut these
                 else if (stateMachine.IsThisAnIgnorePad(DCodeCoord_X, DCodeCoord_Y, stateMachine.CurrentAperture.GetApertureDimension()) == true)

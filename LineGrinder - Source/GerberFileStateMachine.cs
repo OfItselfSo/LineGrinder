@@ -813,6 +813,18 @@ namespace LineGrinder
 
         /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
         /// <summary>
+        /// Gets the ReferencePinsAreIsoRouted flag from the filemanager. Just a shortcut
+        /// </summary>
+        public bool ReferencePinsAreIsoRouted
+        {
+            get
+            {
+                return GerberFileManager.ReferencePinsAreIsoRouted;
+            }
+        }
+
+        /// +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+        /// <summary>
         /// Gets/Sets the Isolation width
         public float IsolationWidth
         {

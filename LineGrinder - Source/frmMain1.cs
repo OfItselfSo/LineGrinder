@@ -4080,6 +4080,7 @@ namespace LineGrinder
             mgrObj.IsoFlipMode = FlipModeEnum.X_Flip;
             mgrObj.IsoFlipAxisFoundBy = FlipAxisFoundByEnum.CalculateFromBoard;
             mgrObj.ReferencePinGCodeEnabled = false;
+            mgrObj.ReferencePinsAreIsoRouted = false;
             mgrObj.FilenamePattern = FileManager.KNOWN_EXT_BOTCOPPER_DSPARK;
             mgrObj.Description = "DesignSpark Bottom Layer";
             ctlFileManagersDisplay1.AddFileManager(mgrObj);
@@ -4089,6 +4090,8 @@ namespace LineGrinder
             mgrObj.OperationMode = FileManager.OperationModeEnum.IsolationCut;
             mgrObj.IsoFlipMode = FlipModeEnum.No_Flip;
             mgrObj.IsoFlipAxisFoundBy = FlipAxisFoundByEnum.CalculateFromBoard;
+            mgrObj.ReferencePinGCodeEnabled = false;
+            mgrObj.ReferencePinsAreIsoRouted = false;
             mgrObj.FilenamePattern = FileManager.KNOWN_EXT_TOPCOPPER_DSPARK;
             mgrObj.Description = "DesignSpark Top Layer";
             ctlFileManagersDisplay1.AddFileManager(mgrObj);
@@ -4134,6 +4137,7 @@ namespace LineGrinder
             mgrObj.IsoFlipMode = FlipModeEnum.X_Flip;
             mgrObj.IsoFlipAxisFoundBy = FlipAxisFoundByEnum.CalculateFromBoard;
             mgrObj.ReferencePinGCodeEnabled = false;
+            mgrObj.ReferencePinsAreIsoRouted = false;
             mgrObj.FilenamePattern = "copper_bottom.gbr";
             mgrObj.Description = "Eagle Bottom Layer";
             ctlFileManagersDisplay1.AddFileManager(mgrObj);
@@ -4143,6 +4147,8 @@ namespace LineGrinder
             mgrObj.OperationMode = FileManager.OperationModeEnum.IsolationCut;
             mgrObj.IsoFlipMode = FlipModeEnum.No_Flip;
             mgrObj.IsoFlipAxisFoundBy = FlipAxisFoundByEnum.CalculateFromBoard;
+            mgrObj.ReferencePinGCodeEnabled = false;
+            mgrObj.ReferencePinsAreIsoRouted = false;
             mgrObj.FilenamePattern = "copper_top.gbr";
             mgrObj.Description = "Eagle Top Layer";
             ctlFileManagersDisplay1.AddFileManager(mgrObj);
@@ -4188,6 +4194,7 @@ namespace LineGrinder
             mgrObj.IsoFlipMode = FlipModeEnum.X_Flip;
             mgrObj.IsoFlipAxisFoundBy = FlipAxisFoundByEnum.CalculateFromBoard;
             mgrObj.ReferencePinGCodeEnabled = false;
+            mgrObj.ReferencePinsAreIsoRouted = false;
             mgrObj.FilenamePattern = "_BottomLayer.GBL";
             mgrObj.Description = "EasyEDA Bottom Layer";
             ctlFileManagersDisplay1.AddFileManager(mgrObj);
@@ -4197,6 +4204,8 @@ namespace LineGrinder
             mgrObj.OperationMode = FileManager.OperationModeEnum.IsolationCut;
             mgrObj.IsoFlipMode = FlipModeEnum.No_Flip;
             mgrObj.IsoFlipAxisFoundBy = FlipAxisFoundByEnum.CalculateFromBoard;
+            mgrObj.ReferencePinGCodeEnabled = false;
+            mgrObj.ReferencePinsAreIsoRouted = false;
             mgrObj.FilenamePattern = "_TopLayer.GTL";
             mgrObj.Description = "EasyEDA Top Layer";
             ctlFileManagersDisplay1.AddFileManager(mgrObj);
@@ -4264,6 +4273,7 @@ namespace LineGrinder
             mgrObj.IsoFlipMode = FlipModeEnum.X_Flip;
             mgrObj.IsoFlipAxisFoundBy = FlipAxisFoundByEnum.CalculateFromBoard;
             mgrObj.ReferencePinGCodeEnabled = false;
+            mgrObj.ReferencePinsAreIsoRouted = false;
             mgrObj.FilenamePattern = FileManager.KNOWN_EXT_BOTCOPPER_KICAD;
             mgrObj.Description = "KiCad Bottom Layer";
             ctlFileManagersDisplay1.AddFileManager(mgrObj);
@@ -4274,6 +4284,7 @@ namespace LineGrinder
             mgrObj.IsoFlipMode = FlipModeEnum.No_Flip;
             mgrObj.IsoFlipAxisFoundBy = FlipAxisFoundByEnum.CalculateFromBoard;
             mgrObj.ReferencePinGCodeEnabled = false;
+            mgrObj.ReferencePinsAreIsoRouted = false;
             mgrObj.FilenamePattern = FileManager.KNOWN_EXT_TOPCOPPER_KICAD;
             mgrObj.Description = "KiCad Top Layer";
             ctlFileManagersDisplay1.AddFileManager(mgrObj);
