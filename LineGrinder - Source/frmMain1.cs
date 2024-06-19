@@ -5016,7 +5016,7 @@ namespace LineGrinder
                         {
                             return 105;
                         }
-                        DialogResult dlgRes = OISMessageBox_YesNo("Reference pins are enabled in the File Manager but no Reference Pins of size " + outputGerberFile.GerberFileManager.ReferencePinPadDiameter.ToString() + " could be found. The precise alignment of double sided boards may not be possible.\n\nOpen anyways?");
+                        DialogResult dlgRes = OISMessageBox_YesNo("Reference pins are enabled in the File Manager but no Reference Pins of the size specified in the File Manager could be found. The precise alignment of double sided boards may not be possible.\n\nOpen anyways?");
                         if (dlgRes == DialogResult.No)
                         {
                             // we already asked the user no need to warn again
