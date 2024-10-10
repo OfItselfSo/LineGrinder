@@ -688,9 +688,15 @@ namespace LineGrinder
             else wantBrowsable = true;
 
             PropertyDescriptor descriptor = TypeDescriptor.GetProperties(fileManagersObj.GetType())[propertyName];
-            BrowsableAttribute attrib = (BrowsableAttribute)descriptor.Attributes[typeof(BrowsableAttribute)];
-            FieldInfo browsable = attrib.GetType().GetField("browsable", BindingFlags.NonPublic | BindingFlags.Instance);
-            browsable.SetValue(attrib, wantBrowsable);
+            if(descriptor != null) {
+	            BrowsableAttribute attrib = (BrowsableAttribute)descriptor.Attributes[typeof(BrowsableAttribute)];
+	            if(attrib != null) {
+    		        FieldInfo browsable = attrib.GetType().GetField("browsable", BindingFlags.NonPublic | BindingFlags.Instance);
+    		        if(browsable != null) {
+            			browsable.SetValue(attrib, wantBrowsable);
+            		}
+            	}
+            }
         }
 
     }
