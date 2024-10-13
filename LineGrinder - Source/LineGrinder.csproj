@@ -203,9 +203,7 @@
     <Compile Include="GerberLine.cs" />
     <Compile Include="GerberApertureCollection.cs" />
     <Compile Include="GerberParseUtils.cs" />
-    <Compile Include="frmMain1.cs">
-      <SubType>Form</SubType>
-    </Compile>
+    <Compile Include="frmMain1.cs" />
     <Compile Include="frmMain1.Designer.cs">
       <DependentUpon>frmMain1.cs</DependentUpon>
     </Compile>
