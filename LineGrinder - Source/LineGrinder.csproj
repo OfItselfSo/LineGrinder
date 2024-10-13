@@ -141,15 +141,11 @@
     <Compile Include="GerberLine_LPCode.cs" />
     <Compile Include="GerberLine_IPCode.cs" />
     <Compile Include="GerberLine_OFCode.cs" />
-    <Compile Include="frmDisclaimer.cs">
-      <SubType>Form</SubType>
-    </Compile>
+    <Compile Include="frmDisclaimer.cs" />
     <Compile Include="frmDisclaimer.Designer.cs">
       <DependentUpon>frmDisclaimer.cs</DependentUpon>
     </Compile>
-    <Compile Include="frmAbout.cs">
-      <SubType>Form</SubType>
-    </Compile>
+    <Compile Include="frmAbout.cs" />
     <Compile Include="frmAbout.Designer.cs">
       <DependentUpon>frmAbout.cs</DependentUpon>
     </Compile>
@@ -165,9 +161,7 @@
     <Compile Include="ExcellonFileStateMachine.cs" />
     <Compile Include="ExcellonLine.cs" />
     <Compile Include="FileManager.cs" />
-    <Compile Include="frmFileManagerChooser.cs">
-      <SubType>Form</SubType>
-    </Compile>
+    <Compile Include="frmFileManagerChooser.cs" />
     <Compile Include="frmFileManagerChooser.Designer.cs">
       <DependentUpon>frmFileManagerChooser.cs</DependentUpon>
     </Compile>
@@ -242,15 +236,11 @@
       <DependentUpon>Settings.settings</DependentUpon>
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
     </Compile>
-    <Compile Include="ctlPlotViewer.cs">
-      <SubType>UserControl</SubType>
-    </Compile>
+    <Compile Include="ctlPlotViewer.cs" />
     <Compile Include="ctlPlotViewer.Designer.cs">
       <DependentUpon>ctlPlotViewer.cs</DependentUpon>
     </Compile>
-    <Compile Include="ctlFileManagerDisplay.cs">
-      <SubType>UserControl</SubType>
-    </Compile>
+    <Compile Include="ctlFileManagerDisplay.cs" />
     <Compile Include="ctlFileManagerDisplay.Designer.cs">
       <DependentUpon>ctlFileManagerDisplay.cs</DependentUpon>
     </Compile>
